@@ -1,54 +1,18 @@
-## Customize this file after creating the new REPO and remove this lines.
-What to adjust:  
-* Add the your project or repo name direct under the logo.
-* Add a short and long desciption.
-* Add links for your final repo to report a bug or request a feature.
-* Add list of used technologies.
-* If you have, add a roadmap or remove this section.
-* Fill up the section for set up and documentation.
- * Start in this file only with documentation and link to the docs folder.
-* Add more project shields. Use [shields.io](https://shields.io/) with style `for-the-badge`.
-
-## ------- end to remove -------
-<!-- add Project Logo, if existing -->
-
-# repo or project name
+# SWIM
 
 [![Made with love by it@M][made-with-love-shield]][itm-opensource]
 <!-- feel free to add more shields, style 'for-the-badge' -> see https://shields.io/badges -->
 
-*Add a description from your project here.*
+Repository for different services and components of the SWIM project.
+SWIM comes from german "Stadtweites Inputmanagement" which stands for "city-wide input management".
 
+The different components are built with [Spring](https://spring.io/).
 
-### Built With
+## Components
 
-The documentation project is built with technologies we use in our projects:
+Following a list and short description of the different components:
 
-* *write here the list of used technologies*
-
-## Roadmap
-
-*if you have a ROADMAP for your project add this here*
-
-
-See the [open issues](#) for a full list of proposed features (and known issues).
-
-
-## Set up
-*how can i start and fly this project*
-
-## Documentation
-*what insights do you have to tell*
-
-```mermaid
-graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
-```
-
-use [diagrams](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams).
+- TODO
 
 ## Contributing
 

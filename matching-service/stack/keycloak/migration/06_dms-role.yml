@@ -1,0 +1,11 @@
+id: dms-role
+author: Default
+realm: local_realm
+changes:
+  - addRole:
+      name: dms-importer
+      clientId: local
+  - assignRole:
+      user: user
+      role: dms-importer
+      clientId: local

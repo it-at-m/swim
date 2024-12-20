@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>de.muenchen.swim</groupId>
+    <groupId>de.muenchen.oss.swim</groupId>
     <artifactId>matching-service</artifactId>
     <name>matching-service</name>
     <version>0.0.1-SNAPSHOT</version>

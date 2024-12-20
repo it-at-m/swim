@@ -12,7 +12,7 @@ The different components are built with [Spring](https://spring.io/).
 
 Following a list and short description of the different components:
 
-- TODO
+- [matching-service](./matching-service): Service for managing recipient matching data for the SWIM
 
 ## Contributing
 

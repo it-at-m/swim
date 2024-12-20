@@ -1,0 +1,7 @@
+includes:
+  - path: 01_init-realm.yml
+  - path: 02_add-clients.yml
+  - path: 03_add-user.yml
+  - path: 04_local-audience.yml
+  - path: 05_client-origins.yml
+  - path: 06_dms-role.yml

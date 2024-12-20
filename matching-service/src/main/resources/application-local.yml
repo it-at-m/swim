@@ -1,0 +1,56 @@
+server:
+  port: 39146
+spring:
+#  # Spring JPA
+#  jpa:
+#    # Logging for database operation
+#    show-sql: true
+#    properties:
+#      hibernate:
+#        format_sql: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    password: admin
+    username: admin
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${sso.url}/auth/realms/${sso.realm}/protocol/openid-connect/certs
+          # adds audience verification - https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html#_supplying_audiences
+          # requires client to be in audience claim, see https://www.keycloak.org/docs/latest/server_admin/#_audience_resolve
+          audiences:
+            - ${sso.client}
+  ldap:
+    urls: ldaps://ldap.muenchen.de
+
+springdoc:
+  swagger-ui:
+    oauth:
+      realm: ${sso.realm}
+      client-id: ${sso.client}
+
+# Define the local keycloak realm here
+sso:
+  url: http://localhost:8100
+  realm: local_realm
+  client: local
+
+security:
+  # possible values: none, all, changing (With changing, only changing requests such as POST, PUT, DELETE are logged)
+  logging:
+    requests: all
+  oauth2:
+    resource:
+      user-info-uri: ${sso.url}/auth/realms/${sso.realm}/protocol/openid-connect/userinfo
+    open-id-connect-url: ${sso.url}/auth/realms/${sso.realm}/.well-known/openid-configuration
+
+swim:
+  ldap:
+    search-ous:
+      - rit
+      - itm
+      - soz
+      - ska
+      - rbs
+    user-base-ou: "ou=%s,o=lhm,c=de"

@@ -1,0 +1,25 @@
+server:
+  port: 39147
+spring:
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:29092
+          configuration:
+            security:
+              protocol: PLAINTEXT
+      bindings:
+        dms-in-0:
+          group: swim-dms
+          destination: swim-dms-local
+        finished-out:
+          destination: swim-finished-local
+
+swim:
+  dms:
+    base-url: "https://dmsresteai-test-dmsresteai.apps.capk.muenchen.de/api"
+  use-cases:
+    - name: test-meta
+      type: inbox
+      coo-source: metadata_file

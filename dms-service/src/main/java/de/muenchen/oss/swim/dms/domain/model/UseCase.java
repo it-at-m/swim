@@ -1,4 +1,4 @@
-package de.muenchen.swim.dms.domain.model;
+package de.muenchen.oss.swim.dms.domain.model;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

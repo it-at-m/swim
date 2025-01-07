@@ -9,7 +9,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>de.muenchen.swim</groupId>
+    <groupId>de.muenchen.oss.swim</groupId>
     <artifactId>dms-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>dms-service</name>

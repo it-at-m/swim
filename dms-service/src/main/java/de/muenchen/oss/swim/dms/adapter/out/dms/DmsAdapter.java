@@ -11,7 +11,6 @@ import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.AbstractResource;
@@ -63,7 +62,11 @@ public class DmsAdapter implements DmsOutPort {
                     dmsTarget.joboe(),
                     dmsTarget.jobposition(),
                     List.of(file)).block();
-            return Objects.requireNonNull(response).getObjid();
+            if (response != null) {
+                return response.getObjid();
+            } else {
+                throw new DmsException("Response null while putting file in procedure");
+            }
         } catch (final IOException | WebClientResponseException e) {
             throw new DmsException("Error while putting file in procedure", e);
         }

@@ -1,6 +1,7 @@
 package de.muenchen.swim.dms.adapter.out.dms;
 
 import de.muenchen.refarch.integration.dms.ApiClient;
+import de.muenchen.refarch.integration.dms.api.IncomingsApi;
 import de.muenchen.refarch.integration.dms.api.ObjectAndImportToInboxApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -19,5 +20,10 @@ class ApiClientConfiguration {
     @Bean
     protected ObjectAndImportToInboxApi objectAndImportToInboxApi(final ApiClient apiClient) {
         return new ObjectAndImportToInboxApi(apiClient);
+    }
+
+    @Bean
+    protected IncomingsApi incomingsApi(final ApiClient apiClient) {
+        return new IncomingsApi(apiClient);
     }
 }

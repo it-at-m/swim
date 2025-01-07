@@ -25,7 +25,10 @@ public class UseCase {
          * Create an Object inside an Inbox.
          */
         INBOX,
-        PROCEDURE
+        /**
+         * Create an Incoming inside a Procedure.
+         */
+        INCOMING_OBJECT
     }
 
     public enum CooSource {

@@ -51,8 +51,9 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             switch (useCase.getType()) {
             // to dms inbox
             case INBOX -> dmsOutPort.putFileInInbox(dmsTarget, filename, fileStream);
-            // TODO to dms procedure
-            case PROCEDURE -> throw new UnsupportedOperationException("Dms procedure not implemented yet");
+            // create dms incoming
+            // TODO incoming name
+            case INCOMING_OBJECT -> dmsOutPort.createIncoming(dmsTarget, filename, filename, fileStream);
             }
         } catch (final IOException e) {
             throw new PresignedUrlException("Error while handling file InputStream", e);
@@ -124,7 +125,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             if (cooAddress == null || username == null) {
                 throw new MetadataException("Coo or username not found in metadata json");
             }
-            return new DmsTarget(cooAddress, username);
+            return new DmsTarget(cooAddress, username, null, null);
         } catch (final IOException e) {
             throw new MetadataException("Error while parsing metadata json", e);
         }

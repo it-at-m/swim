@@ -1,6 +1,6 @@
 # SWIM DMS-Service
 
-SWIM service for transferring files into DMS when notified from dispatch-service (Kafka)
+SWIM service for transferring files into DMS when notified by dispatch-service via Apache Kafka
 
 ## Architecture
 
@@ -8,4 +8,5 @@ SWIM service for transferring files into DMS when notified from dispatch-service
 flowchart LR
     Kafka --> DMS-Service
     DMS-Service --> DMS-REST-EAI
+    DMS-Service --> Kafka
 ```

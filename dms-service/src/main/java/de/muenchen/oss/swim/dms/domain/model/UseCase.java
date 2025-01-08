@@ -19,6 +19,24 @@ public class UseCase {
      */
     @NotNull
     private CooSource cooSource;
+    /**
+     * Static target coo.
+     * See {@link UseCase.CooSource#STATIC}
+     */
+    private String targetCoo;
+    /**
+     * Username used for accessing dms.
+     * Used except {@link UseCase.CooSource#METADATA_FILE}
+     */
+    private String username;
+    /**
+     * Joboe for dms requests.
+     */
+    private String joboe = null;
+    /**
+     * Jobposition for dms requests.
+     */
+    private String jobposition = null;
 
     public enum Type {
         /**
@@ -36,6 +54,11 @@ public class UseCase {
          * Target coo is extracted from separate metadata file.
          */
         METADATA_FILE,
-        FILENAME
+        FILENAME,
+        /**
+         * Target coo is statically configured.
+         * {@link UseCase#targetCoo}
+         */
+        STATIC
     }
 }

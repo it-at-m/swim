@@ -44,7 +44,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         // load file
         try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(presignedUrl)) {
             // get target coo
-            final DmsTarget dmsTarget = resolveTargetCoo(metadataPresignedUrl, useCase);
+            final DmsTarget dmsTarget = resolveTargetCoo(metadataPresignedUrl, useCase, file);
             log.debug("Resolved dms target: {}", dmsTarget);
             // transfer to dms
             final String filename = String.format("%s", file.path().substring(file.path().lastIndexOf('/') + 1));
@@ -69,7 +69,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param useCase The use case.
      * @return The resolved coo.
      */
-    protected DmsTarget resolveTargetCoo(final String metadataPresignedUrl, final UseCase useCase) {
+    protected DmsTarget resolveTargetCoo(final String metadataPresignedUrl, final UseCase useCase, final File file) {
         return switch (useCase.getCooSource()) {
         // resolve coo from metadata file
         case METADATA_FILE -> {
@@ -87,6 +87,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         }
         // TODO resolve coo from filename
         case FILENAME -> throw new UnsupportedOperationException("Coo source type filename not implemented yet");
+        case STATIC -> new DmsTarget(useCase.getTargetCoo(), useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         };
     }
 

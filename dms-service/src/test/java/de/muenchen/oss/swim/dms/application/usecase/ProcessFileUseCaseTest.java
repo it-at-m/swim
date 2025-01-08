@@ -17,7 +17,6 @@ import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.File;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
-import java.io.InputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -97,9 +96,8 @@ class ProcessFileUseCaseTest {
 
     @Test
     void testExtractMetadataCoo() {
-        final InputStream inputStream = getClass().getResourceAsStream("/files/example-metadata.json");
         // call
-        final DmsTarget dmsTarget = processFileUseCase.extractCooFromMetadata(inputStream);
+        final DmsTarget dmsTarget = processFileUseCase.extractCooFromMetadata(getClass().getResourceAsStream("/files/example-metadata.json"));
         // test
         assertEquals(METADATA_DMS_TARGET, dmsTarget);
     }

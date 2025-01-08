@@ -44,6 +44,9 @@
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
         <argLine></argLine> <!-- Must be empty, definition needed for integration of Jacoco and Surefire via @{argLine} lazy property evaluation -->
 
+        <!-- Release -->
+        <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
+
         <!-- Utility -->
         <commons-collections4.version>4.4</commons-collections4.version>
         <commons-csv.version>1.12.0</commons-csv.version>
@@ -328,6 +331,15 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- Release -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
             </plugin>
 
             <!-- Codeformatter Spotless -->

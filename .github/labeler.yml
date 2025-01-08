@@ -1,0 +1,23 @@
+"Type: Feature":
+  - head-branch: [ '^feat', '-feature-' ]
+"Type: Bug":
+  - head-branch: [ '^bug', '-bug-' ]
+"Type: Maintenance":
+  - head-branch: [ '^maint', '^refact', '-maintenance-' ]
+"Type: Documentation":
+  - head-branch: [ '^docs', '-documentation-' ]
+  - changed-files:
+    - any-glob-to-any-file: [ 'docs/**' ]
+"Type: Dependency":
+  - head-branch: [ '^dep', '-dependency-' ]
+"Type: Security":
+  - head-branch: [ '^sec', '-security-' ]
+"Component: Matching":
+  - changed-files:
+    - any-glob-to-any-file: [ 'matching-service/**' ]
+"Component: Dispatch":
+  - changed-files:
+    - any-glob-to-any-file: [ 'dispatch-service/**' ]
+"Component: DMS":
+  - changed-files:
+    - any-glob-to-any-file: [ 'dms-service/**' ]

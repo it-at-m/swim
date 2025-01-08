@@ -16,6 +16,7 @@
     <name>matching-service</name>
     <version>0.0.1-SNAPSHOT</version>
     <description>Service for managing recipient matching data from SWIM</description>
+    <url>https://github.com/it-at-m/swim</url>
 
     <properties>
         <!-- Compilation -->
@@ -264,15 +265,7 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-
     </dependencies>
-
-
-    <scm>
-        <connection>scm:git:https://github.com/it-at-m/refarch-templates.git</connection>
-        <developerConnection>scm:git:https://github.com/it-at-m/refarch-templates.git</developerConnection>
-    </scm>
-
 
     <build>
         <plugins>
@@ -428,4 +421,23 @@
             </plugin>
         </plugins>
     </build>
+
+    <scm>
+        <url>https://github.com/it-at-m/swim.git</url>
+        <connection>scm:git:https://github.com/it-at-m/swim.git</connection>
+        <developerConnection>scm:git:https://github.com/it-at-m/swim.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+    <licenses>
+        <license>
+            <name>MIT</name>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <organization>it@M</organization>
+            <email>opensource@muenchen.de</email>
+            <url>https://github.com/it-at-m</url>
+        </developer>
+    </developers>
 </project>

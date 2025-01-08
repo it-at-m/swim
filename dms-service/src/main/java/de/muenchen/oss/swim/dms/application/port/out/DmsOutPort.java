@@ -24,7 +24,7 @@ public interface DmsOutPort {
      * @param dmsTarget The target Procedure.
      * @param incomingName The name of the new Incoming.
      * @param fileName The name of the ContentObject inside the Incoming.
-     * @param inputStream The content of the new Incoming.
+     * @param inputStream The content of the new ContentObject.
      * @return The coo of the new Incoming.
      */
     String createIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotBlank String incomingName, @NotBlank String fileName, @NotNull InputStream inputStream);

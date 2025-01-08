@@ -108,6 +108,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      *
      * @param inputStream InputStream of metadata file.
      * @return The inbox coo.
+     * @throws MetadataException If file can't be parsed or required values are missing.
      */
     protected DmsTarget extractCooFromMetadata(@NotNull final InputStream inputStream) {
         try {

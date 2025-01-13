@@ -25,6 +25,11 @@ public class UseCase {
      * With {@link Type#INCOMING_OBJECT} the filename is used as Incoming name.
      */
     private String filenameOverwritePattern;
+    /**
+     * Regex pattern for defining a custom ContentObject name.
+     * If not defined filename is used.
+     */
+    private String contentObjectNamePattern;
      * Static target coo.
      * See {@link UseCase.CooSource#STATIC}
      */

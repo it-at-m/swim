@@ -59,8 +59,10 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             // to dms inbox
             case INBOX -> dmsOutPort.putFileInInbox(dmsTarget, filename, fileStream);
             // create dms incoming
-            // TODO incoming name
-            case INCOMING_OBJECT -> dmsOutPort.createIncoming(dmsTarget, filename, filename, fileStream);
+            case INCOMING_OBJECT -> {
+                final String incomingObjectName = this.applyOverwritePattern(useCase.getContentObjectNamePattern(), file.getFileName(), PATTERN_JOINER);
+                dmsOutPort.createIncoming(dmsTarget, filename, incomingObjectName, fileStream);
+            }
             }
         } catch (final IOException e) {
             throw new PresignedUrlException("Error while handling file InputStream", e);

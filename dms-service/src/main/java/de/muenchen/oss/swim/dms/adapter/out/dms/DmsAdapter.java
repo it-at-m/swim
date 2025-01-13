@@ -47,14 +47,14 @@ public class DmsAdapter implements DmsOutPort {
     }
 
     @Override
-    public String createIncoming(final DmsTarget dmsTarget, final String incomingName, final String fileName, final InputStream inputStream) {
-        log.debug("Putting file {} in procedure {}", fileName, dmsTarget);
+    public String createIncoming(final DmsTarget dmsTarget, final String incomingName, final String contentObjectName, final InputStream inputStream) {
+        log.debug("Putting file {} in procedure {}", contentObjectName, dmsTarget);
         final CreateIncomingBasisAnfrageDTO request = new CreateIncomingBasisAnfrageDTO();
         request.referrednumber(dmsTarget.coo());
         request.shortname(incomingName);
         try {
             // FIXME directly use InputStream
-            final AbstractResource file = new NamedByteArrayRessource(fileName, inputStream.readAllBytes());
+            final AbstractResource file = new NamedByteArrayRessource(contentObjectName, inputStream.readAllBytes());
             final CreateIncomingAntwortDTO response = incomingsApi.eingangZuVorgangAnlegen(
                     request,
                     DMS_APPLICATION,

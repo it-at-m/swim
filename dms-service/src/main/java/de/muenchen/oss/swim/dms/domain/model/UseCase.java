@@ -30,6 +30,7 @@ public class UseCase {
      * If not defined filename is used.
      */
     private String contentObjectNamePattern;
+    /**
      * Static target coo.
      * See {@link UseCase.CooSource#STATIC}
      */

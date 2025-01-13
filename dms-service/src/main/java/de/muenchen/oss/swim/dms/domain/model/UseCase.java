@@ -20,6 +20,11 @@ public class UseCase {
     @NotNull
     private CooSource cooSource;
     /**
+     * Regex pattern for overwriting filename in dms by providing regex pattern.
+     * Pattern is applied to s3 filename.
+     * With {@link Type#INCOMING_OBJECT} the filename is used as Incoming name.
+     */
+    private String filenameOverwritePattern;
      * Static target coo.
      * See {@link UseCase.CooSource#STATIC}
      */

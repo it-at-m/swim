@@ -17,6 +17,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
@@ -29,6 +34,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     public static final String METADATA_INDEX_FIELDS_KEY = "IndexFields";
     public static final String METADATA_INBOX_COO_KEY = "Postkorb-COO-Adresse";
     public static final String METADATA_USERNAME_KEY = "Username";
+    public static final String PATTERN_JOINER = "-";
 
     private final SwimDmsProperties swimDmsProperties;
     private final FileSystemOutPort fileSystemOutPort;
@@ -46,8 +52,9 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             // get target coo
             final DmsTarget dmsTarget = resolveTargetCoo(metadataPresignedUrl, useCase, file);
             log.debug("Resolved dms target: {}", dmsTarget);
+            // get filename
+            final String filename = this.applyOverwritePattern(useCase.getFilenameOverwritePattern(), file.getFileName(), PATTERN_JOINER);
             // transfer to dms
-            final String filename = String.format("%s", file.path().substring(file.path().lastIndexOf('/') + 1));
             switch (useCase.getType()) {
             // to dms inbox
             case INBOX -> dmsOutPort.putFileInInbox(dmsTarget, filename, fileStream);
@@ -130,6 +137,30 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             return new DmsTarget(cooAddress, username, null, null);
         } catch (final IOException e) {
             throw new MetadataException("Error while parsing metadata json", e);
+        }
+    }
+
+    /**
+     * Apply pattern to input String by joining all matching groups.
+     *
+     * @param pattern Pattern to apply.
+     * @param input Input to apply pattern to.
+     * @param joiner Sequence for joining matching groups.
+     * @return Result string.
+     */
+    protected String applyOverwritePattern(final String pattern, final String input, final String joiner) {
+        if (Strings.isBlank(pattern)) {
+            return input;
+        }
+        final Matcher matcher = Pattern.compile(pattern).matcher(input);
+        if (matcher.find()) {
+            final List<String> groups = new ArrayList<>();
+            for (int i = 1; i <= matcher.groupCount(); i++) {
+                groups.add(matcher.group(i));
+            }
+            return String.join(joiner, groups);
+        } else {
+            throw new IllegalStateException("Overwrite pattern not matching input");
         }
     }
 }

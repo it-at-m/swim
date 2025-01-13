@@ -101,4 +101,14 @@ class ProcessFileUseCaseTest {
         // test
         assertEquals(METADATA_DMS_TARGET, dmsTarget);
     }
+
+    @Test
+    void testApplyOverwritePattern() {
+        // null pattern
+        final String resultNull = processFileUseCase.applyOverwritePattern(null, "input", "-");
+        assertEquals("input", resultNull);
+        // with pattern
+        final String result = processFileUseCase.applyOverwritePattern("(.+)-COO[\\d\\.]+-(.*)", "Test123-COO123.123.123-ExampleTest.pdf", "-");
+        assertEquals("Test123-ExampleTest.pdf", result);
+    }
 }

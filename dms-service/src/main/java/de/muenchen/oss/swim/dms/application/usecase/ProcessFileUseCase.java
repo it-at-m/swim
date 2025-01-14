@@ -71,7 +71,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     }
 
     /**
-     * Resolve target coo for useCase. Either via metadata file or filename.
+     * Resolve target coo for useCase.
+     * {@link UseCase.Type}
      *
      * @param metadataPresignedUrl Presigned url for metadata file.
      * @param useCase The use case.
@@ -79,25 +80,35 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      */
     protected DmsTarget resolveTargetCoo(final String metadataPresignedUrl, final UseCase useCase, final File file) {
         return switch (useCase.getCooSource()) {
-        // resolve coo from metadata file
-        case METADATA_FILE -> {
-            // validate metadata presigned url provided
-            if (Strings.isBlank(metadataPresignedUrl)) {
-                throw new MetadataException("Metadata presigned url empty but required");
-            }
-            // get metadata file
-            try (InputStream metadataStream = fileSystemOutPort.getPresignedUrlFile(metadataPresignedUrl)) {
-                // extract coo
-                yield extractCooFromMetadata(metadataStream);
-            } catch (final IOException e) {
-                throw new MetadataException("Error while processing metadata file", e);
-            }
-        }
+        case METADATA_FILE -> this.resolveMetadataTargetCoo(metadataPresignedUrl, useCase);
         // TODO resolve coo from filename
         case FILENAME -> throw new UnsupportedOperationException("Coo source type filename not implemented yet");
         case STATIC -> new DmsTarget(useCase.getTargetCoo(), useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         case OU_DEFAULT -> new DmsTarget(null, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         };
+    }
+
+    /**
+     * Resolve DmsTarget via metadata file.
+     *
+     * @param metadataPresignedUrl Presigned url of the metadata file.
+     * @param useCase UseCase of the file.
+     * @return Resolved DmsTarget.
+     */
+    protected DmsTarget resolveMetadataTargetCoo(final String metadataPresignedUrl, final UseCase useCase) {
+        // validate metadata presigned url provided
+        if (Strings.isBlank(metadataPresignedUrl)) {
+            throw new MetadataException("Metadata presigned url empty but required");
+        }
+        // get metadata file
+        try (InputStream metadataStream = fileSystemOutPort.getPresignedUrlFile(metadataPresignedUrl)) {
+            // extract coo and username from metadata
+            final DmsTarget metadataTarget = extractCooFromMetadata(metadataStream);
+            // combine with use case joboe and jobposition
+            return new DmsTarget(metadataTarget.coo(), metadataTarget.userName(), useCase.getJoboe(), useCase.getJobposition());
+        } catch (final IOException e) {
+            throw new MetadataException("Error while processing metadata file", e);
+        }
     }
 
     /**

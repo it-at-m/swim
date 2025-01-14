@@ -41,8 +41,11 @@ public class DmsAdapter implements DmsOutPort {
                     null,
                     null,
                     List.of(file)).block();
-        } catch (final IOException | WebClientResponseException e) {
-            throw new DmsException("Error while putting file in inbox", e);
+            log.info("Created new Object {} for Inbox {}", fileName, dmsTarget);
+        } catch (final IOException e) {
+            throw new DmsException("Error while handling input stream", e);
+        } catch (final WebClientResponseException e) {
+            throw new DmsException(String.format("Dms request failed with message: %s", e.getResponseBodyAsString()), e);
         }
     }
 
@@ -63,12 +66,16 @@ public class DmsAdapter implements DmsOutPort {
                     dmsTarget.jobposition(),
                     List.of(file)).block();
             if (response != null) {
-                return response.getObjid();
+                final String coo = response.getObjid();
+                log.info("Created new Incoming {} for {}", coo, dmsTarget);
+                return coo;
             } else {
                 throw new DmsException("Response null while putting file in procedure");
             }
-        } catch (final IOException | WebClientResponseException e) {
-            throw new DmsException("Error while putting file in procedure", e);
+        } catch (final IOException e) {
+            throw new DmsException("Error while handling input stream for new Incoming", e);
+        } catch (final WebClientResponseException e) {
+            throw new DmsException(String.format("Dms request failed with message: %s", e.getResponseBodyAsString()), e);
         }
     }
 }

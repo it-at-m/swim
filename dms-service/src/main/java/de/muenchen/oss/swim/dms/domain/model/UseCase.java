@@ -55,7 +55,9 @@ public class UseCase {
          */
         INBOX,
         /**
-         * Create an Incoming inside a Procedure.
+         * Create an Incoming
+         * Either inside given Procedure {@link DmsTarget#coo} or default Procedure of OU
+         * {@link DmsTarget#joboe}.
          */
         INCOMING_OBJECT
     }
@@ -70,6 +72,10 @@ public class UseCase {
          * Target coo is statically configured.
          * {@link UseCase#targetCoo}
          */
-        STATIC
+        STATIC,
+        /**
+         * Target is resolved via OU {@link DmsTarget#joboe}.
+         */
+        OU_DEFAULT
     }
 }

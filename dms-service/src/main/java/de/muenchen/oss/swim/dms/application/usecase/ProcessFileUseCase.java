@@ -96,6 +96,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         // TODO resolve coo from filename
         case FILENAME -> throw new UnsupportedOperationException("Coo source type filename not implemented yet");
         case STATIC -> new DmsTarget(useCase.getTargetCoo(), useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
+        case OU_DEFAULT -> new DmsTarget(null, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         };
     }
 

@@ -19,7 +19,9 @@ public interface DmsOutPort {
     void putFileInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotBlank String fileName, @NotNull InputStream inputStream);
 
     /**
-     * Create Incoming inside a Procedure.
+     * Create Incoming.
+     * Either inside given Procedure {@link DmsTarget#coo} or default Procedure of OU
+     * {@link DmsTarget#joboe}.
      *
      * @param dmsTarget The target Procedure.
      * @param incomingName The name of the new Incoming.

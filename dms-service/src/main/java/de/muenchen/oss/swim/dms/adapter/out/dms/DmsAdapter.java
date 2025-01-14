@@ -55,6 +55,7 @@ public class DmsAdapter implements DmsOutPort {
         final CreateIncomingBasisAnfrageDTO request = new CreateIncomingBasisAnfrageDTO();
         request.referrednumber(dmsTarget.coo());
         request.shortname(incomingName);
+        request.useou(true);
         try {
             // FIXME directly use InputStream
             final AbstractResource file = new NamedByteArrayRessource(contentObjectName, inputStream.readAllBytes());

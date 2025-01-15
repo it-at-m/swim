@@ -19,7 +19,8 @@ class GroupInboxRepository {
     }
 
     protected void saveAll(final List<GroupInboxMatchingEntry> groupInboxMatchingEntries) {
-        final String sql = String.format("INSERT INTO %s (coo, username, inbox_name, ou, dms_tenant) VALUES (?, ?, ?, ?, ?)", GroupInboxMatchingEntry.TABLE_NAME);
+        final String sql = String.format("INSERT INTO %s (coo, username, inbox_name, ou, dms_tenant) VALUES (?, ?, ?, ?, ?)",
+                GroupInboxMatchingEntry.TABLE_NAME);
         jdbcTemplate.batchUpdate(sql, groupInboxMatchingEntries, CHUNK_SIZE, (ps, argument) -> {
             ps.setString(1, argument.getCoo());
             ps.setString(2, argument.getUsername());

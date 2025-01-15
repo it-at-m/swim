@@ -37,9 +37,10 @@ class InboxMapperTest {
 
     @Test
     void testMapGroupInbox() {
-        final GroupDmsInbox groupDmsInbox = inboxMapper.toGroupInbox(GROUP_INBOX_1);
+        final GroupDmsInbox groupDmsInbox = inboxMapper.toGroupInbox(GROUP_INBOX_1, USER_1);
         // test
         assertEquals(GROUP_INBOX_1.getCoo(), groupDmsInbox.getCoo());
+        assertEquals(USER_1.username(), groupDmsInbox.getUsername());
         assertEquals(GROUP_INBOX_1.getName(), groupDmsInbox.getName());
         assertEquals(GROUP_INBOX_1.getOu(), groupDmsInbox.getOu());
         assertEquals(GROUP_INBOX_1.getDmsTenant(), groupDmsInbox.getDmsTenant());

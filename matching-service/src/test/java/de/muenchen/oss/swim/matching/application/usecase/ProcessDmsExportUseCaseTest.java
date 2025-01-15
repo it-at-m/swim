@@ -44,6 +44,7 @@ class ProcessDmsExportUseCaseTest {
         processDmsExportUseCase.process(dmsInboxes);
 
         // test
+        verify(userInformationOutPort, times(2)).getAllUsers();
         // user
         verify(processDmsExportUseCase, times(1)).processUserInboxes(eq(List.of(USER_INBOX_1, USER_INBOX_2)), any());
         final UserDmsInbox userDmsInbox1 = inboxMapper.toUserInbox(USER_INBOX_1, USER_1);
@@ -51,7 +52,7 @@ class ProcessDmsExportUseCaseTest {
         verify(storeMatchingEntriesOutPort, times(1)).storeUserInboxes(eq(List.of(userDmsInbox1, userDmsInbox2)));
         // group
         verify(processDmsExportUseCase, times(1)).processGroupInboxes(eq(List.of(GROUP_INBOX_1)), any());
-        final GroupDmsInbox groupDmsInbox1 = inboxMapper.toGroupInbox(GROUP_INBOX_1);
+        final GroupDmsInbox groupDmsInbox1 = inboxMapper.toGroupInbox(GROUP_INBOX_1, USER_1);
         verify(storeMatchingEntriesOutPort, times(1)).storeGroupInboxes(eq(List.of(groupDmsInbox1)));
     }
 }

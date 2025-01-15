@@ -40,7 +40,7 @@ public final class TestConstants {
     public static final DmsInbox GROUP_INBOX_1 = new DmsInbox(
             "COO.1234.1234.2.1234567",
             "Test Group Inbox",
-            null,
+            "123456789",
             OU1_2,
             TENANT1,
             DmsInbox.InboxType.GROUP);

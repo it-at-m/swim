@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.ldap.query.LdapQuery;
 import org.springframework.ldap.query.LdapQueryBuilder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.ldap.core.LdapTemplate;
 @Slf4j
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class LdapAdapter implements UserInformationOutPort {
+    public static final String CACHE_KEY = "ldap-users";
     public static final String OBJECT_CLASS = "objectClass";
     public static final String OBJECT_CLASS_PERSON = "lhmPerson";
     public static final String LHM_OBJECT_ID = "lhmObjectID";
@@ -25,6 +27,7 @@ public class LdapAdapter implements UserInformationOutPort {
     private final LdapProperties ldapProperties;
 
     @Override
+    @Cacheable(CACHE_KEY)
     public List<User> getAllUsers() {
         log.debug("Starting loading users from ldap");
         final List<User> users = new ArrayList<>();

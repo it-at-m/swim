@@ -14,6 +14,7 @@ import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileEventOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
+import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.File;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
@@ -50,7 +51,8 @@ class ProcessFileUseCaseTest {
     private final static String FILE_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, FILE_PATH);
     private final static String METADAT_PATH = "test-path/test.json";
     private final static String METADATA_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, METADAT_PATH);
-    private final static DmsTarget METADATA_DMS_TARGET = new DmsTarget("metadataCoo", "metadata.username", null, null);
+    private final static DmsTarget METADATA_DMS_TARGET_USER = new DmsTarget("userMetadataCoo", "metadata.user", null, null);
+    private final static DmsTarget METADATA_DMS_TARGET_GROUP = new DmsTarget("groupMetadataCoo", "metadata.group", null, null);
     private final static DmsTarget STATIC_DMS_TARGET = new DmsTarget("staticCoo", "staticUsername", "staticJobOe", "staticJobPosition");
 
     @Test
@@ -59,14 +61,14 @@ class ProcessFileUseCaseTest {
         final UseCase useCase = processFileUseCase.findUseCase(useCaseName);
         // setup
         when(fileSystemOutPort.getPresignedUrlFile(eq(FILE_PRESIGNED_URL))).thenReturn(null);
-        when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL))).thenReturn(getClass().getResourceAsStream("/files/example-metadata.json"));
+        when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL))).thenReturn(getClass().getResourceAsStream("/files/example-metadata-user.json"));
         // call
         processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, METADATA_PRESIGNED_URL);
         // test
         verify(processFileUseCase, times(2)).findUseCase(eq(useCaseName));
         verify(processFileUseCase, times(1)).resolveTargetCoo(eq(METADATA_PRESIGNED_URL), eq(useCase), eq(FILE));
         verify(processFileUseCase, times(1)).extractCooFromMetadata(any());
-        verify(dmsOutPort, times(1)).putFileInInbox(eq(METADATA_DMS_TARGET), eq("test.pdf"), eq(null));
+        verify(dmsOutPort, times(1)).putFileInInbox(eq(METADATA_DMS_TARGET_USER), eq("test.pdf"), eq(null));
     }
 
     @Test
@@ -96,10 +98,16 @@ class ProcessFileUseCaseTest {
 
     @Test
     void testExtractMetadataCoo() {
-        // call
-        final DmsTarget dmsTarget = processFileUseCase.extractCooFromMetadata(getClass().getResourceAsStream("/files/example-metadata.json"));
-        // test
-        assertEquals(METADATA_DMS_TARGET, dmsTarget);
+        // test user
+        final DmsTarget dmsTargetUser = processFileUseCase.extractCooFromMetadata(getClass().getResourceAsStream("/files/example-metadata-user.json"));
+        assertEquals(METADATA_DMS_TARGET_USER, dmsTargetUser);
+        // test group
+        final DmsTarget dmsTargetGroup = processFileUseCase.extractCooFromMetadata(getClass().getResourceAsStream("/files/example-metadata-group.json"));
+        assertEquals(METADATA_DMS_TARGET_GROUP, dmsTargetGroup);
+        // test invalid both
+        assertThrows(MetadataException.class,() -> processFileUseCase.extractCooFromMetadata(getClass().getResourceAsStream("/files/example-metadata-invalid-both.json")));
+        // test invalid none
+        assertThrows(MetadataException.class,() -> processFileUseCase.extractCooFromMetadata(getClass().getResourceAsStream("/files/example-metadata-invalid-none.json")));
     }
 
     @Test

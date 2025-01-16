@@ -31,8 +31,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class ProcessFileUseCase implements ProcessFileInPort {
     public static final String METADATA_INDEX_FIELDS_KEY = "IndexFields";
-    public static final String METADATA_INBOX_COO_KEY = "Postkorb-COO-Adresse";
-    public static final String METADATA_USERNAME_KEY = "Username";
     public static final String PATTERN_JOINER = "-";
 
     private final SwimDmsProperties swimDmsProperties;
@@ -144,19 +142,41 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         try {
             final JsonNode rootNode = objectMapper.readTree(inputStream);
             final JsonNode indexFieldsNode = rootNode.get(METADATA_INDEX_FIELDS_KEY);
-            String cooAddress = null;
-            String username = null;
+            String userInboxCoo = null;
+            String userInboxOwner = null;
+            String groupInboxCoo = null;
+            String groupInboxOwner = null;
             for (final JsonNode indexField : indexFieldsNode) {
-                if (METADATA_INBOX_COO_KEY.equals(indexField.path("Name").asText())) {
-                    cooAddress = indexField.path("Value").asText();
-                } else if (METADATA_USERNAME_KEY.equals(indexField.path("Name").asText())) {
-                    username = indexField.path("Value").asText();
+                // user inbox coo
+                if (swimDmsProperties.getMetadataUserInboxCooKey().equals(indexField.path("Name").asText())) {
+                    userInboxCoo = indexField.path("Value").asText();
+                }
+                // user inbox owner username
+                else if (swimDmsProperties.getMetadataUserInboxUserKey().equals(indexField.path("Name").asText())) {
+                    userInboxOwner = indexField.path("Value").asText();
+                }
+                // group inbox coo
+                else if (swimDmsProperties.getMetadataGroupInboxCooKey().equals(indexField.path("Name").asText())) {
+                    groupInboxCoo = indexField.path("Value").asText();
+                }
+                // group inbox owner username
+                else if (swimDmsProperties.getMetadataGroupInboxUserKey().equals(indexField.path("Name").asText())) {
+                    groupInboxOwner = indexField.path("Value").asText();
                 }
             }
-            if (cooAddress == null || username == null) {
-                throw new MetadataException("Coo or username not found in metadata json");
+            // check if user and group metadata provided
+            if ((Strings.isNotBlank(userInboxCoo) || Strings.isNotBlank(userInboxOwner)) && (Strings.isNotBlank(groupInboxCoo) || Strings.isNotBlank(groupInboxOwner))) {
+                throw new MetadataException("User and group inbox metadata provided");
             }
-            return new DmsTarget(cooAddress, username, null, null);
+            // user inbox
+            if (Strings.isNotBlank(userInboxCoo) && Strings.isNotBlank(userInboxOwner)) {
+                return new DmsTarget(userInboxCoo, userInboxOwner, null, null);
+            }
+            // group inbox
+            if (Strings.isNotBlank(groupInboxCoo) && Strings.isNotBlank(groupInboxOwner)) {
+                return new DmsTarget(groupInboxCoo, groupInboxOwner, null, null);
+            }
+            throw new MetadataException("Neither user nor group inbox metadata found");
         } catch (final IOException e) {
             throw new MetadataException("Error while parsing metadata json", e);
         }

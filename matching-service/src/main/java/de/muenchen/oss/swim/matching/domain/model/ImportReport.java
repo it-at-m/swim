@@ -32,6 +32,10 @@ public class ImportReport {
      */
     private int groupInboxes;
     /**
+     * Count of group inboxes for which no ldap user could be resolved and which where not imported.
+     */
+    private int unresolvableGroupInboxes;
+    /**
      * Count of group inboxes which where successfully imported.
      */
     private int importedGroupInboxes;

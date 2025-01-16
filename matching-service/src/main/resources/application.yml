@@ -12,6 +12,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+  cache:
+    cache-names: ldap-users
+    caffeine:
+      spec: expireAfterWrite=30m
 
 springdoc:
   enable-data-rest: false

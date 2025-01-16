@@ -18,6 +18,8 @@ class GroupInboxMatchingEntry {
     @Id
     private String coo;
     @NotBlank
+    private String username;
+    @NotBlank
     private String inboxName;
     @NotBlank
     private String ou;

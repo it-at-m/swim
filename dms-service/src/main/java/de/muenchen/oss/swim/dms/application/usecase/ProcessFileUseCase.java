@@ -165,7 +165,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 }
             }
             // check if user and group metadata provided
-            if ((Strings.isNotBlank(userInboxCoo) || Strings.isNotBlank(userInboxOwner)) && (Strings.isNotBlank(groupInboxCoo) || Strings.isNotBlank(groupInboxOwner))) {
+            if ((Strings.isNotBlank(userInboxCoo) || Strings.isNotBlank(userInboxOwner))
+                    && (Strings.isNotBlank(groupInboxCoo) || Strings.isNotBlank(groupInboxOwner))) {
                 throw new MetadataException("User and group inbox metadata provided");
             }
             // user inbox

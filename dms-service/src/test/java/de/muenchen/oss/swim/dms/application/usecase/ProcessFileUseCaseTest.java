@@ -105,9 +105,11 @@ class ProcessFileUseCaseTest {
         final DmsTarget dmsTargetGroup = processFileUseCase.extractCooFromMetadata(getClass().getResourceAsStream("/files/example-metadata-group.json"));
         assertEquals(METADATA_DMS_TARGET_GROUP, dmsTargetGroup);
         // test invalid both
-        assertThrows(MetadataException.class,() -> processFileUseCase.extractCooFromMetadata(getClass().getResourceAsStream("/files/example-metadata-invalid-both.json")));
+        assertThrows(MetadataException.class,
+                () -> processFileUseCase.extractCooFromMetadata(getClass().getResourceAsStream("/files/example-metadata-invalid-both.json")));
         // test invalid none
-        assertThrows(MetadataException.class,() -> processFileUseCase.extractCooFromMetadata(getClass().getResourceAsStream("/files/example-metadata-invalid-none.json")));
+        assertThrows(MetadataException.class,
+                () -> processFileUseCase.extractCooFromMetadata(getClass().getResourceAsStream("/files/example-metadata-invalid-none.json")));
     }
 
     @Test

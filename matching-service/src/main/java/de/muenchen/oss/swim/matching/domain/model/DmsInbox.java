@@ -18,6 +18,7 @@ public class DmsInbox {
     private final String coo;
     @NotBlank
     private final String name;
+    @NotBlank
     private final String ownerLhmObjectId;
     @NotBlank
     private final String ou;

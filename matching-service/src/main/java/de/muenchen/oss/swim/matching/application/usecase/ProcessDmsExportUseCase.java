@@ -5,6 +5,7 @@ import de.muenchen.oss.swim.matching.application.port.out.StoreMatchingEntriesOu
 import de.muenchen.oss.swim.matching.application.port.out.UserInformationOutPort;
 import de.muenchen.oss.swim.matching.domain.mapper.InboxMapper;
 import de.muenchen.oss.swim.matching.domain.model.DmsInbox;
+import de.muenchen.oss.swim.matching.domain.model.GroupDmsInbox;
 import de.muenchen.oss.swim.matching.domain.model.ImportReport;
 import de.muenchen.oss.swim.matching.domain.model.User;
 import de.muenchen.oss.swim.matching.domain.model.UserDmsInbox;
@@ -71,7 +72,7 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
         // inboxes not found in ldap
         if (userDmsInboxes.containsKey(false)) {
             final List<UserDmsInbox> incompleteUserInboxes = userDmsInboxes.get(false);
-            log.warn("Couldn't find {} users in ldap", incompleteUserInboxes.size());
+            log.warn("Couldn't find {} users in ldap for user inboxes", incompleteUserInboxes.size());
             importReport.setUnresolvableUserInboxes(incompleteUserInboxes.size());
         }
         // store enriched inboxes
@@ -89,7 +90,23 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
      */
     protected void processGroupInboxes(final List<DmsInbox> dmsInboxes, final ImportReport importReport) {
         log.debug("Starting processing of {} group inboxes", dmsInboxes.size());
-        this.storeMatchingEntriesOutPort.storeGroupInboxes(inboxMapper.toGroupInboxes(dmsInboxes));
-        importReport.setImportedGroupInboxes(dmsInboxes.size());
+        // get user information
+        final Map<String, User> users = userInformationOutPort.getAllUsers()
+                .stream().collect(Collectors.toMap(User::lhmObjectId, i -> i));
+        // combine data
+        final Map<Boolean, List<GroupDmsInbox>> groupDmsInboxes = dmsInboxes.stream()
+                .map(i -> inboxMapper.toGroupInbox(i, users.get(i.getOwnerLhmObjectId())))
+                .collect(Collectors.groupingBy(i -> i.getUsername() != null));
+        // inboxes not found in ldap
+        if (groupDmsInboxes.containsKey(false)) {
+            final List<GroupDmsInbox> incompleteGroupInboxes = groupDmsInboxes.get(false);
+            log.warn("Couldn't find {} users in ldap for group inboxes", incompleteGroupInboxes.size());
+            importReport.setUnresolvableGroupInboxes(incompleteGroupInboxes.size());
+        }
+        // store enriched inboxes
+        if (groupDmsInboxes.containsKey(true)) {
+            this.storeMatchingEntriesOutPort.storeGroupInboxes(groupDmsInboxes.get(true));
+            importReport.setImportedGroupInboxes(groupDmsInboxes.get(true).size());
+        }
     }
 }

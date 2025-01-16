@@ -13,7 +13,9 @@ public interface InboxMapper {
     @Mapping(source = "dmsInbox.ou", target = "ou")
     UserDmsInbox toUserInbox(DmsInbox dmsInbox, User user);
 
-    GroupDmsInbox toGroupInbox(DmsInbox dmsInbox);
+    @Mapping(source = "user.username", target = "username")
+    @Mapping(source = "dmsInbox.ou", target = "ou")
+    GroupDmsInbox toGroupInbox(DmsInbox dmsInbox, User user);
 
     List<GroupDmsInbox> toGroupInboxes(List<DmsInbox> dmsInboxes);
 }

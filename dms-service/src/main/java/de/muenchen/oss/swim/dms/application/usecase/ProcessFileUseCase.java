@@ -59,7 +59,16 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             case INBOX -> dmsOutPort.putFileInInbox(dmsTarget, filename, fileStream);
             // create dms incoming
             case INCOMING_OBJECT -> {
-                final String incomingObjectName = this.applyOverwritePattern(useCase.getContentObjectNamePattern(), file.getFileName(), PATTERN_JOINER);
+                // resolve name for IncomingObject
+                final String incomingObjectName;
+                if (Strings.isBlank(useCase.getContentObjectNamePattern())) {
+                    // use overwritten filename if no pattern for IncomingObject name is defined
+                    incomingObjectName = filename;
+                } else {
+                    // else apply pattern to original filename
+                    incomingObjectName = this.applyOverwritePattern(useCase.getContentObjectNamePattern(), file.getFileName(), PATTERN_JOINER);
+                }
+                // create Incoming
                 dmsOutPort.createIncoming(dmsTarget, filename, incomingObjectName, fileStream);
             }
             }

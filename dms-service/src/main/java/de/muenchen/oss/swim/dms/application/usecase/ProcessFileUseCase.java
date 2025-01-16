@@ -1,7 +1,5 @@
 package de.muenchen.oss.swim.dms.application.usecase;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dms.application.port.in.ProcessFileInPort;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileEventOutPort;
@@ -10,11 +8,11 @@ import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dms.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dms.domain.exception.UnknownUseCaseException;
+import de.muenchen.oss.swim.dms.domain.helper.MetadataHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.File;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -30,14 +28,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class ProcessFileUseCase implements ProcessFileInPort {
-    public static final String METADATA_INDEX_FIELDS_KEY = "IndexFields";
     public static final String PATTERN_JOINER = "-";
 
     private final SwimDmsProperties swimDmsProperties;
     private final FileSystemOutPort fileSystemOutPort;
     private final DmsOutPort dmsOutPort;
     private final FileEventOutPort fileEventOutPort;
-    private final ObjectMapper objectMapper;
+    private final MetadataHelper metadataHelper;
 
     @Override
     public void processFile(final String useCaseName, final File file, final String presignedUrl, final String metadataPresignedUrl) {
@@ -110,7 +107,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         // get metadata file
         try (InputStream metadataStream = fileSystemOutPort.getPresignedUrlFile(metadataPresignedUrl)) {
             // extract coo and username from metadata
-            final DmsTarget metadataTarget = extractCooFromMetadata(metadataStream);
+            final DmsTarget metadataTarget = metadataHelper.resolveDmsTarget(metadataStream);
             // combine with use case joboe and jobposition
             return new DmsTarget(metadataTarget.coo(), metadataTarget.userName(), useCase.getJoboe(), useCase.getJobposition());
         } catch (final IOException e) {
@@ -129,58 +126,6 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         return swimDmsProperties.getUseCases().stream()
                 .filter(i -> i.getName().equals(useCase)).findFirst()
                 .orElseThrow(() -> new UnknownUseCaseException(String.format("Unknown use case %s", useCase)));
-    }
-
-    /**
-     * Extract inbox coo from metadat file.
-     *
-     * @param inputStream InputStream of metadata file.
-     * @return The inbox coo.
-     * @throws MetadataException If file can't be parsed or required values are missing.
-     */
-    protected DmsTarget extractCooFromMetadata(@NotNull final InputStream inputStream) {
-        try {
-            final JsonNode rootNode = objectMapper.readTree(inputStream);
-            final JsonNode indexFieldsNode = rootNode.get(METADATA_INDEX_FIELDS_KEY);
-            String userInboxCoo = null;
-            String userInboxOwner = null;
-            String groupInboxCoo = null;
-            String groupInboxOwner = null;
-            for (final JsonNode indexField : indexFieldsNode) {
-                // user inbox coo
-                if (swimDmsProperties.getMetadataUserInboxCooKey().equals(indexField.path("Name").asText())) {
-                    userInboxCoo = indexField.path("Value").asText();
-                }
-                // user inbox owner username
-                else if (swimDmsProperties.getMetadataUserInboxUserKey().equals(indexField.path("Name").asText())) {
-                    userInboxOwner = indexField.path("Value").asText();
-                }
-                // group inbox coo
-                else if (swimDmsProperties.getMetadataGroupInboxCooKey().equals(indexField.path("Name").asText())) {
-                    groupInboxCoo = indexField.path("Value").asText();
-                }
-                // group inbox owner username
-                else if (swimDmsProperties.getMetadataGroupInboxUserKey().equals(indexField.path("Name").asText())) {
-                    groupInboxOwner = indexField.path("Value").asText();
-                }
-            }
-            // check if user and group metadata provided
-            if ((Strings.isNotBlank(userInboxCoo) || Strings.isNotBlank(userInboxOwner))
-                    && (Strings.isNotBlank(groupInboxCoo) || Strings.isNotBlank(groupInboxOwner))) {
-                throw new MetadataException("User and group inbox metadata provided");
-            }
-            // user inbox
-            if (Strings.isNotBlank(userInboxCoo) && Strings.isNotBlank(userInboxOwner)) {
-                return new DmsTarget(userInboxCoo, userInboxOwner, null, null);
-            }
-            // group inbox
-            if (Strings.isNotBlank(groupInboxCoo) && Strings.isNotBlank(groupInboxOwner)) {
-                return new DmsTarget(groupInboxCoo, groupInboxOwner, null, null);
-            }
-            throw new MetadataException("Neither user nor group inbox metadata found");
-        } catch (final IOException e) {
-            throw new MetadataException("Error while parsing metadata json", e);
-        }
     }
 
     /**

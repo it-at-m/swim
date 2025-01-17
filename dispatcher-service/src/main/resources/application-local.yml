@@ -1,0 +1,56 @@
+server:
+  port: 39146
+spring:
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:29092
+          configuration:
+            security:
+              protocol: PLAINTEXT
+      bindings:
+        dms-out:
+          destination: swim-dms-local
+        finished-in-0:
+          group: swim-dispatcher
+          destination: swim-finished-local
+  mail:
+    host: localhost
+    port: 1025
+    username: swim-local@muenchen.de
+    password: secret
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    password: admin
+    username: admin
+
+swim:
+  mail:
+    from-address: swim@example.com
+    mail-subject-prefix: "LOCAL - "
+  use-cases:
+    - name: test-meta
+      bucket: swim-bucket
+      path: test-meta
+      recursive: true
+      required-tags:
+        SWIM_Status: processed
+      requires-metadata: true
+      destination-binding: dms-out
+      mail-addresses:
+        - test-meta@example.com
+    - name: test
+      bucket: swim-bucket
+      path: test
+      recursive: true
+      destination-binding: dms-out
+      mail-addresses:
+        - test@example.com
+  s3:
+    url: http://localhost:9000
+    access-key: minio
+    secret-key: Test1234
+  dispatching-cron: "0 */1 * * * *"
+  protocol-processing-cron: "0 */1 * * * *"
+  fallback-mail: swim@example.com

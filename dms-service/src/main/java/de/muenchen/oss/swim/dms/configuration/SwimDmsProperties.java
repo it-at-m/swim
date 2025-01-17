@@ -1,5 +1,6 @@
 package de.muenchen.oss.swim.dms.configuration;
 
+import de.muenchen.oss.swim.dms.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -38,4 +39,17 @@ public class SwimDmsProperties {
      */
     @NotBlank
     private String metadataGroupInboxUserKey;
+
+    /**
+     * Resolve use case via name.
+     *
+     * @param useCase The name of the use case.
+     * @return The use case with the name.
+     * @throws UnknownUseCaseException If there is no use case with that name.
+     */
+    public UseCase findUseCase(@NotBlank final String useCase) throws UnknownUseCaseException {
+        return this.getUseCases().stream()
+                .filter(i -> i.getName().equals(useCase)).findFirst()
+                .orElseThrow(() -> new UnknownUseCaseException(String.format("Unknown use case %s", useCase)));
+    }
 }

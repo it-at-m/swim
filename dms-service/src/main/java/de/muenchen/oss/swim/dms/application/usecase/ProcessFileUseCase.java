@@ -39,7 +39,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     @Override
     public void processFile(final String useCaseName, final File file, final String presignedUrl, final String metadataPresignedUrl) {
         log.info("Processing file {} for use case {}", file, useCaseName);
-        final UseCase useCase = findUseCase(useCaseName);
+        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         log.debug("Resolved use case: {}", useCase);
         // load file
         try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(presignedUrl)) {
@@ -113,19 +113,6 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         } catch (final IOException e) {
             throw new MetadataException("Error while processing metadata file", e);
         }
-    }
-
-    /**
-     * Resolve use case via name.
-     *
-     * @param useCase The name of the use case.
-     * @return The use case with the name.
-     * @throws UnknownUseCaseException If there is no use case with that name.
-     */
-    protected UseCase findUseCase(@NotBlank final String useCase) {
-        return swimDmsProperties.getUseCases().stream()
-                .filter(i -> i.getName().equals(useCase)).findFirst()
-                .orElseThrow(() -> new UnknownUseCaseException(String.format("Unknown use case %s", useCase)));
     }
 
     /**

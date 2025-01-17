@@ -34,6 +34,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
 class ProcessFileUseCaseTest {
+    @MockitoSpyBean
     @Autowired
     private SwimDmsProperties swimDmsProperties;
     @MockitoBean
@@ -60,14 +61,14 @@ class ProcessFileUseCaseTest {
     @Test
     void testProcessFile_MetadataInbox() {
         final String useCaseName = "metadata-inbox";
-        final UseCase useCase = processFileUseCase.findUseCase(useCaseName);
+        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         // setup
         when(fileSystemOutPort.getPresignedUrlFile(eq(FILE_PRESIGNED_URL))).thenReturn(null);
         when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL))).thenReturn(getClass().getResourceAsStream("/files/example-metadata-user.json"));
         // call
         processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, METADATA_PRESIGNED_URL);
         // test
-        verify(processFileUseCase, times(2)).findUseCase(eq(useCaseName));
+        verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(processFileUseCase, times(1)).resolveTargetCoo(eq(METADATA_PRESIGNED_URL), eq(useCase), eq(FILE));
         verify(metadataHelper, times(1)).resolveDmsTarget(any());
         verify(dmsOutPort, times(1)).putFileInInbox(eq(METADATA_DMS_TARGET_USER), eq("test.pdf"), eq(null));
@@ -76,26 +77,17 @@ class ProcessFileUseCaseTest {
     @Test
     void testProcessFile_StaticIncoming() {
         final String useCaseName = "static-incoming";
-        final UseCase useCase = processFileUseCase.findUseCase(useCaseName);
+        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         // setup
         when(fileSystemOutPort.getPresignedUrlFile(eq(FILE_PRESIGNED_URL))).thenReturn(null);
         // call
         processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
         // test
-        verify(processFileUseCase, times(2)).findUseCase(eq(useCaseName));
+        verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(processFileUseCase, times(1)).resolveTargetCoo(isNull(), eq(useCase), eq(FILE));
         verify(metadataHelper, times(0)).resolveDmsTarget(any());
         verify(dmsOutPort, times(0)).putFileInInbox(any(), any(), any());
         verify(dmsOutPort, times(1)).createIncoming(eq(STATIC_DMS_TARGET), eq("test.pdf"), eq("test.pdf"), eq(null));
-    }
-
-    @Test
-    void testFindUseCase() {
-        final String useCaseName = "metadata-inbox";
-        // call
-        final UseCase useCase = processFileUseCase.findUseCase(useCaseName);
-        // test
-        assertEquals(useCaseName, useCase.getName());
     }
 
     @Test

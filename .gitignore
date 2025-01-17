@@ -114,3 +114,7 @@ nbdist/
 *.njsproj
 *.sln
 *.sw?
+
+# ============== Stack ================
+
+**/stack/minio

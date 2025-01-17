@@ -1,0 +1,170 @@
+name: swim-stack
+
+services:
+  postgres:
+    image: postgres:16.4-alpine3.20@sha256:5660c2cbfea50c7a9127d17dc4e48543eedd3d7a41a595a2dfa572471e37e64c
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256 --auth-local=scram-sha-256
+    ports:
+      - "5432:5432"
+    healthcheck: &healthcheck
+      test: ["CMD-SHELL", "pg_isready -d postgres -U admin"]
+      start_period: 15s
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    security_opt: &security_settings
+      - no-new-privileges:true
+
+  # see https://event-driven.io/en/automatically_connect_pgadmin_to_database/
+  pg-admin:
+    image: dpage/pgadmin4:8.14@sha256:8a68677a97b8c8d1427dc915672a26d2c4a04376916a68256f53d669d6171be7
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+      - PGADMIN_LISTEN_PORT=5050
+    ports:
+      - "5050:5050"
+    depends_on:
+      - postgres
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "wget", "-O", "-", "http://localhost:5050/misc/ping"]
+    security_opt: *security_settings
+    volumes:
+      - './pgadmin/servers.json:/pgadmin4/servers.json:ro'
+      - './pgadmin/pgpass:/pgadmin4/pgpass'
+    user: root # see https://github.com/pgadmin-org/pgadmin4/issues/6257
+    entrypoint: /bin/sh -c "chmod 600 /pgadmin4/pgpass; /entrypoint.sh;" # see https://www.postgresql.org/docs/current/libpq-pgpass.html#LIBPQ-PGPASS (last paragraph)
+
+  # === Kafka ===
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - '22181:2181'
+    networks:
+      - internal
+    healthcheck:
+      <<: *healthcheck
+      test: nc -z localhost 2181 || exit -1
+    security_opt:
+      - no-new-privileges:true
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - '9092:9092'
+      - '29092:29092'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - internal
+    healthcheck:
+      <<: *healthcheck
+      test: nc -z localhost 9092 || exit -1
+    security_opt: *security_settings
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    ports:
+      - '8089:8080'
+    depends_on:
+      - kafka
+      - zookeeper
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    networks:
+      - internal
+    healthcheck:
+      <<: *healthcheck
+      test: [ "CMD-SHELL", "wget --spider --timeout=1 http://localhost:8080/actuator/health" ]
+    security_opt: *security_settings
+
+  init-kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: [ '/bin/bash', '-c' ]
+    networks:
+      - internal
+    command: |
+      "
+      # blocks until kafka is reachable
+      echo -e 'Currently available topics:'
+      kafka-topics --bootstrap-server kafka:9092 --list
+      
+      echo -e 'Creating kafka topics...'
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-finished-local --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-dispatch-dlq-local --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-dms-local --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-invoices-local --replication-factor 1 --partitions 1
+
+      echo -e 'Resulting topics:'
+      kafka-topics --bootstrap-server kafka:9092 --list
+      "
+    security_opt: *security_settings
+
+  # === S3/Minio ===
+  minio:
+    image: quay.io/minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: Test1234
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - ./minio:/data
+    networks:
+      - internal
+    healthcheck:
+      <<: *healthcheck
+      test: [ "CMD-SHELL", "curl http://localhost:9000/minio/health/live" ]
+    security_opt: *security_settings
+
+  init-minio:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+        mc config host add minio http://minio:9000 minio Test1234;
+        mc mb minio/swim-bucket;
+        exit 0;
+      "
+    networks:
+      - internal
+    security_opt: *security_settings
+
+  # === Mail ===
+  mailpit:
+    image: axllent/mailpit:v1.20.6@sha256:777080b355ef30e99b23007e4d043b452cf84fd4dcb378ef30da5a0aa316c33d
+    ports:
+      - '1025:1025' # SMTP Server
+      - '8025:8025' # UI
+    security_opt: *security_settings
+
+networks:
+  internal:

@@ -12,7 +12,6 @@ import de.muenchen.oss.swim.dms.domain.helper.MetadataHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.File;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
-import jakarta.validation.constraints.NotBlank;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -37,7 +36,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     private final MetadataHelper metadataHelper;
 
     @Override
-    public void processFile(final String useCaseName, final File file, final String presignedUrl, final String metadataPresignedUrl) {
+    public void processFile(final String useCaseName, final File file, final String presignedUrl, final String metadataPresignedUrl)
+            throws PresignedUrlException, UnknownUseCaseException, MetadataException {
         log.info("Processing file {} for use case {}", file, useCaseName);
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         log.debug("Resolved use case: {}", useCase);
@@ -82,7 +82,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param useCase The use case.
      * @return The resolved coo.
      */
-    protected DmsTarget resolveTargetCoo(final String metadataPresignedUrl, final UseCase useCase, final File file) {
+    protected DmsTarget resolveTargetCoo(final String metadataPresignedUrl, final UseCase useCase, final File file)
+            throws MetadataException, PresignedUrlException {
         return switch (useCase.getCooSource()) {
         case METADATA_FILE -> this.resolveMetadataTargetCoo(metadataPresignedUrl, useCase);
         // TODO resolve coo from filename
@@ -99,7 +100,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param useCase UseCase of the file.
      * @return Resolved DmsTarget.
      */
-    protected DmsTarget resolveMetadataTargetCoo(final String metadataPresignedUrl, final UseCase useCase) {
+    protected DmsTarget resolveMetadataTargetCoo(final String metadataPresignedUrl, final UseCase useCase) throws MetadataException, PresignedUrlException {
         // validate metadata presigned url provided
         if (Strings.isBlank(metadataPresignedUrl)) {
             throw new MetadataException("Metadata presigned url empty but required");

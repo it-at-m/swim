@@ -1,5 +1,6 @@
 package de.muenchen.oss.swim.dms.application.port.out;
 
+import de.muenchen.oss.swim.dms.domain.exception.PresignedUrlException;
 import jakarta.validation.constraints.NotBlank;
 import java.io.InputStream;
 import org.springframework.validation.annotation.Validated;
@@ -12,5 +13,5 @@ public interface FileSystemOutPort {
      * @param presignedUrl The presigned url for the file.
      * @return The file.
      */
-    InputStream getPresignedUrlFile(@NotBlank String presignedUrl);
+    InputStream getPresignedUrlFile(@NotBlank String presignedUrl) throws PresignedUrlException;
 }

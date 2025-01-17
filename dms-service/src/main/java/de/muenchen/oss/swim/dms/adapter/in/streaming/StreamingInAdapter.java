@@ -1,17 +1,22 @@
 package de.muenchen.oss.swim.dms.adapter.in.streaming;
 
 import de.muenchen.oss.swim.dms.application.port.in.ProcessFileInPort;
+import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
+import de.muenchen.oss.swim.dms.domain.exception.PresignedUrlException;
+import de.muenchen.oss.swim.dms.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.dms.domain.model.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StreamingInAdapter {
     private final ProcessFileInPort processFileInPort;
 
@@ -20,7 +25,12 @@ public class StreamingInAdapter {
         return message -> {
             final DmsEventDTO dmsEventDTO = message.getPayload();
             final File file = this.presignedUrlToFile(dmsEventDTO.presignedUrl());
-            processFileInPort.processFile(dmsEventDTO.useCase(), file, dmsEventDTO.presignedUrl(), dmsEventDTO.metadataPresignedUrl());
+            try {
+                processFileInPort.processFile(dmsEventDTO.useCase(), file, dmsEventDTO.presignedUrl(), dmsEventDTO.metadataPresignedUrl());
+            } catch (final PresignedUrlException | UnknownUseCaseException | MetadataException e) {
+                log.warn("Error while processing file {} in use case {}", file.path(), dmsEventDTO.useCase(), e);
+                throw new RuntimeException(e);
+            }
         };
     }
 

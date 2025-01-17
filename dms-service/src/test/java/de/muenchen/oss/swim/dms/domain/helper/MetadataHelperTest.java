@@ -27,7 +27,7 @@ class MetadataHelperTest {
     private MetadataHelper metadataHelper;
 
     @Test
-    void testResolveDmsTarget() {
+    void testResolveDmsTarget() throws MetadataException {
         // test user
         final DmsTarget dmsTargetUser = metadataHelper.resolveDmsTarget(getClass().getResourceAsStream("/files/example-metadata-user.json"));
         assertEquals(METADATA_DMS_TARGET_USER, dmsTargetUser);

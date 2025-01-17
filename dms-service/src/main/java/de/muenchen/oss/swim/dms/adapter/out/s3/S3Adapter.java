@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class S3Adapter implements FileSystemOutPort {
     @Override
     @SuppressFBWarnings("URLCONNECTION_SSRF_FD")
-    public InputStream getPresignedUrlFile(final String presignedUrl) {
+    public InputStream getPresignedUrlFile(final String presignedUrl) throws PresignedUrlException {
         try {
             final URI uri = new URI(presignedUrl);
             final HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();

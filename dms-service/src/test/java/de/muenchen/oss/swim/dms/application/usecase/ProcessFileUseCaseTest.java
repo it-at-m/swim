@@ -15,6 +15,9 @@ import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileEventOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
+import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
+import de.muenchen.oss.swim.dms.domain.exception.PresignedUrlException;
+import de.muenchen.oss.swim.dms.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.dms.domain.helper.MetadataHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.File;
@@ -59,7 +62,7 @@ class ProcessFileUseCaseTest {
     private final static DmsTarget STATIC_DMS_TARGET = new DmsTarget("staticCoo", "staticUsername", "staticJobOe", "staticJobPosition");
 
     @Test
-    void testProcessFile_MetadataInbox() {
+    void testProcessFile_MetadataInbox() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "metadata-inbox";
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         // setup
@@ -75,7 +78,7 @@ class ProcessFileUseCaseTest {
     }
 
     @Test
-    void testProcessFile_StaticIncoming() {
+    void testProcessFile_StaticIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "static-incoming";
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         // setup

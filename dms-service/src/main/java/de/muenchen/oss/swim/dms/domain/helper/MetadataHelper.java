@@ -29,7 +29,7 @@ public class MetadataHelper {
      * @return The dms target.
      * @throws MetadataException If file can't be parsed or required values are missing.
      */
-    public DmsTarget resolveDmsTarget(@NotNull final InputStream inputStream) {
+    public DmsTarget resolveDmsTarget(@NotNull final InputStream inputStream) throws MetadataException {
         try {
             final JsonNode rootNode = objectMapper.readTree(inputStream);
             final JsonNode indexFieldsNode = rootNode.get(METADATA_INDEX_FIELDS_KEY);
@@ -63,7 +63,7 @@ public class MetadataHelper {
     }
 
     protected DmsTarget dmsTargetFromUserAndGroupInbox(final String userInboxCoo, final String userInboxOwner, final String groupInboxCoo,
-            final String groupInboxOwner) {
+            final String groupInboxOwner) throws MetadataException {
         // check if user and group metadata provided
         final boolean hasUserValue = Strings.isNotBlank(userInboxCoo) || Strings.isNotBlank(userInboxOwner);
         final boolean hasGroupValue = Strings.isNotBlank(groupInboxCoo) || Strings.isNotBlank(groupInboxOwner);

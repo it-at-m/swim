@@ -1,7 +1,7 @@
 package de.muenchen.oss.swim.dms.domain.exception;
 
 @SuppressWarnings("PMD.MissingSerialVersionUID")
-public class MetadataException extends RuntimeException {
+public class MetadataException extends Exception {
     public MetadataException(final String message) {
         super(message);
     }

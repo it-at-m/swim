@@ -27,6 +27,11 @@
                 additivity="false">
             <appender-ref ref="STDOUT" />
         </logger>
+        <logger name="org.apache.kafka"
+                level="warn"
+                additivity="false">
+            <appender-ref ref="STDOUT" />
+        </logger>
 
         <!-- Logger usage -->
         <root level="info">
@@ -56,6 +61,11 @@
         <root level="info">
             <appender-ref ref="JSON_STDOUT" />
         </root>
+        <logger name="org.apache.kafka"
+                level="warn"
+                additivity="false">
+            <appender-ref ref="JSON_STDOUT" />
+        </logger>
 
     </springProfile>
 

@@ -2,6 +2,8 @@ server:
   port: 39146
 spring:
   cloud:
+    function:
+      definition: finished;dlq
     stream:
       kafka:
         binder:
@@ -9,12 +11,20 @@ spring:
           configuration:
             security:
               protocol: PLAINTEXT
+        bindings:
+          finished-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: swim-dispatch-dlq-local
       bindings:
         dms-out:
           destination: swim-dms-local
         finished-in-0:
           group: swim-dispatcher
           destination: swim-finished-local
+        dlq-in-0:
+          group: swim-dispatcher
+          destination: swim-dispatch-dlq-local
   mail:
     host: localhost
     port: 1025

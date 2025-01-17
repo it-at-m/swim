@@ -1,5 +1,6 @@
 package de.muenchen.swim.dispatcher.application.usecase;
 
+import static de.muenchen.swim.dispatcher.TestConstants.BUCKET;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -61,7 +62,6 @@ class DispatcherUserCaseTest {
 
     private static final String USE_CASE = "test-meta";
     private static final List<String> USE_CASE_RECIPIENTS = List.of("test-meta@example.com");
-    private static final String BUCKET = "test-bucket";
     private static final String PATH_PREFIX = "test";
     private static final File FILE1 = new File(BUCKET, "test/path/test.pdf", 0L);
     private static final File FILE2 = new File(BUCKET, "test/path/test2.pdf", 0L);

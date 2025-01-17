@@ -1,5 +1,6 @@
 package de.muenchen.swim.dispatcher.configuration;
 
+import de.muenchen.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.swim.dispatcher.domain.model.UseCase;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -86,5 +87,18 @@ public class SwimDispatcherProperties {
     public Map<String, List<String>> getProtocolExcludeTags() {
         return Map.of(
                 protocolStateTagKey, List.of(protocolProcessedStateTageValue, errorStateValue));
+    }
+
+    /**
+     * Finde UseCase via name.
+     *
+     * @param useCaseName Name of the UseCase to find.
+     * @return The first UseCase with the given name.
+     * @throws UseCaseException If no UseCase was found.
+     */
+    public UseCase findUseCase(final String useCaseName) throws UseCaseException {
+        return this.getUseCases().stream()
+                .filter(i -> i.getName().equals(useCaseName))
+                .findFirst().orElseThrow(() -> new UseCaseException("Unknown use case " + useCaseName));
     }
 }

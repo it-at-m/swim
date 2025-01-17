@@ -1,6 +1,6 @@
 package de.muenchen.swim.dispatcher.adapter.in.streaming;
 
-public record FileFinishedDTO(
+public record FileEventDTO(
         String useCase,
         String presignedUrl,
         String metadataPresignedUrl) {

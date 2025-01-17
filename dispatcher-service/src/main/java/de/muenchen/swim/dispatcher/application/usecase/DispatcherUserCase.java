@@ -52,7 +52,7 @@ public class DispatcherUserCase implements DispatcherInPort {
                     swimDispatcherProperties.getDispatchExcludeTags());
             // for each file
             log.info("Found {} ready to process files for use case {}", readyFiles.size(), useCase.getName());
-            final Map<String, Exception> errors = new HashMap<>();
+            final Map<String, Throwable> errors = new HashMap<>();
             for (final File file : readyFiles) {
                 if (!useCase.isSensitiveFilename()) {
                     log.info("Processing file {} for use case {}", file.path(), useCase.getName());

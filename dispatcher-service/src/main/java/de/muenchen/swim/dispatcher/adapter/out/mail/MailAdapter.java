@@ -1,6 +1,7 @@
 package de.muenchen.swim.dispatcher.adapter.out.mail;
 
 import de.muenchen.swim.dispatcher.application.port.out.NotificationOutPort;
+import de.muenchen.swim.dispatcher.domain.model.ErrorDetails;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.io.ByteArrayInputStream;
@@ -24,7 +25,7 @@ public class MailAdapter implements NotificationOutPort {
     private final static String MAIL_ADDRESS_DELIMITER = ";";
 
     @Override
-    public void sendDispatchErrors(final List<String> recipients, final String useCase, final Map<String, Exception> errors) {
+    public void sendDispatchErrors(final List<String> recipients, final String useCase, final Map<String, Throwable> errors) {
         final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
         final String subject = String.format("%sERROR: Dispatching %s", mailProperties.getMailSubjectPrefix(), useCase);
         final String body = String.format(
@@ -58,7 +59,7 @@ public class MailAdapter implements NotificationOutPort {
     }
 
     @Override
-    public void sendProtocolError(final List<String> recipients, final String useCase, final String protocolPath, final Exception error) {
+    public void sendProtocolError(final List<String> recipients, final String useCase, final String protocolPath, final Throwable error) {
         final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
         final String subject = String.format("%sERROR: Processing protocol %s for use case %s", mailProperties.getMailSubjectPrefix(), protocolPath, useCase);
         final String body = String.format(
@@ -68,12 +69,25 @@ public class MailAdapter implements NotificationOutPort {
     }
 
     @Override
-    public void sendFileFinishError(final List<String> recipients, final String useCase, final String filePath, final Exception error) {
+    public void sendFileError(final List<String> recipients, final String useCase, final String filePath, final ErrorDetails inputError,
+            final Throwable error) {
         final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
-        final String subject = String.format("%sERROR: Finishing file %s for use case %s", mailProperties.getMailSubjectPrefix(), filePath, useCase);
+        final String subject = String.format("%sERROR: Error handler for file %s for use case %s", mailProperties.getMailSubjectPrefix(), filePath, useCase);
         final String body = String.format(
-                "Use case: %s%nProtocol file: %s%nError type: %s%nError message: %s",
-                useCase, filePath, error.getClass(), error.getMessage());
+                "Use case: %s%nFile: %s%nSource: %s%n%nError type: %s%nError message: %s%n%nOriginal error type: %s%nOriginal error message: %s%nOriginal error stacktrace: %s",
+                useCase, filePath, inputError.source(),
+                error.getClass(), error.getMessage(),
+                inputError.className(), inputError.message(), inputError.stacktrace());
+        this.sendMail(parsedRecipients, subject, body, Map.of());
+    }
+
+    @Override
+    public void sendFileError(final List<String> recipients, final String useCase, final String filePath, final ErrorDetails error) {
+        final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
+        final String subject = String.format("%sERROR: File %s for use case %s", mailProperties.getMailSubjectPrefix(), filePath, useCase);
+        final String body = String.format(
+                "Use case: %s%nFile: %s%nSource: %s%nError class: %s%nError message: %s%nError stacktrace: %s",
+                useCase, filePath, error.source(), error.className(), error.message(), error.stacktrace());
         this.sendMail(parsedRecipients, subject, body, Map.of());
     }
 

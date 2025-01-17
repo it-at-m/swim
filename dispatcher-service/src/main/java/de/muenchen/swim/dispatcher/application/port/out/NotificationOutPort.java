@@ -1,5 +1,6 @@
 package de.muenchen.swim.dispatcher.application.port.out;
 
+import de.muenchen.swim.dispatcher.domain.model.ErrorDetails;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -17,7 +18,7 @@ public interface NotificationOutPort {
      * @param useCase The name of the use case the errors where thrown in.
      * @param errors The errors that where thrown.
      */
-    void sendDispatchErrors(@NotEmpty List<String> recipients, @NotBlank String useCase, @NotEmpty Map<String, Exception> errors);
+    void sendDispatchErrors(@NotEmpty List<String> recipients, @NotBlank String useCase, @NotEmpty Map<String, Throwable> errors);
 
     /**
      * Send protocol with validation information.
@@ -40,15 +41,27 @@ public interface NotificationOutPort {
      * @param protocolPath The path of the protocol file.
      * @param error The error thrown while processing protocol.
      */
-    void sendProtocolError(@NotEmpty List<String> recipients, @NotBlank String useCase, @NotBlank String protocolPath, @NotNull Exception error);
+    void sendProtocolError(@NotEmpty List<String> recipients, @NotBlank String useCase, @NotBlank String protocolPath, @NotNull Throwable error);
 
     /**
-     * Send error thrown while marking file as finished.
+     * Send error thrown while processing error for dispatched file.
+     *
+     * @param recipients The recipients to notify.
+     * @param useCase The name of the use case the file is in.
+     * @param filePath The path of the file.
+     * @param inputError The original error thrown.
+     * @param error The error thrown while handling the input error.
+     */
+    void sendFileError(@NotEmpty List<String> recipients, String useCase, String filePath, @NotNull ErrorDetails inputError, @NotNull Throwable error);
+
+    /**
+     * Send error thrown while processing dispatched file.
+     * Either while processing in external service of while marking file as finished.
      *
      * @param recipients The recipients to notify.
      * @param useCase The name of the use case the file is in.
      * @param filePath The path of the file.
      * @param error The error thrown.
      */
-    void sendFileFinishError(@NotEmpty List<String> recipients, @NotBlank String useCase, @NotBlank String filePath, @NotNull Exception error);
+    void sendFileError(@NotEmpty List<String> recipients, @NotBlank String useCase, @NotBlank String filePath, @NotNull ErrorDetails error);
 }

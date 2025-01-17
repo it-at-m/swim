@@ -1,0 +1,16 @@
+swim:
+  mail:
+    from-address: swim@example.com
+  # use case
+  use-cases:
+    - name: test-meta
+      bucket: test-bucket
+      path: test
+      recursive: true
+      required-tags:
+        SWIM_Status: processed
+      requires-metadata: true
+      destination-binding: dms-out
+      mail-addresses:
+        - test-meta@example.com
+  fallback-mail: swim@example.com

@@ -9,7 +9,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>de.muenchen.swim.oss</groupId>
+    <groupId>de.muenchen.oss.swim</groupId>
     <artifactId>dispatch-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>dispatch-service</name>

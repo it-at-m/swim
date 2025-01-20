@@ -2,4 +2,4 @@
 FROM registry.access.redhat.com/ubi9/openjdk-21-runtime
 
 # Copy runnable jar to deployments
-COPY target/*.jar /deployments/application.jar
+COPY target/dispatch-service-*.jar /deployments/application.jar

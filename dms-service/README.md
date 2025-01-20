@@ -30,6 +30,7 @@ Further documentation regarding the DMS can be found here (internal only):
     - Can be started with `docker compose up -d`
 - The Spring profile `local` is preconfigured for using the stack
     - Activate it either manually or by using the provided run configuration
+    - Additionally, the dms credentials need to be configured in the [`application-local.yml`](./src/main/resources/application-local.yml). See [Configuration](#configuration) for reference.
 - After starting the application, file processing can be triggered via Kafka in one of the following ways:
     - via [dispatch-service](../dispatch-service)
     - via [Kafka-UI](http://localhost:8089/)

@@ -15,7 +15,7 @@ public class StreamingOutAdapter implements FileEventOutPort {
     @Override
     public void fileFinished(final String useCase, final String presignedUrl, final String metadataPresignedUrl) {
         final FileFinishedEventDTO event = new FileFinishedEventDTO(useCase, presignedUrl, metadataPresignedUrl);
-        boolean sent = streamBridge.send("finished-out", event);
+        final boolean sent = streamBridge.send("finished-out", event);
         if (!sent) {
             throw new RuntimeException("Failed to send file finished event");
         }

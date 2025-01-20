@@ -29,6 +29,7 @@ public class MetadataHelper {
      * @return The dms target.
      * @throws MetadataException If file can't be parsed or required values are missing.
      */
+    @SuppressWarnings("PMD.CyclomaticComplexity")
     public DmsTarget resolveDmsTarget(@NotNull final InputStream inputStream) throws MetadataException {
         try {
             final JsonNode rootNode = objectMapper.readTree(inputStream);

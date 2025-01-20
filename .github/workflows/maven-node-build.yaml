@@ -12,6 +12,7 @@ jobs:
         include:
           - app-path: matching-service
           - app-path: dispatch-service
+          - app-path: dms-service
     steps:
       - uses: actions/checkout@v4
       - if: ${{ hashFiles(format('./{0}/package.json', matrix.app-path)) != null }}

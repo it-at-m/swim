@@ -1,0 +1,20 @@
+{
+  "IndexFields": [
+    {
+      "Name": "PPK_COO",
+      "Value": "userMetadataCoo"
+    },
+    {
+      "Name": "PPK_Username",
+      "Value": "metadata.user"
+    },
+    {
+      "Name": "GPK_COO",
+      "Value": "groupMetadataCoo"
+    },
+    {
+      "Name": "GPK_Username",
+      "Value": "metadata.group"
+    }
+  ]
+}

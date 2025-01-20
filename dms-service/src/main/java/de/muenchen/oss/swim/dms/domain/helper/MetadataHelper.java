@@ -23,7 +23,7 @@ public class MetadataHelper {
     private final ObjectMapper objectMapper;
 
     /**
-     * Extract dms target from metadat file.
+     * Extract dms target from metadata file.
      *
      * @param inputStream InputStream of metadata file.
      * @return The dms target.

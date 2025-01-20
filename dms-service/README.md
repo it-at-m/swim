@@ -13,6 +13,16 @@ flowchart LR
 
 For the DMS-REST-EAI the [`refarch-dms-integration-fabasoft-rest-api` module](https://github.com/it-at-m/refarch/tree/main/refarch-integrations/refarch-dms-integration/refarch-dms-integration-fabasoft-rest-api) is used. 
 
+### Error handling
+
+Errors which occur during processing a file are transmitted via Kafka to the [dispatch-service](../dispatch-service) which handles them accordingly.
+
+### DMS
+
+Further documentation regarding the DMS can be found here (internal only):
+- https://confluence.muenchen.de/display/KM53/REST-EAI-Schnittstelle
+- https://dmsresteai-dev-dmsresteai.apps.capk.muenchen.de/swagger-ui/index.html
+
 ## Development
 
 - The dms-service is built with JDK21

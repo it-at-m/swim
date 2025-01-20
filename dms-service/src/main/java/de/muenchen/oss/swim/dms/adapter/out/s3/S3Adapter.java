@@ -23,6 +23,7 @@ public class S3Adapter implements FileSystemOutPort {
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 return connection.getInputStream();
             } else {
+                connection.disconnect();
                 throw new PresignedUrlException("Failed to download file: " + responseCode);
             }
         } catch (URISyntaxException | IOException e) {

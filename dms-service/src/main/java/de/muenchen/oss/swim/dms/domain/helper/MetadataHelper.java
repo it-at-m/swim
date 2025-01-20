@@ -33,6 +33,9 @@ public class MetadataHelper {
         try {
             final JsonNode rootNode = objectMapper.readTree(inputStream);
             final JsonNode indexFieldsNode = rootNode.get(METADATA_INDEX_FIELDS_KEY);
+            if (indexFieldsNode == null || !indexFieldsNode.isArray()) {
+                throw new MetadataException("Missing or invalid '" + METADATA_INDEX_FIELDS_KEY + "' in metadata JSON");
+            }
             String userInboxCoo = null;
             String userInboxOwner = null;
             String groupInboxCoo = null;

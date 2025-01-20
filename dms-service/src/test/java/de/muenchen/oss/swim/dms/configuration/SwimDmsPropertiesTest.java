@@ -29,4 +29,10 @@ class SwimDmsPropertiesTest {
         // test
         assertEquals(useCaseName, useCase.getName());
     }
+
+    @Test
+    void testFindUseCase_UnknownCase() {
+        final String unknownUseCase = "non-existent-case";
+        assertThrows(UnknownUseCaseException.class, () -> swimDmsProperties.findUseCase(unknownUseCase));
+    }
 }

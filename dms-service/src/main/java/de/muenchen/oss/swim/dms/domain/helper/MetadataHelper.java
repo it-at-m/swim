@@ -62,6 +62,16 @@ public class MetadataHelper {
         }
     }
 
+    /**
+     * Resolve correct DmsTarget from user and group inbox values.
+     *
+     * @param userInboxCoo The value for the user inbox coo.
+     * @param userInboxOwner The value for the user inbox owner.
+     * @param groupInboxCoo The value for the group inbox coo.
+     * @param groupInboxOwner The value for the group inbox owner.
+     * @return The resolved DmsTarget coo and owner combination.
+     * @throws MetadataException If the combination of user and group values isn't valid.
+     */
     protected DmsTarget dmsTargetFromUserAndGroupInbox(final String userInboxCoo, final String userInboxOwner, final String groupInboxCoo,
             final String groupInboxOwner) throws MetadataException {
         // check if user and group metadata provided

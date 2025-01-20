@@ -20,6 +20,11 @@ import org.springframework.stereotype.Service;
 public class StreamingInAdapter {
     private final ProcessFileInPort processFileInPort;
 
+    /**
+     * Consumer for dispatch events sent via Kafka from the dispatch-service.
+     *
+     * @return The consumer.
+     */
     @Bean
     public Consumer<Message<DmsEventDTO>> dms() {
         return message -> {
@@ -34,6 +39,12 @@ public class StreamingInAdapter {
         };
     }
 
+    /**
+     * Extract file attributes from presigned url.
+     *
+     * @param presignedUrlString The presigned url of a file.
+     * @return The resolve file attributes.
+     */
     protected File presignedUrlToFile(final String presignedUrlString) {
         try {
             final URI presignedUrl = new URI(presignedUrlString);

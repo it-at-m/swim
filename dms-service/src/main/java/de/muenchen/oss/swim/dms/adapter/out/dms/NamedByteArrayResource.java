@@ -4,10 +4,10 @@ import lombok.EqualsAndHashCode;
 import org.springframework.core.io.ByteArrayResource;
 
 @EqualsAndHashCode(callSuper = true)
-public class NamedByteArrayRessource extends ByteArrayResource {
+public class NamedByteArrayResource extends ByteArrayResource {
     private final String filename;
 
-    public NamedByteArrayRessource(final String filename, final byte[] bytes) {
+    public NamedByteArrayResource(final String filename, final byte[] bytes) {
         super(bytes);
         this.filename = filename;
     }

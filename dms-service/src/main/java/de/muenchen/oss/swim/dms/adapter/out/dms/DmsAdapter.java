@@ -33,7 +33,7 @@ public class DmsAdapter implements DmsOutPort {
         request.setObjaddress(dmsTarget.coo());
         try {
             // FIXME directly use InputStream
-            final AbstractResource file = new NamedByteArrayRessource(fileName, inputStream.readAllBytes());
+            final AbstractResource file = new NamedByteArrayResource(fileName, inputStream.readAllBytes());
             objectAndImportToInboxApi.createObjectAndImportToInbox(
                     request,
                     DMS_APPLICATION,
@@ -59,7 +59,7 @@ public class DmsAdapter implements DmsOutPort {
         request.useou(true);
         try {
             // FIXME directly use InputStream
-            final AbstractResource file = new NamedByteArrayRessource(contentObjectName, inputStream.readAllBytes());
+            final AbstractResource file = new NamedByteArrayResource(contentObjectName, inputStream.readAllBytes());
             final CreateIncomingAntwortDTO response = incomingsApi.eingangZuVorgangAnlegen(
                     request,
                     DMS_APPLICATION,

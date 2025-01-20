@@ -40,5 +40,8 @@ class MetadataHelperTest {
         // test invalid none
         assertThrows(MetadataException.class,
                 () -> metadataHelper.resolveDmsTarget(getClass().getResourceAsStream("/files/example-metadata-invalid-none.json")));
+        // test invalid empty
+        assertThrows(MetadataException.class,
+                () -> metadataHelper.resolveDmsTarget(getClass().getResourceAsStream("/files/example-metadata-invalid-empty.json")));
     }
 }

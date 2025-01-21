@@ -8,7 +8,7 @@ swim:
       path: test
       recursive: true
       required-tags:
-        SWIM_Status: processed
+        SWIM_State: processed
       requires-metadata: true
       destination-binding: dms-out
       mail-addresses:

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 public class MetadataHelper {
     public static final String METADATA_VALUE_KEY = "Value";
     public static final String METADATA_KEY_KEY = "Name";
+    public static final String METADATA_DOCUMENT_KEY = "Document";
     public static final String METADATA_INDEX_FIELDS_KEY = "IndexFields";
 
     private final SwimDmsProperties swimDmsProperties;
@@ -33,7 +34,11 @@ public class MetadataHelper {
     public DmsTarget resolveDmsTarget(@NotNull final InputStream inputStream) throws MetadataException {
         try {
             final JsonNode rootNode = objectMapper.readTree(inputStream);
-            final JsonNode indexFieldsNode = rootNode.get(METADATA_INDEX_FIELDS_KEY);
+            final JsonNode documentNode = rootNode.get(METADATA_DOCUMENT_KEY);
+            if (documentNode == null) {
+                throw new MetadataException("Missing '" + METADATA_DOCUMENT_KEY + "' in metadata JSON");
+            }
+            final JsonNode indexFieldsNode = documentNode.get(METADATA_INDEX_FIELDS_KEY);
             if (indexFieldsNode == null || !indexFieldsNode.isArray()) {
                 throw new MetadataException("Missing or invalid '" + METADATA_INDEX_FIELDS_KEY + "' in metadata JSON");
             }

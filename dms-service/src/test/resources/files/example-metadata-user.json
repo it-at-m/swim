@@ -1,20 +1,22 @@
 {
-  "IndexFields": [
-    {
-      "Name": "PPK_COO",
-      "Value": "userMetadataCoo"
-    },
-    {
-      "Name": "PPK_Username",
-      "Value": "metadata.user"
-    },
-    {
-      "Name": "GPK_COO",
-      "Value": ""
-    },
-    {
-      "Name": "GPK_Username",
-      "Value": ""
-    }
-  ]
+  "Document": {
+    "IndexFields": [
+      {
+        "Name": "PPK_COO",
+        "Value": "userMetadataCoo"
+      },
+      {
+        "Name": "PPK_Username",
+        "Value": "metadata.user"
+      },
+      {
+        "Name": "GPK_COO",
+        "Value": ""
+      },
+      {
+        "Name": "GPK_Username",
+        "Value": ""
+      }
+    ]
+  }
 }

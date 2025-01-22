@@ -86,8 +86,13 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             throws MetadataException, PresignedUrlException {
         return switch (useCase.getCooSource()) {
         case METADATA_FILE -> this.resolveMetadataTargetCoo(metadataPresignedUrl, useCase);
-        // TODO resolve coo from filename
-        case FILENAME -> throw new UnsupportedOperationException("Coo source type filename not implemented yet");
+        case FILENAME -> {
+            if (Strings.isBlank(useCase.getFilenameCooPattern())) {
+                throw new IllegalArgumentException("Filename coo pattern is required");
+            }
+            final String targetCoo = this.applyOverwritePattern(useCase.getFilenameCooPattern(), file.getFileName(), "");
+            yield new DmsTarget(targetCoo, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
+        }
         case STATIC -> new DmsTarget(useCase.getTargetCoo(), useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         case OU_WORK_QUEUE -> new DmsTarget(null, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         };

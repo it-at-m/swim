@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.dms.domain.model;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.Map;
 import lombok.Data;
 
 @Data
@@ -30,6 +31,11 @@ public class UseCase {
      * If not defined filename is used.
      */
     private String contentObjectNamePattern;
+    /**
+     * Regex pattern for extracting target coo from filename.
+     * {@link UseCase.CooSource#FILENAME}
+     */
+    private String filenameCooPattern;
     /**
      * Static target coo.
      * See {@link UseCase.CooSource#STATIC}
@@ -67,6 +73,10 @@ public class UseCase {
          * Target coo is extracted from separate metadata file.
          */
         METADATA_FILE,
+        /**
+         * Target coo is extracted from filename with regex.
+         * {@link UseCase#filenameCooPattern}
+         */
         FILENAME,
         /**
          * Target coo is statically configured.

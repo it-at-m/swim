@@ -54,12 +54,15 @@ class ProcessFileUseCaseTest {
     private ProcessFileUseCase processFileUseCase;
 
     private final static String BUCKET = "test-bucket";
-    private final static String FILE_PATH = "test-path/test.pdf";
+    private final static String FILE_NAME_WITHOUT_EXTENSION = "test-COO.123.123.123-asd";
+    private final static String FILE_NAME = String.format("%s.pdf", FILE_NAME_WITHOUT_EXTENSION);
+    private final static String FILE_PATH = String.format("test-path/%s", FILE_NAME);
     private final static File FILE = new File(BUCKET, FILE_PATH);
     private final static String FILE_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, FILE_PATH);
-    private final static String METADAT_PATH = "test-path/test.json";
+    private final static String METADAT_PATH = String.format("test-path/%s.json", FILE_NAME_WITHOUT_EXTENSION);
     private final static String METADATA_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, METADAT_PATH);
     private final static DmsTarget STATIC_DMS_TARGET = new DmsTarget("staticCoo", "staticUsername", "staticJobOe", "staticJobPosition");
+    private final static DmsTarget FILENAME_DMS_TARGET = new DmsTarget("COO.123.123.123", "staticUsername", "staticJobOe", "staticJobPosition");
 
     @Test
     void testProcessFile_MetadataInbox() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
@@ -74,7 +77,7 @@ class ProcessFileUseCaseTest {
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(processFileUseCase, times(1)).resolveTargetCoo(eq(METADATA_PRESIGNED_URL), eq(useCase), eq(FILE));
         verify(metadataHelper, times(1)).resolveDmsTarget(any());
-        verify(dmsOutPort, times(1)).putFileInInbox(eq(METADATA_DMS_TARGET_USER), eq("test.pdf"), eq(null));
+        verify(dmsOutPort, times(1)).putFileInInbox(eq(METADATA_DMS_TARGET_USER), eq(FILE_NAME), eq(null));
     }
 
     @Test
@@ -91,6 +94,22 @@ class ProcessFileUseCaseTest {
         verify(metadataHelper, times(0)).resolveDmsTarget(any());
         verify(dmsOutPort, times(0)).putFileInInbox(any(), any(), any());
         verify(dmsOutPort, times(1)).createIncoming(eq(STATIC_DMS_TARGET), eq("test.pdf"), eq("test.pdf"), eq(null));
+    }
+
+    @Test
+    void testProcessFile_FilenameIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
+        final String useCaseName = "filename-incoming";
+        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
+        // setup
+        when(fileSystemOutPort.getPresignedUrlFile(eq(FILE_PRESIGNED_URL))).thenReturn(null);
+        // call
+        processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
+        // test
+        verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
+        verify(processFileUseCase, times(1)).resolveTargetCoo(isNull(), eq(useCase), eq(FILE));
+        verify(metadataHelper, times(0)).resolveDmsTarget(any());
+        verify(dmsOutPort, times(0)).putFileInInbox(any(), any(), any());
+        verify(dmsOutPort, times(1)).createIncoming(eq(FILENAME_DMS_TARGET), eq(FILE_NAME), eq(FILE_NAME), eq(null));
     }
 
     @Test

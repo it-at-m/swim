@@ -10,6 +10,13 @@ swim:
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition
+    - name: filename-incoming
+      type: incoming_object
+      coo-source: filename
+      filename-coo-pattern: "^.+-(COO.[^-]+)-.+$"
+      username: staticUsername
+      joboe: staticJobOe
+      jobposition: staticJobPosition
   metadata-user-inbox-coo-key: "PPK_COO"
   metadata-user-inbox-user-key: "PPK_Username"
   metadata-group-inbox-coo-key: "GPK_COO"

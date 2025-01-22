@@ -84,6 +84,8 @@ class ProcessFileUseCaseTest {
     void testProcessFile_StaticIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "static-incoming";
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
+        final String overwrittenFilename = "test";
+        final String overwrittenContentObjectName = "test-asd.pdf";
         // setup
         when(fileSystemOutPort.getPresignedUrlFile(eq(FILE_PRESIGNED_URL))).thenReturn(null);
         // call
@@ -93,7 +95,7 @@ class ProcessFileUseCaseTest {
         verify(processFileUseCase, times(1)).resolveTargetCoo(isNull(), eq(useCase), eq(FILE));
         verify(metadataHelper, times(0)).resolveDmsTarget(any());
         verify(dmsOutPort, times(0)).putFileInInbox(any(), any(), any());
-        verify(dmsOutPort, times(1)).createIncoming(eq(STATIC_DMS_TARGET), eq("test.pdf"), eq("test.pdf"), eq(null));
+        verify(dmsOutPort, times(1)).createIncoming(eq(STATIC_DMS_TARGET), eq(overwrittenFilename), eq(overwrittenContentObjectName), eq(null));
     }
 
     @Test

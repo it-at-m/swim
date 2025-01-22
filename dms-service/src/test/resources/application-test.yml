@@ -7,6 +7,8 @@ swim:
       type: incoming_object
       coo-source: static
       target-coo: staticCoo
+      filename-overwrite-pattern: "^(.+)(?:-COO.[^-]+-).+$"
+      content-object-name-pattern: "^(.+)(?:-COO.[^-]+-)(.+)$"
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition

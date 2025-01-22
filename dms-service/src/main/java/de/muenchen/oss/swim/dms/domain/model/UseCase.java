@@ -56,7 +56,7 @@ public class UseCase {
         INBOX,
         /**
          * Create an Incoming
-         * Either inside given Procedure {@link DmsTarget#coo} or default Procedure of OU
+         * Either inside given Procedure {@link DmsTarget#coo} or work queue of OU
          * {@link DmsTarget#joboe}.
          */
         INCOMING_OBJECT
@@ -76,6 +76,6 @@ public class UseCase {
         /**
          * Target is resolved via OU {@link DmsTarget#joboe}.
          */
-        OU_DEFAULT
+        OU_WORK_QUEUE
     }
 }

@@ -7,6 +7,10 @@ import de.muenchen.oss.swim.matching.application.port.in.ProcessDmsExportInPort;
 import de.muenchen.oss.swim.matching.domain.model.ImportReport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.io.IOException;
 import java.util.List;
@@ -45,8 +49,23 @@ public class RestAdapter {
     )
     @PostMapping(
             value = "dms-import",
-            consumes = { MediaType.MULTIPART_FORM_DATA_VALUE },
-            produces = { MediaType.APPLICATION_JSON_VALUE }
+            consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }
+    )
+    @ApiResponses(
+        { @ApiResponse(
+                description = "Import successful",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = ImportReport.class)
+                ),
+                responseCode = "200"
+        ), @ApiResponse(
+                description = "Input CSV file not valid",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE
+                ),
+                responseCode = "400"
+        ) }
     )
     @PreAuthorize("hasAuthority(T(de.muenchen.oss.swim.matching.security.Authorities).DMS_IMPORTER)")
     public ResponseEntity<ImportReport> update(@Parameter(required = true) @RequestParam final MultipartFile file) {

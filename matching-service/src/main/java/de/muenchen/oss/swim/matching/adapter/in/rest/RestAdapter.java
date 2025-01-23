@@ -65,9 +65,9 @@ public class RestAdapter {
             final ImportReport importReport = processDmsExportInPort.process(dmsExportMapper.fromDtos(inputInboxDtos));
 
             return ResponseEntity.ok(importReport);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             log.error("Error while parsing csv", e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error processing file: " + e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid input CSV file: " + e.getMessage(), e);
         }
     }
 

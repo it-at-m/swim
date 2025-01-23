@@ -29,6 +29,7 @@ server:
   error:
     whitelabel:
       enabled: false
+    include-message: always
 
 # Config for spring actuator endpoints
 management:

@@ -1,8 +1,10 @@
 package de.muenchen.oss.swim.dms.adapter.out.dms;
 
 import java.io.InputStream;
+import lombok.EqualsAndHashCode;
 import org.springframework.core.io.InputStreamResource;
 
+@EqualsAndHashCode(callSuper = true)
 public class NamedInputStreamResource extends InputStreamResource {
     private final String filename;
 

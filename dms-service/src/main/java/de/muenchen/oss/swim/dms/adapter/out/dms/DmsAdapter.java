@@ -8,7 +8,6 @@ import de.muenchen.refarch.integration.dms.model.CreateObjectAndImportToInboxDTO
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +31,7 @@ public class DmsAdapter implements DmsOutPort {
         final CreateObjectAndImportToInboxDTO request = new CreateObjectAndImportToInboxDTO();
         request.setObjaddress(dmsTarget.coo());
         try {
-            // FIXME directly use InputStream
-            final AbstractResource file = new NamedByteArrayResource(fileName, inputStream.readAllBytes());
+            final AbstractResource file = new NamedInputStreamResource(fileName, inputStream);
             objectAndImportToInboxApi.createObjectAndImportToInbox(
                     request,
                     DMS_APPLICATION,
@@ -42,8 +40,6 @@ public class DmsAdapter implements DmsOutPort {
                     null,
                     List.of(file)).block();
             log.info("Created new Object {} for Inbox {}", fileName, dmsTarget);
-        } catch (final IOException e) {
-            throw new DmsException("Error while handling input stream", e);
         } catch (final WebClientResponseException e) {
             throw new DmsException(String.format("Dms request failed with message: %s", e.getResponseBodyAsString()), e);
         }
@@ -58,8 +54,7 @@ public class DmsAdapter implements DmsOutPort {
         request.filesubj(incomingName);
         request.useou(true);
         try {
-            // FIXME directly use InputStream
-            final AbstractResource file = new NamedByteArrayResource(contentObjectName, inputStream.readAllBytes());
+            final AbstractResource file = new NamedInputStreamResource(contentObjectName, inputStream);
             final CreateIncomingAntwortDTO response = incomingsApi.eingangZuVorgangAnlegen(
                     request,
                     DMS_APPLICATION,
@@ -74,8 +69,6 @@ public class DmsAdapter implements DmsOutPort {
             } else {
                 throw new DmsException("Response null while putting file in procedure");
             }
-        } catch (final IOException e) {
-            throw new DmsException("Error while handling input stream for new Incoming", e);
         } catch (final WebClientResponseException e) {
             throw new DmsException(String.format("Dms request failed with message: %s", e.getResponseBodyAsString()), e);
         }

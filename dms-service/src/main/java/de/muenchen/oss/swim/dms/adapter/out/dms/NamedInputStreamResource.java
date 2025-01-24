@@ -5,6 +5,7 @@ import org.springframework.core.io.InputStreamResource;
 
 public class NamedInputStreamResource extends InputStreamResource {
     private final String filename;
+
     public NamedInputStreamResource(final String filename, final InputStream inputStream) {
         super(inputStream);
         this.filename = filename;

@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,44 +56,46 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             // to dms inbox
             case INBOX -> dmsOutPort.putFileInInbox(dmsTarget, filename, fileStream);
             // create dms incoming
-            case INCOMING_OBJECT -> {
-                // check target procedure name
-                if (Strings.isNotBlank(useCase.getVerifyProcedureNamePattern())) {
-                    final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);
-                    final String resolvedPattern = this.applyOverwritePattern(useCase.getVerifyProcedureNamePattern(), file.getFileName(), "");
-                    if (!procedureName.toLowerCase().contains(resolvedPattern.toLowerCase())) {
-                        final String message = String.format("Procedure name %s doesn't contain resolved pattern %s", procedureName, resolvedPattern);
-                        throw new DmsException(message);
-                    }
-                }
-                // resolve name for ContentObject
-                final String contentObjectName;
-                if (Strings.isBlank(useCase.getContentObjectNamePattern())) {
-                    // use overwritten filename if no pattern for ContentObject name is defined
-                    contentObjectName = filename;
-                } else {
-                    // else apply pattern to original filename
-                    contentObjectName = this.applyOverwritePattern(useCase.getContentObjectNamePattern(), file.getFileName(), PATTERN_JOINER);
-                }
-                // check if incoming already exists
-                if (useCase.isReuseIncoming()) {
-                    final String incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, filename);
-                    if (incomingCoo != null) {
-                        // add ContentObject to Incoming
-                        final DmsTarget incomingDmsTarget = new DmsTarget(incomingCoo, dmsTarget.userName(), dmsTarget.joboe(), dmsTarget.jobposition());
-                        this.dmsOutPort.createContentObject(incomingDmsTarget, contentObjectName, fileStream);
-                        break;
-                    }
-                }
-                // create Incoming
-                dmsOutPort.createIncoming(dmsTarget, filename, contentObjectName, fileStream);
-            }
+            case INCOMING_OBJECT -> this.processIncoming(file, useCase, dmsTarget, filename, fileStream);
             }
         } catch (final IOException e) {
             throw new PresignedUrlException("Error while handling file InputStream", e);
         }
         // mark file as finished
         fileEventOutPort.fileFinished(useCaseName, presignedUrl, metadataPresignedUrl);
+    }
+
+    protected void processIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget, final String filename, final InputStream fileStream) {
+        // check target procedure name
+        if (Strings.isNotBlank(useCase.getVerifyProcedureNamePattern())) {
+            final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);
+            final String resolvedPattern = this.applyOverwritePattern(useCase.getVerifyProcedureNamePattern(), file.getFileName(), "");
+            if (!procedureName.toLowerCase(Locale.ROOT).contains(resolvedPattern.toLowerCase(Locale.ROOT))) {
+                final String message = String.format("Procedure name %s doesn't contain resolved pattern %s", procedureName, resolvedPattern);
+                throw new DmsException(message);
+            }
+        }
+        // resolve name for ContentObject
+        final String contentObjectName;
+        if (Strings.isBlank(useCase.getContentObjectNamePattern())) {
+            // use overwritten filename if no pattern for ContentObject name is defined
+            contentObjectName = filename;
+        } else {
+            // else apply pattern to original filename
+            contentObjectName = this.applyOverwritePattern(useCase.getContentObjectNamePattern(), file.getFileName(), PATTERN_JOINER);
+        }
+        // check if incoming already exists
+        if (useCase.isReuseIncoming()) {
+            final String incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, filename);
+            if (incomingCoo != null) {
+                // add ContentObject to Incoming
+                final DmsTarget incomingDmsTarget = new DmsTarget(incomingCoo, dmsTarget.userName(), dmsTarget.joboe(), dmsTarget.jobposition());
+                this.dmsOutPort.createContentObject(incomingDmsTarget, contentObjectName, fileStream);
+                return;
+            }
+        }
+        // create Incoming
+        dmsOutPort.createIncoming(dmsTarget, filename, contentObjectName, fileStream);
     }
 
     /**

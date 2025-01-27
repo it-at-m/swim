@@ -98,7 +98,7 @@ public class UseCase {
          */
         STATIC,
         /**
-         * Target is resolved via OU {@link DmsTarget#joboe}.
+         * Target is OU work queue of {@link UseCase#username}.
          */
         OU_WORK_QUEUE
     }

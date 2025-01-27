@@ -74,6 +74,16 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                     // else apply pattern to original filename
                     contentObjectName = this.applyOverwritePattern(useCase.getContentObjectNamePattern(), file.getFileName(), PATTERN_JOINER);
                 }
+                // check if incoming already exists
+                if (useCase.isReuseIncoming()) {
+                    final String incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, filename);
+                    if (incomingCoo != null) {
+                        // add ContentObject to Incoming
+                        final DmsTarget incomingDmsTarget = new DmsTarget(incomingCoo, dmsTarget.userName(), dmsTarget.joboe(), dmsTarget.jobposition());
+                        this.dmsOutPort.createContentObject(incomingDmsTarget, contentObjectName, fileStream);
+                        break;
+                    }
+                }
                 // create Incoming
                 dmsOutPort.createIncoming(dmsTarget, filename, contentObjectName, fileStream);
             }

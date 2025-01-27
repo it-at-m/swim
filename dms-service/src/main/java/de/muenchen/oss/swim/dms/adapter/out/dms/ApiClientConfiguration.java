@@ -1,8 +1,10 @@
 package de.muenchen.oss.swim.dms.adapter.out.dms;
 
 import de.muenchen.refarch.integration.dms.ApiClient;
+import de.muenchen.refarch.integration.dms.api.ContentObjectsApi;
 import de.muenchen.refarch.integration.dms.api.IncomingsApi;
 import de.muenchen.refarch.integration.dms.api.ObjectAndImportToInboxApi;
+import de.muenchen.refarch.integration.dms.api.ProcedureObjectsApi;
 import de.muenchen.refarch.integration.dms.api.ProceduresApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -31,5 +33,15 @@ class ApiClientConfiguration {
     @Bean
     protected ProceduresApi proceduresApi(final ApiClient apiClient) {
         return new ProceduresApi(apiClient);
+    }
+
+    @Bean
+    protected ProcedureObjectsApi procedureObjectsApi(final ApiClient apiClient) {
+        return new ProcedureObjectsApi(apiClient);
+    }
+
+    @Bean
+    protected ContentObjectsApi contentObjectsApi(final ApiClient apiClient) {
+        return new ContentObjectsApi(apiClient);
     }
 }

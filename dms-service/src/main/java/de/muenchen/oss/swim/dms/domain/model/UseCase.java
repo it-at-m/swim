@@ -55,6 +55,10 @@ public class UseCase {
      */
     private String verifyProcedureNamePattern;
     /**
+     * Reuse Incoming with same name if true.
+     */
+    private boolean reuseIncoming = false;
+    /**
      * Username used for accessing dms.
      * Used except {@link UseCase.CooSource#METADATA_FILE}
      */

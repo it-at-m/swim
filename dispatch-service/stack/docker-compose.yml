@@ -45,7 +45,7 @@ services:
 
   # === Kafka ===
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:latest@sha256:5ca5f3269814804ebf88e4da80f9bdc73df1f70ec66b4b8ed0344159e8d342ec
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -60,7 +60,7 @@ services:
       - no-new-privileges:true
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:latest@sha256:adc392d28a1e99e8c9a1ec7f087e9e91041837b35b8b7cc8b8a691b82dd581b0
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -82,7 +82,7 @@ services:
     security_opt: *security_settings
 
   kafka-ui:
-    image: provectuslabs/kafka-ui
+    image: provectuslabs/kafka-ui@sha256:8f2ff02d64b0a7a2b71b6b3b3148b85f66d00ec20ad40c30bdcd415d46d31818
     ports:
       - '8089:8080'
     depends_on:
@@ -101,7 +101,7 @@ services:
     security_opt: *security_settings
 
   init-kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:latest@sha256:adc392d28a1e99e8c9a1ec7f087e9e91041837b35b8b7cc8b8a691b82dd581b0
     depends_on:
       kafka:
         condition: service_healthy
@@ -127,7 +127,7 @@ services:
 
   # === S3/Minio ===
   minio:
-    image: quay.io/minio/minio:latest
+    image: quay.io/minio/minio:latest@sha256:ed9be66eb5f2636c18289c34c3b725ddf57815f2777c77b5938543b78a44f144
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minio
@@ -145,7 +145,7 @@ services:
     security_opt: *security_settings
 
   init-minio:
-    image: minio/mc
+    image: minio/mc@sha256:b55b1283c0b81b8bb473c94133d4e00a552518c4796a954ddb04bb7b6e05927d
     depends_on:
       - minio
     entrypoint: >

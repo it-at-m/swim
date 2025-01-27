@@ -5,6 +5,7 @@ import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileEventOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
+import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dms.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dms.domain.exception.UnknownUseCaseException;
@@ -55,6 +56,15 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             case INBOX -> dmsOutPort.putFileInInbox(dmsTarget, filename, fileStream);
             // create dms incoming
             case INCOMING_OBJECT -> {
+                // check target procedure name
+                if (Strings.isNotBlank(useCase.getVerifyProcedureNamePattern())) {
+                    final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);
+                    final String resolvedPattern = this.applyOverwritePattern(useCase.getVerifyProcedureNamePattern(), file.getFileName(), "");
+                    if (!procedureName.toLowerCase().contains(resolvedPattern.toLowerCase())) {
+                        final String message = String.format("Procedure name %s doesn't contain resolved pattern %s", procedureName, resolvedPattern);
+                        throw new DmsException(message);
+                    }
+                }
                 // resolve name for ContentObject
                 final String contentObjectName;
                 if (Strings.isBlank(useCase.getContentObjectNamePattern())) {

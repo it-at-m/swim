@@ -2,12 +2,14 @@ package de.muenchen.oss.swim.dms.adapter.out.dms;
 
 import de.muenchen.refarch.integration.dms.api.IncomingsApi;
 import de.muenchen.refarch.integration.dms.api.ObjectAndImportToInboxApi;
+import de.muenchen.refarch.integration.dms.api.ProceduresApi;
 import de.muenchen.refarch.integration.dms.model.CreateIncomingAntwortDTO;
 import de.muenchen.refarch.integration.dms.model.CreateIncomingBasisAnfrageDTO;
 import de.muenchen.refarch.integration.dms.model.CreateObjectAndImportToInboxDTO;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
+import de.muenchen.refarch.integration.dms.model.ReadProcedureResponseDTO;
 import java.io.InputStream;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 public class DmsAdapter implements DmsOutPort {
     private final ObjectAndImportToInboxApi objectAndImportToInboxApi;
     private final IncomingsApi incomingsApi;
+    private final ProceduresApi proceduresApi;
 
     private final static String DMS_APPLICATION = "SWIM";
 
@@ -68,6 +71,28 @@ public class DmsAdapter implements DmsOutPort {
                 return coo;
             } else {
                 throw new DmsException("Response null while putting file in procedure");
+            }
+        } catch (final WebClientResponseException e) {
+            throw new DmsException(String.format("Dms request failed with message: %s", e.getResponseBodyAsString()), e);
+        }
+    }
+
+    @Override
+    public String getProcedureName(final DmsTarget dmsTarget) {
+        try {
+            final ReadProcedureResponseDTO response = proceduresApi.vorgangLesen(
+                    dmsTarget.coo(),
+                    DMS_APPLICATION,
+                    dmsTarget.userName(),
+                    dmsTarget.joboe(),
+                    dmsTarget.jobposition()
+            ).block();
+            if (response != null) {
+                final String name = response.getObjname();
+                log.info("Found Procedure {} for {}", name, dmsTarget);
+                return name;
+            } else {
+                throw new DmsException("Response null while looking up procedure name");
             }
         } catch (final WebClientResponseException e) {
             throw new DmsException(String.format("Dms request failed with message: %s", e.getResponseBodyAsString()), e);

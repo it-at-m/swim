@@ -50,6 +50,11 @@ public class UseCase {
      */
     private String targetCoo;
     /**
+     * Verify name of resolved Procedure against pattern, if defined.
+     * Only applied to {@link Type#INCOMING_OBJECT}
+     */
+    private String verifyProcedureNamePattern;
+    /**
      * Username used for accessing dms.
      * Used except {@link UseCase.CooSource#METADATA_FILE}
      */

@@ -31,4 +31,12 @@ public interface DmsOutPort {
      */
     String createIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotBlank String incomingName, @NotBlank String contentObjectName,
             @NotNull InputStream inputStream);
+
+    /**
+     * Get name of Procedure by coo.
+     *
+     * @param dmsTarget The Procedure to get the name of.
+     * @return The name of the Procedure.
+     */
+    String getProcedureName(@NotNull @Valid DmsTarget dmsTarget);
 }

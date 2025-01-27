@@ -29,6 +29,7 @@ public class UseCase {
     /**
      * Regex pattern for defining a custom ContentObject name.
      * If not defined filename is used.
+     * Only applies to {@link Type#INCOMING_OBJECT}
      */
     private String contentObjectNamePattern;
     /**
@@ -51,11 +52,12 @@ public class UseCase {
     private String targetCoo;
     /**
      * Verify name of resolved Procedure against pattern, if defined.
-     * Only applied to {@link Type#INCOMING_OBJECT}
+     * Only applies to {@link Type#INCOMING_OBJECT}
      */
     private String verifyProcedureNamePattern;
     /**
      * Reuse Incoming with same name if true.
+     * Only applies to {@link Type#INCOMING_OBJECT}
      */
     private boolean reuseIncoming = false;
     /**

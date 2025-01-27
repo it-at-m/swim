@@ -19,6 +19,15 @@ swim:
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition
+    - name: map-incoming
+      type: incoming_object
+      coo-source: filename_map
+      filename-to-coo:
+        "[^test.*]": "COO.123.123.123"
+        "[.*]": "COO.321.321.321"
+      username: staticUsername
+      joboe: staticJobOe
+      jobposition: staticJobPosition
   metadata-user-inbox-coo-key: "PPK_COO"
   metadata-user-inbox-user-key: "PPK_Username"
   metadata-group-inbox-coo-key: "GPK_COO"

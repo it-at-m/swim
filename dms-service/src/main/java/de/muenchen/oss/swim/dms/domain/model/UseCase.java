@@ -37,6 +37,14 @@ public class UseCase {
      */
     private String filenameCooPattern;
     /**
+     * Map for resolving target coo via filename.
+     * Key: Regex which is matched against filename (case-insensitive).
+     * Value: Target coo.
+     * First match is used.
+     * {@link UseCase.CooSource#FILENAME_MAP}
+     */
+    private Map<String, String> filenameToCoo;
+    /**
      * Static target coo.
      * See {@link UseCase.CooSource#STATIC}
      */
@@ -78,6 +86,12 @@ public class UseCase {
          * {@link UseCase#filenameCooPattern}
          */
         FILENAME,
+        /**
+         * Target coo via static filename map.
+         * Searches for key matching filename and uses value as target coo.
+         * {@link UseCase#filenameToCoo}
+         */
+        FILENAME_MAP,
         /**
          * Target coo is statically configured.
          * {@link UseCase#targetCoo}

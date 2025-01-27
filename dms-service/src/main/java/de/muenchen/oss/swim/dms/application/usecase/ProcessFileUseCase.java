@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -91,6 +92,15 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 throw new IllegalArgumentException("Filename coo pattern is required");
             }
             final String targetCoo = this.applyOverwritePattern(useCase.getFilenameCooPattern(), file.getFileName(), "");
+            yield new DmsTarget(targetCoo, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
+        }
+        case FILENAME_MAP -> {
+            // find first matching target coo from map
+            final String targetCoo = useCase.getFilenameToCoo().entrySet().stream()
+                    .filter(i -> Pattern.compile(i.getKey(), Pattern.CASE_INSENSITIVE).matcher(file.getFileName()).find())
+                    .findFirst()
+                    .map(Map.Entry::getValue)
+                    .orElseThrow(() -> new IllegalStateException("No matching filename map entry configured."));
             yield new DmsTarget(targetCoo, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         }
         case STATIC -> new DmsTarget(useCase.getTargetCoo(), useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());

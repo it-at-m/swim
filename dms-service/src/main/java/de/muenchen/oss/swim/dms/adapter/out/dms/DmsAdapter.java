@@ -28,6 +28,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @RequiredArgsConstructor
 @Slf4j
 public class DmsAdapter implements DmsOutPort {
+    public static final String DMS_EXCEPTION_MESSAGE = "Dms request failed with message: %s";
     private final ObjectAndImportToInboxApi objectAndImportToInboxApi;
     private final IncomingsApi incomingsApi;
     private final ProceduresApi proceduresApi;
@@ -52,7 +53,7 @@ public class DmsAdapter implements DmsOutPort {
                     List.of(file)).block();
             log.info("Created new Object {} for Inbox {}", fileName, dmsTarget);
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format("Dms request failed with message: %s", e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
         }
     }
 
@@ -81,7 +82,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response null while putting file in procedure");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format("Dms request failed with message: %s", e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
         }
     }
 
@@ -102,7 +103,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response null while looking up procedure name");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format("Dms request failed with message: %s", e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
         }
     }
 
@@ -122,12 +123,12 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response or content null while looking up procedure objects");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format("Dms request failed with message: %s", e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
         }
     }
 
     @Override
-    public String createContentObject(DmsTarget dmsTarget, String contentObjectName, InputStream inputStream) {
+    public String createContentObject(final DmsTarget dmsTarget, final String contentObjectName, final InputStream inputStream) {
         final CreateContentObjectAnfrageDTO createContentObjectAnfrageDTO = new CreateContentObjectAnfrageDTO();
         createContentObjectAnfrageDTO.referrednumber(dmsTarget.coo());
         try {
@@ -147,7 +148,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response null while putting file in procedure");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format("Dms request failed with message: %s", e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
         }
     }
 }

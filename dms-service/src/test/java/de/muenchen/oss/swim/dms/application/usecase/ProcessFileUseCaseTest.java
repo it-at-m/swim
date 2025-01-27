@@ -36,6 +36,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
+@SuppressWarnings("PMD.UnitTestShouldIncludeAssert")
 class ProcessFileUseCaseTest {
     @MockitoSpyBean
     @Autowired
@@ -83,7 +84,6 @@ class ProcessFileUseCaseTest {
     @Test
     void testProcessFile_StaticIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "static-incoming";
-        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         final String overwrittenFilename = "test";
         final String overwrittenContentObjectName = "test-asd.pdf";
         // setup
@@ -91,52 +91,49 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
         // test
-        verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
-        verify(processFileUseCase, times(1)).resolveTargetCoo(isNull(), eq(useCase), eq(FILE));
-        verify(metadataHelper, times(0)).resolveDmsTarget(any());
-        verify(dmsOutPort, times(0)).putFileInInbox(any(), any(), any());
-        verify(dmsOutPort, times(1)).createIncoming(eq(STATIC_DMS_TARGET), eq(overwrittenFilename), eq(overwrittenContentObjectName), eq(null));
+        testDefaults(useCaseName, STATIC_DMS_TARGET, overwrittenFilename, overwrittenContentObjectName);
     }
 
     @Test
     void testProcessFile_FilenameIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "filename-incoming";
-        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         // setup
         when(fileSystemOutPort.getPresignedUrlFile(eq(FILE_PRESIGNED_URL))).thenReturn(null);
         // call
         processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
         // test
-        verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
-        verify(processFileUseCase, times(1)).resolveTargetCoo(isNull(), eq(useCase), eq(FILE));
-        verify(metadataHelper, times(0)).resolveDmsTarget(any());
-        verify(dmsOutPort, times(0)).putFileInInbox(any(), any(), any());
-        verify(dmsOutPort, times(1)).createIncoming(eq(FILENAME_DMS_TARGET), eq(FILE_NAME), eq(FILE_NAME), eq(null));
+        testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
     }
 
     @Test
     void testProcessFile_FilenameMapIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "map-incoming";
-        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         // setup
         when(fileSystemOutPort.getPresignedUrlFile(eq(FILE_PRESIGNED_URL))).thenReturn(null);
         // call
         processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
         // test
-        verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
-        verify(processFileUseCase, times(1)).resolveTargetCoo(isNull(), eq(useCase), eq(FILE));
-        verify(metadataHelper, times(0)).resolveDmsTarget(any());
-        verify(dmsOutPort, times(0)).putFileInInbox(any(), any(), any());
-        verify(dmsOutPort, times(1)).createIncoming(eq(FILENAME_DMS_TARGET), eq(FILE_NAME), eq(FILE_NAME), eq(null));
+        testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
         // call catch all
         final String fileName = "asd.pdf";
         final String filePath = "test/asd.pdf";
         final File file = new File(BUCKET, filePath);
         final String presignedUrl = String.format("http://localhost:9001/%s/%s", BUCKET, filePath);
+        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         processFileUseCase.processFile(useCaseName, file, presignedUrl, null);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         // test catche all
         verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(fileName), eq(null));
+    }
+
+    private void testDefaults(final String useCaseName, final DmsTarget dmsTarget, final String fileName, final String contentObjectName)
+            throws UnknownUseCaseException, MetadataException, PresignedUrlException {
+        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
+        verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
+        verify(processFileUseCase, times(1)).resolveTargetCoo(isNull(), eq(useCase), eq(FILE));
+        verify(metadataHelper, times(0)).resolveDmsTarget(any());
+        verify(dmsOutPort, times(0)).putFileInInbox(any(), any(), any());
+        verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(contentObjectName), eq(null));
     }
 
     @Test

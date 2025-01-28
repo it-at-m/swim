@@ -65,7 +65,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         fileEventOutPort.fileFinished(useCaseName, presignedUrl, metadataPresignedUrl);
     }
 
-    protected void processIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget, final String contentObjectName, final InputStream fileStream) {
+    protected void processIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget, final String contentObjectName,
+            final InputStream fileStream) {
         // check target procedure name
         if (Strings.isNotBlank(useCase.getVerifyProcedureNamePattern())) {
             final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);

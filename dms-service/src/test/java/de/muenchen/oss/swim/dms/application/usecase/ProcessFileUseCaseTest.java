@@ -66,6 +66,7 @@ class ProcessFileUseCaseTest {
     private final static String METADATA_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, METADAT_PATH);
     private final static DmsTarget STATIC_DMS_TARGET = new DmsTarget("staticCoo", "staticUsername", "staticJobOe", "staticJobPosition");
     private final static DmsTarget FILENAME_DMS_TARGET = new DmsTarget("COO.123.123.123", "staticUsername", "staticJobOe", "staticJobPosition");
+    public static final String OVERWRITTEN_INCOMING_NAME = "test";
 
     @BeforeEach
     void setup() throws PresignedUrlException {
@@ -90,12 +91,11 @@ class ProcessFileUseCaseTest {
     @Test
     void testProcessFile_StaticIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "static-incoming";
-        final String overwrittenIncomingName = "test";
         final String overwrittenContentObjectName = "test-asd.pdf";
         // call
         processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
         // test
-        testDefaults(useCaseName, STATIC_DMS_TARGET, overwrittenIncomingName, overwrittenContentObjectName);
+        testDefaults(useCaseName, STATIC_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, overwrittenContentObjectName);
         verify(dmsOutPort, times(0)).getProcedureName(any());
         verify(dmsOutPort, times(0)).getIncomingCooByName(any(), any());
     }
@@ -132,7 +132,7 @@ class ProcessFileUseCaseTest {
     void testProcessFile_verifyProcedureName() throws PresignedUrlException, UnknownUseCaseException, MetadataException {
         final String useCaseName = "verifyProcedure-incoming";
         // setup
-        when(dmsOutPort.getProcedureName(eq(FILENAME_DMS_TARGET))).thenReturn("test");
+        when(dmsOutPort.getProcedureName(eq(FILENAME_DMS_TARGET))).thenReturn(OVERWRITTEN_INCOMING_NAME);
         // call
         processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
         // test
@@ -148,20 +148,19 @@ class ProcessFileUseCaseTest {
     @Test
     void testProcessFile_reuseIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "reuseIncoming-incoming";
-        final String overwrittenIncomingName = "test";
         // setup
-        when(dmsOutPort.getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(overwrittenIncomingName))).thenReturn(null);
+        when(dmsOutPort.getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME))).thenReturn(null);
         // call
         processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
         // test
-        testDefaults(useCaseName, FILENAME_DMS_TARGET, overwrittenIncomingName, FILE_NAME);
-        verify(dmsOutPort, times(1)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(overwrittenIncomingName));
+        testDefaults(useCaseName, FILENAME_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, FILE_NAME);
+        verify(dmsOutPort, times(1)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME));
         // setup reuse
-        when(dmsOutPort.getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq("test"))).thenReturn("COO.321.321.321");
+        when(dmsOutPort.getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME))).thenReturn("COO.321.321.321");
         // call
         processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
         // test
-        verify(dmsOutPort, times(2)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(overwrittenIncomingName));
+        verify(dmsOutPort, times(2)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME));
         verify(dmsOutPort, times(1)).createIncoming(any(), any(), any(), any());
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());

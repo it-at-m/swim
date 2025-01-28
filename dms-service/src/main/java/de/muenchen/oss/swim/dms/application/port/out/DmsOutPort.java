@@ -20,8 +20,8 @@ public interface DmsOutPort {
 
     /**
      * Create Incoming.
-     * Either inside given Procedure {@link DmsTarget#coo} or default Procedure of OU
-     * {@link DmsTarget#joboe}.
+     * Either inside given Procedure {@link DmsTarget#coo()} or OU work queue of
+     * {@link DmsTarget#joboe()}.
      *
      * @param dmsTarget The target Procedure.
      * @param incomingName The name of the new Incoming.

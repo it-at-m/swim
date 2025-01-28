@@ -13,10 +13,10 @@ public interface DmsOutPort {
      * Create ContentObject inside an Inbox.
      *
      * @param dmsTarget The target Inbox.
-     * @param fileName The name of the new ContentObject.
+     * @param contentObjectName The name of the new ContentObject.
      * @param inputStream The content of the new ContentObject.
      */
-    void putFileInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotBlank String fileName, @NotNull InputStream inputStream);
+    void createContentObjectInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotBlank String contentObjectName, @NotNull InputStream inputStream);
 
     /**
      * Create Incoming.

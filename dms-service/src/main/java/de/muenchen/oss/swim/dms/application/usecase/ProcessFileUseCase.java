@@ -49,14 +49,14 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             // get target coo
             final DmsTarget dmsTarget = resolveTargetCoo(metadataPresignedUrl, useCase, file);
             log.debug("Resolved dms target: {}", dmsTarget);
-            // get filename
-            final String filename = this.applyOverwritePattern(useCase.getFilenameOverwritePattern(), file.getFileName(), PATTERN_JOINER);
+            // get ContentObject name
+            final String contentObjectName = this.applyOverwritePattern(useCase.getFilenameOverwritePattern(), file.getFileName(), PATTERN_JOINER);
             // transfer to dms
             switch (useCase.getType()) {
             // to dms inbox
-            case INBOX -> dmsOutPort.putFileInInbox(dmsTarget, filename, fileStream);
+            case INBOX -> dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectName, fileStream);
             // create dms incoming
-            case INCOMING_OBJECT -> this.processIncoming(file, useCase, dmsTarget, filename, fileStream);
+            case INCOMING_OBJECT -> this.processIncoming(file, useCase, dmsTarget, contentObjectName, fileStream);
             }
         } catch (final IOException e) {
             throw new PresignedUrlException("Error while handling file InputStream", e);
@@ -65,7 +65,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         fileEventOutPort.fileFinished(useCaseName, presignedUrl, metadataPresignedUrl);
     }
 
-    protected void processIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget, final String filename, final InputStream fileStream) {
+    protected void processIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget, final String contentObjectName, final InputStream fileStream) {
         // check target procedure name
         if (Strings.isNotBlank(useCase.getVerifyProcedureNamePattern())) {
             final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);
@@ -75,18 +75,18 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 throw new DmsException(message);
             }
         }
-        // resolve name for ContentObject
-        final String contentObjectName;
-        if (Strings.isBlank(useCase.getContentObjectNamePattern())) {
-            // use overwritten filename if no pattern for ContentObject name is defined
-            contentObjectName = filename;
+        // resolve name for Incoming
+        final String incomingName;
+        if (Strings.isBlank(useCase.getIncomingNamePattern())) {
+            // use overwritten filename if no pattern for Incoming name is defined
+            incomingName = contentObjectName;
         } else {
             // else apply pattern to original filename
-            contentObjectName = this.applyOverwritePattern(useCase.getContentObjectNamePattern(), file.getFileName(), PATTERN_JOINER);
+            incomingName = this.applyOverwritePattern(useCase.getIncomingNamePattern(), file.getFileName(), PATTERN_JOINER);
         }
         // check if incoming already exists
         if (useCase.isReuseIncoming()) {
-            final String incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, filename);
+            final String incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, incomingName);
             if (incomingCoo != null) {
                 // add ContentObject to Incoming
                 final DmsTarget incomingDmsTarget = new DmsTarget(incomingCoo, dmsTarget.userName(), dmsTarget.joboe(), dmsTarget.jobposition());
@@ -95,7 +95,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             }
         }
         // create Incoming
-        dmsOutPort.createIncoming(dmsTarget, filename, contentObjectName, fileStream);
+        dmsOutPort.createIncoming(dmsTarget, incomingName, contentObjectName, fileStream);
     }
 
     /**

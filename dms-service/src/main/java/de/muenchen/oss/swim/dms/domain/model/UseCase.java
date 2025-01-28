@@ -23,15 +23,15 @@ public class UseCase {
     /**
      * Regex pattern for overwriting filename in dms by providing regex pattern.
      * Pattern is applied to s3 filename.
-     * With {@link Type#INCOMING_OBJECT} the filename is used as Incoming name.
+     * With {@link Type#INCOMING_OBJECT} the filename is used as ContentObject name.
      */
     private String filenameOverwritePattern;
     /**
-     * Regex pattern for defining a custom ContentObject name.
-     * If not defined filename is used.
+     * Regex pattern for defining a custom Incoming name.
+     * If not defined overwritten filename is used.
      * Only applies to {@link Type#INCOMING_OBJECT}
      */
-    private String contentObjectNamePattern;
+    private String incomingNamePattern;
     /**
      * Regex pattern for extracting target coo from filename.
      * {@link UseCase.CooSource#FILENAME}

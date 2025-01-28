@@ -38,12 +38,12 @@ public class DmsAdapter implements DmsOutPort {
     private final static String DMS_APPLICATION = "SWIM";
 
     @Override
-    public void putFileInInbox(final DmsTarget dmsTarget, final String fileName, final InputStream inputStream) {
-        log.debug("Putting file {} in inbox {}", fileName, dmsTarget);
+    public void createContentObjectInInbox(final DmsTarget dmsTarget, final String contentObjectName, final InputStream inputStream) {
+        log.debug("Putting ContentObject {} in inbox {}", contentObjectName, dmsTarget);
         final CreateObjectAndImportToInboxDTO request = new CreateObjectAndImportToInboxDTO();
         request.setObjaddress(dmsTarget.coo());
         try {
-            final AbstractResource file = new NamedInputStreamResource(fileName, inputStream);
+            final AbstractResource file = new NamedInputStreamResource(contentObjectName, inputStream);
             objectAndImportToInboxApi.createObjectAndImportToInbox(
                     request,
                     DMS_APPLICATION,
@@ -51,7 +51,7 @@ public class DmsAdapter implements DmsOutPort {
                     null,
                     null,
                     List.of(file)).block();
-            log.info("Created new Object {} for Inbox {}", fileName, dmsTarget);
+            log.info("Created new ContentObject {} in Inbox {}", contentObjectName, dmsTarget);
         } catch (final WebClientResponseException e) {
             throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
         }

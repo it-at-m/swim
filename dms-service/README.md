@@ -55,6 +55,8 @@ swim:
       target-coo:
       filename-coo-pattern:
       filename-to-coo:
+      filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
+      incoming-name-pattern: # overwrite Incoming name via Regex pattern
 ```
 
 ### Type

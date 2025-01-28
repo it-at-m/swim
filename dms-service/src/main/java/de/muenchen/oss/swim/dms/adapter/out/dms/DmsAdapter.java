@@ -118,7 +118,7 @@ public class DmsAdapter implements DmsOutPort {
                     dmsTarget.jobposition()).block();
             if (response != null && response.getGiobjecttype() != null) {
                 return response.getGiobjecttype().stream().filter(
-                        i -> i.getName() != null && i.getName().startsWith(procedureName)).findFirst().map(Objektreferenz::getName).orElse(null);
+                        i -> i.getName() != null && i.getName().startsWith(procedureName)).findFirst().map(Objektreferenz::getId).orElse(null);
             } else {
                 throw new DmsException("Response or content null while looking up procedure objects");
             }

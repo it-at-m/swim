@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.InputStream;
+import java.util.Optional;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
@@ -47,7 +48,7 @@ public interface DmsOutPort {
      * @param procedureName The name of the Incoming.
      * @return The coo of the procedure. Null if it doesn't exist.
      */
-    String getIncomingCooByName(@NotNull @Valid DmsTarget dmsTarget, @NotNull String procedureName);
+    Optional<String> getIncomingCooByName(@NotNull @Valid DmsTarget dmsTarget, @NotNull String procedureName);
 
     /**
      * Create ContentObject inside Incoming.

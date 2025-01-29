@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -87,10 +88,10 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         }
         // check if incoming already exists
         if (useCase.isReuseIncoming()) {
-            final String incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, incomingName);
-            if (incomingCoo != null) {
+            final Optional<String> incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, incomingName);
+            if (incomingCoo.isPresent()) {
                 // add ContentObject to Incoming
-                final DmsTarget incomingDmsTarget = new DmsTarget(incomingCoo, dmsTarget.userName(), dmsTarget.joboe(), dmsTarget.jobposition());
+                final DmsTarget incomingDmsTarget = new DmsTarget(incomingCoo.get(), dmsTarget.userName(), dmsTarget.joboe(), dmsTarget.jobposition());
                 this.dmsOutPort.createContentObject(incomingDmsTarget, contentObjectName, fileStream);
                 return;
             }

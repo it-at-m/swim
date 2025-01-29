@@ -18,6 +18,7 @@ import de.muenchen.refarch.integration.dms.model.ReadProcedureObjectsAntwortDTO;
 import de.muenchen.refarch.integration.dms.model.ReadProcedureResponseDTO;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.AbstractResource;
@@ -108,7 +109,7 @@ public class DmsAdapter implements DmsOutPort {
     }
 
     @Override
-    public String getIncomingCooByName(final DmsTarget dmsTarget, final String procedureName) {
+    public Optional<String> getIncomingCooByName(final DmsTarget dmsTarget, final String procedureName) {
         try {
             final ReadProcedureObjectsAntwortDTO response = procedureObjectsApi.vorgangObjectLesen(
                     dmsTarget.coo(),
@@ -118,7 +119,7 @@ public class DmsAdapter implements DmsOutPort {
                     dmsTarget.jobposition()).block();
             if (response != null && response.getGiobjecttype() != null) {
                 return response.getGiobjecttype().stream().filter(
-                        i -> i.getName() != null && i.getName().startsWith(procedureName)).findFirst().map(Objektreferenz::getId).orElse(null);
+                        i -> i.getName() != null && i.getName().startsWith(procedureName)).findFirst().map(Objektreferenz::getId);
             } else {
                 throw new DmsException("Response or content null while looking up procedure objects");
             }

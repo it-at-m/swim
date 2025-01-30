@@ -179,12 +179,12 @@ class ProcessFileUseCaseTest {
     }
 
     @Test
-    void testApplyOverwritePattern() {
+    void testApplyPattern() {
         // null pattern
-        final String resultNull = processFileUseCase.applyOverwritePattern(null, "input", "-");
+        final String resultNull = processFileUseCase.applyPattern(null, "input", "-");
         assertEquals("input", resultNull);
         // with pattern
-        final String result = processFileUseCase.applyOverwritePattern("(.+)-COO[\\d\\.]+-(.*)", "Test123-COO123.123.123-ExampleTest.pdf", "-");
+        final String result = processFileUseCase.applyPattern("(.+)-COO[\\d\\.]+-(.*)", "Test123-COO123.123.123-ExampleTest.pdf", "-");
         assertEquals("Test123-ExampleTest.pdf", result);
     }
 }

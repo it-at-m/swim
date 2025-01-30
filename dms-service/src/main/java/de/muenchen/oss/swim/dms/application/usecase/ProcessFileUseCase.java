@@ -51,7 +51,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             final DmsTarget dmsTarget = resolveTargetCoo(metadataPresignedUrl, useCase, file);
             log.debug("Resolved dms target: {}", dmsTarget);
             // get ContentObject name
-            final String contentObjectName = this.applyOverwritePattern(useCase.getFilenameOverwritePattern(), file.getFileName(), PATTERN_JOINER);
+            final String contentObjectName = this.applyPattern(useCase.getFilenameOverwritePattern(), file.getFileName(), PATTERN_JOINER);
             // transfer to dms
             switch (useCase.getType()) {
             // to dms inbox
@@ -71,7 +71,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         // check target procedure name
         if (Strings.isNotBlank(useCase.getVerifyProcedureNamePattern())) {
             final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);
-            final String resolvedPattern = this.applyOverwritePattern(useCase.getVerifyProcedureNamePattern(), file.getFileName(), "");
+            final String resolvedPattern = this.applyPattern(useCase.getVerifyProcedureNamePattern(), file.getFileName(), "");
             if (!procedureName.toLowerCase(Locale.ROOT).contains(resolvedPattern.toLowerCase(Locale.ROOT))) {
                 final String message = String.format("Procedure name %s doesn't contain resolved pattern %s", procedureName, resolvedPattern);
                 throw new DmsException(message);
@@ -84,7 +84,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             incomingName = contentObjectName;
         } else {
             // else apply pattern to original filename
-            incomingName = this.applyOverwritePattern(useCase.getIncomingNamePattern(), file.getFileName(), PATTERN_JOINER);
+            incomingName = this.applyPattern(useCase.getIncomingNamePattern(), file.getFileName(), PATTERN_JOINER);
         }
         // check if incoming already exists
         if (useCase.isReuseIncoming()) {
@@ -116,7 +116,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             if (Strings.isBlank(useCase.getFilenameCooPattern())) {
                 throw new IllegalArgumentException("Filename coo pattern is required");
             }
-            final String targetCoo = this.applyOverwritePattern(useCase.getFilenameCooPattern(), file.getFileName(), "");
+            final String targetCoo = this.applyPattern(useCase.getFilenameCooPattern(), file.getFileName(), "");
             yield new DmsTarget(targetCoo, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         }
         case FILENAME_MAP -> {
@@ -164,7 +164,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param joiner Sequence for joining matching groups.
      * @return Result string.
      */
-    protected String applyOverwritePattern(final String pattern, final String input, final String joiner) {
+    protected String applyPattern(final String pattern, final String input, final String joiner) {
         if (Strings.isBlank(pattern)) {
             return input;
         }

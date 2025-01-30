@@ -66,6 +66,15 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         fileEventOutPort.fileFinished(useCaseName, presignedUrl, metadataPresignedUrl);
     }
 
+    /**
+     * Process {@link UseCase.Type#INCOMING_OBJECT} files.
+     *
+     * @param file The file to process.
+     * @param useCase The use case of the file.
+     * @param dmsTarget The resolved dms target.
+     * @param contentObjectName The resolved name of the new ContentObject.
+     * @param fileStream The content of the file.
+     */
     protected void processIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget, final String contentObjectName,
             final InputStream fileStream) {
         // check target procedure name
@@ -80,7 +89,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         // resolve name for Incoming
         final String incomingName;
         if (Strings.isBlank(useCase.getIncomingNamePattern())) {
-            // use overwritten filename if no pattern for Incoming name is defined
+            // use resolved ContentObject name (filename) if no pattern for Incoming name is defined
+            // resolved in this case means the UseCase#filenameOverwritePattern is applied first
             incomingName = contentObjectName;
         } else {
             // else apply pattern to original filename

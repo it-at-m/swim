@@ -94,7 +94,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             incomingName = contentObjectName;
         } else {
             // else apply pattern to original filename
-            incomingName = this.applyPattern(useCase.getIncomingNamePattern(), file.getFileName(), PATTERN_JOINER);
+            incomingName = this.applyPattern(useCase.getIncomingNamePattern(), file.getFileName(), "");
         }
         // check if incoming already exists
         if (useCase.isReuseIncoming()) {

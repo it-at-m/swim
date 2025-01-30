@@ -7,8 +7,10 @@ import jakarta.validation.constraints.NotBlank;
  *
  * @param coo COO of an object.
  * @param userName User under which a DMS action is executed.
- * @param joboe Used to resolve user role under which the DMS action is executed, default role if not defined.
- * @param jobposition Used to resolve user role under which the DMS action is executed, default role if not defined.
+ * @param joboe Used to resolve user role under which the DMS action is executed, default role if
+ *            not defined.
+ * @param jobposition Used to resolve user role under which the DMS action is executed, default role
+ *            if not defined.
  */
 public record DmsTarget(
         String coo,

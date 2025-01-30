@@ -22,7 +22,7 @@ public class UseCase {
     private CooSource cooSource;
     /**
      * Regex pattern for overwriting filename in dms by providing regex pattern.
-     * Pattern is applied to s3 filename.
+     * Pattern is applied to S3 filename.
      * The filename is used as ContentObject name.
      */
     private String filenameOverwritePattern;
@@ -99,7 +99,7 @@ public class UseCase {
         FILENAME,
         /**
          * Target coo via static filename map.
-         * Searches for key matching filename and uses value as target coo.
+         * Searches for key matching filename (case-insensitive) and uses value as target coo.
          * {@link UseCase#filenameToCoo}
          */
         FILENAME_MAP,

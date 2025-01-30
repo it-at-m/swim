@@ -23,6 +23,10 @@ Further documentation regarding the DMS can be found here (internal only):
 - https://confluence.muenchen.de/display/KM53/REST-EAI-Schnittstelle
 - https://dmsresteai-dev-dmsresteai.apps.capk.muenchen.de/swagger-ui/index.html
 
+The different DMS resources (used in this service) follow following hierarchy (in syntax "english (german)"):
+
+Fileplan (Aktenplan) → (multiple) Apentry (Aktenplaneintrag) → SubjectArea (Aktenplaneintrag (Betreffseinheit)) → File (Sachakte) → Procedure (Vorgang) → Incoming (Eingang) → ContentObject (Schriftstück)
+
 ## Development
 
 - The dms-service is built with JDK21
@@ -63,12 +67,12 @@ swim:
 
 The `type` attribute of a use case defines what type of ressource is created in the DMS.
 
-- `inbox`: Creates an Incoming inside a given Inbox.
-- `incoming_object`:  Creates an Incoming (with a ContentObject) inside a given Procedure.
+- `inbox`: Creates an ContentObject inside a given Inbox.
+- `incoming_object`: Creates an Incoming (with a ContentObject) inside a given Procedure or the OU work queue of the user.
 
 ### Coo source
 
-The `coo-source` attribute of a use case defined how the target ressource, under which the new ressource is created, is resolved.
+The `coo-source` attribute of a use case defines how the target ressource, under which the new ressource is created, is resolved.
 
 - `matadata_file`: The target coo is resolved via a separate metadata file, which is placed beside the original file in the S3. See [Metadata file](#metadata-file).
 - `static`: The target coo is defined statically via the `target-coo` use case attribute.
@@ -80,6 +84,7 @@ The `coo-source` attribute of a use case defined how the target ressource, under
 
 The metadata file needs to have the following syntax.
 A valid metadata file either has personal `PPK_` or group `GPK_` inbox values defined (empty values are ignored).
+If a metadata file is required but missing or has an invalid syntax an Exception is thrown, which is handled by the [error-handling](#error-handling).
 
 ```json
 {

@@ -78,7 +78,7 @@ The `coo-source` attribute of a use case defines how the target ressource, under
 - `static`: The target coo is defined statically via the `target-coo` use case attribute.
 - `filename`: The target coo is resolved via the Regex pattern under `filename-coo-pattern`.
 - `filename_map`: The target coo is resolved via the Map defined under `filename-to-coo`, which consist of pairs of Regex pattern and static coo. The coo of the first matching (case-insensitive) pattern is used.
-- `ou_work_queue`: The Incoming is created inside the OU work queue of `username`.
+- `ou_work_queue`: The Incoming is created inside the OU work queue of `username`. Can only be used with type `incoming_object`.
 
 #### Metadata file
 

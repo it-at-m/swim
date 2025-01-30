@@ -23,7 +23,7 @@ public class UseCase {
     /**
      * Regex pattern for overwriting filename in dms by providing regex pattern.
      * Pattern is applied to s3 filename.
-     * With {@link Type#INCOMING_OBJECT} the filename is used as ContentObject name.
+     * The filename is used as ContentObject name.
      */
     private String filenameOverwritePattern;
     /**
@@ -110,6 +110,7 @@ public class UseCase {
         STATIC,
         /**
          * Target is OU work queue of {@link UseCase#username}.
+         * Can only be used with {@link Type#INCOMING_OBJECT}.
          */
         OU_WORK_QUEUE
     }

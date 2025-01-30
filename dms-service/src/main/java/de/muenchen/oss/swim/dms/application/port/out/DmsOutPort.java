@@ -22,9 +22,9 @@ public interface DmsOutPort {
     /**
      * Create Incoming.
      * Either inside given Procedure {@link DmsTarget#coo()} or OU work queue of
-     * {@link DmsTarget#joboe()}.
+     * {@link DmsTarget#userName()}.
      *
-     * @param dmsTarget The target. If {@link DmsTarget#coo()} is defined Procedure, if not OU work queue.
+     * @param dmsTarget The target. If {@link DmsTarget#coo()} is defined: Procedure, if not: OU work queue.
      * @param incomingName The name of the new Incoming.
      * @param contentObjectName The name of the ContentObject inside the Incoming.
      * @param inputStream The content of the new ContentObject.

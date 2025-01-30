@@ -53,14 +53,14 @@ swim:
     - name: # required
       type: # required, see section "Type"
       coo-source: # required, see section "Coo source"
-      username:
-      joboe:
-      jobposition:
-      target-coo:
-      filename-coo-pattern:
-      filename-to-coo:
+      username: # user under which the DMS action is executed
+      joboe: # used to resolve user role under which the DMS action is executed, default role if not defined
+      jobposition: # used to resolve user role under which the DMS action is executed, default role if not defined
+      target-coo: # for coo-source static
+      filename-coo-pattern: # for coo-source filename
+      filename-to-coo: # for coo-source filename_map
       filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
-      incoming-name-pattern: # overwrite Incoming name via Regex pattern
+      incoming-name-pattern: # overwrite Incoming name via Regex pattern, only applies to type incoming_object
 ```
 
 ### Type
@@ -74,7 +74,7 @@ The `type` attribute of a use case defines what type of ressource is created in 
 
 The `coo-source` attribute of a use case defines how the target ressource, under which the new ressource is created, is resolved.
 
-- `matadata_file`: The target coo is resolved via a separate metadata file, which is placed beside the original file in the S3. See [Metadata file](#metadata-file).
+- `matadata_file`: The target coo and username are resolved via a separate metadata file, which is placed beside the original file in the S3. See [Metadata file](#metadata-file).
 - `static`: The target coo is defined statically via the `target-coo` use case attribute.
 - `filename`: The target coo is resolved via the Regex pattern under `filename-coo-pattern`.
 - `filename_map`: The target coo is resolved via the Map defined under `filename-to-coo`, which consist of pairs of Regex pattern and static coo. The coo of the first matching (case-insensitive) pattern is used.

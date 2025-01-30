@@ -84,7 +84,7 @@ The `coo-source` attribute of a use case defines how the target ressource, under
 
 The metadata file needs to have the following syntax.
 A valid metadata file either has personal `PPK_` or group `GPK_` inbox values defined (empty values are ignored).
-If a metadata file is required but missing or has an invalid syntax an Exception is thrown, which is handled by the [error-handling](#error-handling).
+If a metadata file is required but missing or is invalid (syntax, value combination, ...) an Exception is thrown, which is handled by the [error-handling](#error-handling).
 
 ```json
 {

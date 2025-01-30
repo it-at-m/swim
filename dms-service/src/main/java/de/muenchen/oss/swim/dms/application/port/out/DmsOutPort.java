@@ -42,13 +42,13 @@ public interface DmsOutPort {
     String getProcedureName(@NotNull @Valid DmsTarget dmsTarget);
 
     /**
-     * Get the coo of an Incoming by name.
+     * Get the coo of the first Incoming where the name starts with the given name.
      *
      * @param dmsTarget The Procedure to search in.
-     * @param procedureName The name of the Incoming.
+     * @param incomingNamePrefix The prefix the Incoming name needs to start with.
      * @return The coo of the procedure. Null if it doesn't exist.
      */
-    Optional<String> getIncomingCooByName(@NotNull @Valid DmsTarget dmsTarget, @NotNull String procedureName);
+    Optional<String> getIncomingCooByName(@NotNull @Valid DmsTarget dmsTarget, @NotNull String incomingNamePrefix);
 
     /**
      * Create ContentObject inside Incoming.

@@ -109,7 +109,7 @@ public class DmsAdapter implements DmsOutPort {
     }
 
     @Override
-    public Optional<String> getIncomingCooByName(final DmsTarget dmsTarget, final String procedureName) {
+    public Optional<String> getIncomingCooByName(final DmsTarget dmsTarget, final String incomingNamePrefix) {
         try {
             final ReadProcedureObjectsAntwortDTO response = procedureObjectsApi.vorgangObjectLesen(
                     dmsTarget.coo(),
@@ -119,7 +119,7 @@ public class DmsAdapter implements DmsOutPort {
                     dmsTarget.jobposition()).block();
             if (response != null && response.getGiobjecttype() != null) {
                 return response.getGiobjecttype().stream().filter(
-                        i -> i.getName() != null && i.getName().startsWith(procedureName)).findFirst().map(Objektreferenz::getId);
+                        i -> i.getName() != null && i.getName().startsWith(incomingNamePrefix)).findFirst().map(Objektreferenz::getId);
             } else {
                 throw new DmsException("Response or content null while looking up procedure objects");
             }

@@ -207,7 +207,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     @Override
-    public void moveFile(String bucket, String srcPath, String destPath) {
+    public void moveFile(final String bucket, final String srcPath, final String destPath) {
         try {
             // copy file
             final CopySource copySource = CopySource.builder()

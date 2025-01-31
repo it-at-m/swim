@@ -5,6 +5,7 @@ import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileEventOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
+import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dms.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dms.domain.exception.UnknownUseCaseException;
@@ -16,6 +17,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -46,32 +50,64 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             // get target coo
             final DmsTarget dmsTarget = resolveTargetCoo(metadataPresignedUrl, useCase, file);
             log.debug("Resolved dms target: {}", dmsTarget);
-            // get filename
-            final String filename = this.applyOverwritePattern(useCase.getFilenameOverwritePattern(), file.getFileName(), PATTERN_JOINER);
+            // get ContentObject name
+            final String contentObjectName = this.applyPattern(useCase.getFilenameOverwritePattern(), file.getFileName(), PATTERN_JOINER);
             // transfer to dms
             switch (useCase.getType()) {
             // to dms inbox
-            case INBOX -> dmsOutPort.putFileInInbox(dmsTarget, filename, fileStream);
+            case INBOX -> dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectName, fileStream);
             // create dms incoming
-            case INCOMING_OBJECT -> {
-                // resolve name for IncomingObject
-                final String incomingObjectName;
-                if (Strings.isBlank(useCase.getContentObjectNamePattern())) {
-                    // use overwritten filename if no pattern for IncomingObject name is defined
-                    incomingObjectName = filename;
-                } else {
-                    // else apply pattern to original filename
-                    incomingObjectName = this.applyOverwritePattern(useCase.getContentObjectNamePattern(), file.getFileName(), PATTERN_JOINER);
-                }
-                // create Incoming
-                dmsOutPort.createIncoming(dmsTarget, filename, incomingObjectName, fileStream);
-            }
+            case INCOMING_OBJECT -> this.processIncoming(file, useCase, dmsTarget, contentObjectName, fileStream);
             }
         } catch (final IOException e) {
             throw new PresignedUrlException("Error while handling file InputStream", e);
         }
         // mark file as finished
         fileEventOutPort.fileFinished(useCaseName, presignedUrl, metadataPresignedUrl);
+    }
+
+    /**
+     * Process {@link UseCase.Type#INCOMING_OBJECT} files.
+     *
+     * @param file The file to process.
+     * @param useCase The use case of the file.
+     * @param dmsTarget The resolved dms target.
+     * @param contentObjectName The resolved name of the new ContentObject.
+     * @param fileStream The content of the file.
+     */
+    protected void processIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget, final String contentObjectName,
+            final InputStream fileStream) {
+        // check target procedure name
+        if (Strings.isNotBlank(useCase.getVerifyProcedureNamePattern())) {
+            final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);
+            final String resolvedPattern = this.applyPattern(useCase.getVerifyProcedureNamePattern(), file.getFileName(), "");
+            if (!procedureName.toLowerCase(Locale.ROOT).contains(resolvedPattern.toLowerCase(Locale.ROOT))) {
+                final String message = String.format("Procedure name %s doesn't contain resolved pattern %s", procedureName, resolvedPattern);
+                throw new DmsException(message);
+            }
+        }
+        // resolve name for Incoming
+        final String incomingName;
+        if (Strings.isBlank(useCase.getIncomingNamePattern())) {
+            // use resolved ContentObject name (filename) if no pattern for Incoming name is defined
+            // resolved in this case means the UseCase#filenameOverwritePattern is applied first
+            incomingName = contentObjectName;
+        } else {
+            // else apply pattern to original filename
+            incomingName = this.applyPattern(useCase.getIncomingNamePattern(), file.getFileName(), "");
+        }
+        // check if incoming already exists
+        if (useCase.isReuseIncoming()) {
+            final Optional<String> incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, incomingName);
+            if (incomingCoo.isPresent()) {
+                // add ContentObject to Incoming
+                final DmsTarget incomingDmsTarget = new DmsTarget(incomingCoo.get(), dmsTarget.userName(), dmsTarget.joboe(), dmsTarget.jobposition());
+                this.dmsOutPort.createContentObject(incomingDmsTarget, contentObjectName, fileStream);
+                return;
+            }
+        }
+        // create Incoming
+        dmsOutPort.createIncoming(dmsTarget, incomingName, contentObjectName, fileStream);
     }
 
     /**
@@ -86,10 +122,24 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             throws MetadataException, PresignedUrlException {
         return switch (useCase.getCooSource()) {
         case METADATA_FILE -> this.resolveMetadataTargetCoo(metadataPresignedUrl, useCase);
-        // TODO resolve coo from filename
-        case FILENAME -> throw new UnsupportedOperationException("Coo source type filename not implemented yet");
+        case FILENAME -> {
+            if (Strings.isBlank(useCase.getFilenameCooPattern())) {
+                throw new IllegalArgumentException("Filename coo pattern is required");
+            }
+            final String targetCoo = this.applyPattern(useCase.getFilenameCooPattern(), file.getFileName(), "");
+            yield new DmsTarget(targetCoo, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
+        }
+        case FILENAME_MAP -> {
+            // find first matching target coo from map
+            final String targetCoo = useCase.getFilenameToCoo().entrySet().stream()
+                    .filter(i -> Pattern.compile(i.getKey(), Pattern.CASE_INSENSITIVE).matcher(file.getFileName()).find())
+                    .findFirst()
+                    .map(Map.Entry::getValue)
+                    .orElseThrow(() -> new IllegalStateException("No matching filename map entry configured."));
+            yield new DmsTarget(targetCoo, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
+        }
         case STATIC -> new DmsTarget(useCase.getTargetCoo(), useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
-        case OU_DEFAULT -> new DmsTarget(null, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
+        case OU_WORK_QUEUE -> new DmsTarget(null, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         };
     }
 
@@ -124,7 +174,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param joiner Sequence for joining matching groups.
      * @return Result string.
      */
-    protected String applyOverwritePattern(final String pattern, final String input, final String joiner) {
+    protected String applyPattern(final String pattern, final String input, final String joiner) {
         if (Strings.isBlank(pattern)) {
             return input;
         }

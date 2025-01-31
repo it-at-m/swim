@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.dms.domain.model;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.Map;
 import lombok.Data;
 
 @Data
@@ -21,20 +22,44 @@ public class UseCase {
     private CooSource cooSource;
     /**
      * Regex pattern for overwriting filename in dms by providing regex pattern.
-     * Pattern is applied to s3 filename.
-     * With {@link Type#INCOMING_OBJECT} the filename is used as Incoming name.
+     * Pattern is applied to S3 filename.
+     * The filename is used as ContentObject name.
      */
     private String filenameOverwritePattern;
     /**
-     * Regex pattern for defining a custom ContentObject name.
-     * If not defined filename is used.
+     * Regex pattern for defining a custom Incoming name.
+     * If not defined overwritten filename is used.
+     * Only applies to {@link Type#INCOMING_OBJECT}
      */
-    private String contentObjectNamePattern;
+    private String incomingNamePattern;
+    /**
+     * Regex pattern for extracting target coo from filename.
+     * {@link UseCase.CooSource#FILENAME}
+     */
+    private String filenameCooPattern;
+    /**
+     * Map for resolving target coo via filename.
+     * Key: Regex which is matched against filename (case-insensitive).
+     * Value: Target coo.
+     * First match is used.
+     * {@link UseCase.CooSource#FILENAME_MAP}
+     */
+    private Map<String, String> filenameToCoo;
     /**
      * Static target coo.
      * See {@link UseCase.CooSource#STATIC}
      */
     private String targetCoo;
+    /**
+     * Verify name of resolved Procedure against pattern, if defined.
+     * Only applies to {@link Type#INCOMING_OBJECT}
+     */
+    private String verifyProcedureNamePattern;
+    /**
+     * Reuse Incoming with same name if true.
+     * Only applies to {@link Type#INCOMING_OBJECT}
+     */
+    private boolean reuseIncoming = false;
     /**
      * Username used for accessing dms.
      * Used except {@link UseCase.CooSource#METADATA_FILE}
@@ -56,8 +81,8 @@ public class UseCase {
         INBOX,
         /**
          * Create an Incoming
-         * Either inside given Procedure {@link DmsTarget#coo} or default Procedure of OU
-         * {@link DmsTarget#joboe}.
+         * Either inside given Procedure {@link DmsTarget#coo()} or OU work queue of
+         * {@link DmsTarget#userName()}.
          */
         INCOMING_OBJECT
     }
@@ -67,15 +92,26 @@ public class UseCase {
          * Target coo is extracted from separate metadata file.
          */
         METADATA_FILE,
+        /**
+         * Target coo is extracted from filename with regex.
+         * {@link UseCase#filenameCooPattern}
+         */
         FILENAME,
+        /**
+         * Target coo via static filename map.
+         * Searches for key matching filename (case-insensitive) and uses value as target coo.
+         * {@link UseCase#filenameToCoo}
+         */
+        FILENAME_MAP,
         /**
          * Target coo is statically configured.
          * {@link UseCase#targetCoo}
          */
         STATIC,
         /**
-         * Target is resolved via OU {@link DmsTarget#joboe}.
+         * Target is OU work queue of {@link UseCase#username}.
+         * Can only be used with {@link Type#INCOMING_OBJECT}.
          */
-        OU_DEFAULT
+        OU_WORK_QUEUE
     }
 }

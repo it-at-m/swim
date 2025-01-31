@@ -7,6 +7,41 @@ swim:
       type: incoming_object
       coo-source: static
       target-coo: staticCoo
+      filename-overwrite-pattern: "^(.+)(?:-COO.[^-]+-)(.+)$"
+      incoming-name-pattern: "^(.+)(?:-COO.[^-]+-).+$"
+      username: staticUsername
+      joboe: staticJobOe
+      jobposition: staticJobPosition
+    - name: filename-incoming
+      type: incoming_object
+      coo-source: filename
+      filename-coo-pattern: "^.+-(COO.[^-]+)-.+$"
+      username: staticUsername
+      joboe: staticJobOe
+      jobposition: staticJobPosition
+    - name: map-incoming
+      type: incoming_object
+      coo-source: filename_map
+      filename-to-coo:
+        "[^test.*]": "COO.123.123.123"
+        "[.*]": "COO.321.321.321"
+      username: staticUsername
+      joboe: staticJobOe
+      jobposition: staticJobPosition
+    - name: verifyProcedure-incoming
+      type: incoming_object
+      coo-source: filename
+      filename-coo-pattern: "^.+-(COO.[^-]+)-.+$"
+      verify-procedure-name-pattern: "^(.+)(?:-COO.[^-]+-).+$"
+      username: staticUsername
+      joboe: staticJobOe
+      jobposition: staticJobPosition
+    - name: reuseIncoming-incoming
+      type: incoming_object
+      coo-source: filename
+      filename-coo-pattern: "^.+-(COO.[^-]+)-.+$"
+      incoming-name-pattern: "^(.+)(?:-COO.[^-]+-).+$"
+      reuse-incoming: true
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition

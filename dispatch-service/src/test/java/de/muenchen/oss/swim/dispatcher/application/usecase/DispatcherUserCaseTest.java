@@ -62,7 +62,8 @@ class DispatcherUserCaseTest {
 
     private static final String USE_CASE = "test-meta";
     private static final List<String> USE_CASE_RECIPIENTS = List.of("test-meta@example.com");
-    private static final String PATH_PREFIX = "test";
+    private static final String USE_CASE_PATH = "test";
+    private static final String FOLDER_PATH = "test/path/";
     private static final File FILE1 = new File(BUCKET, "test/path/test.pdf", 0L);
     private static final File FILE2 = new File(BUCKET, "test/path/test2.pdf", 0L);
 
@@ -72,7 +73,8 @@ class DispatcherUserCaseTest {
         void testTriggerDispatching_Success() throws FileSizeException, MetadataException {
             // setup
             final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
-            when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(PATH_PREFIX), eq(true), eq("pdf"), anyMap(), anyMap())).thenReturn(List.of(FILE1, FILE2));
+            when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_PATH))).thenReturn(List.of(FOLDER_PATH));
+            when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(FOLDER_PATH), eq(true), eq("pdf"), anyMap(), anyMap())).thenReturn(List.of(FILE1, FILE2));
             doNothing().when(dispatcherUserCase).processFile(any(), any());
             // call
             dispatcherUserCase.triggerDispatching();
@@ -87,7 +89,8 @@ class DispatcherUserCaseTest {
         void testTriggerDispatching_Exception() throws FileSizeException, MetadataException {
             // setup
             final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
-            when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(PATH_PREFIX), eq(true), eq("pdf"), anyMap(), anyMap())).thenReturn(List.of(FILE1, FILE2));
+            when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_PATH))).thenReturn(List.of(FOLDER_PATH));
+            when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(FOLDER_PATH), eq(true), eq("pdf"), anyMap(), anyMap())).thenReturn(List.of(FILE1, FILE2));
             final FileSizeException e = new FileSizeException("Error");
             doThrow(e).when(dispatcherUserCase).processFile(any(), any());
             // call
@@ -143,7 +146,7 @@ class DispatcherUserCaseTest {
         @Test
         void testTriggerProtocolProcessing_Successful() {
             // setup
-            when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(PATH_PREFIX), eq(true), eq("csv"), anyMap(), anyMap())).thenReturn(List.of(
+            when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(USE_CASE_PATH), eq(true), eq("csv"), anyMap(), anyMap())).thenReturn(List.of(
                     PROTOCOL_FILE,
                     NO_PROTOCOL_FILE));
             doNothing().when(dispatcherUserCase).processProtocolFile(any(), any());

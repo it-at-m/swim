@@ -14,7 +14,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "swim")
 @Validated
 public class SwimDispatcherProperties {
-    // tag keys
+    // ########### tag keys ###########
     /**
      * Tag key used for dispatching file state.
      */
@@ -35,7 +35,7 @@ public class SwimDispatcherProperties {
      */
     @NotBlank
     private String errorMessageTagKey;
-    // tag values
+    // ########### tag values ###########
     /**
      * Tag value for successfully dispatched files.
      */
@@ -56,18 +56,30 @@ public class SwimDispatcherProperties {
      */
     @NotBlank
     private String errorStateValue = "error";
-    // use cases
+    // ########### use cases ###########
+    /**
+     * Use cases which are processed.
+     */
     @NotEmpty
     private List<UseCase> useCases = List.of();
-    // mail
+    // ########### additional attributes ###########
+    /**
+     * Fallback mail address for notifications.
+     * Is used when no recipients can be resolved via use case.
+     */
     @NotEmpty
     private String fallbackMail;
-    // max file size
     /**
      * Max size files can have that they are dispatched.
      * Default: 100MiB
      */
     private Long maxFileSize = 100 * 1024 * 1024L;
+    /**
+     * Folder name where finished files are moved to.
+     * Folder paths which contain this sequence are ignored from dispatching.
+     */
+    @NotBlank
+    private String finishedFolder = "_finished";
 
     /**
      * Default tags which are excluded when looking up files for dispatching.

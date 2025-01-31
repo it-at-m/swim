@@ -96,6 +96,16 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     @Override
+    public List<String> getSubDirectories(final String bucket, final String pathPrefix) {
+        // ensure prefix is handled as specific dir
+        final String escapedPathPrefix = pathPrefix.endsWith("/") ? pathPrefix : pathPrefix + "/";
+        // build s3 list request
+        return this.getObjectsInPath(bucket, escapedPathPrefix, false).stream()
+                .filter(Item::isDir)
+                .map(Item::objectName).toList();
+    }
+
+    @Override
     public void tagFile(final String bucket, final String path, final Map<String, String> tags) {
         // get current tags
         final Map<String, String> currentTags = getTagsOfFile(bucket, path);

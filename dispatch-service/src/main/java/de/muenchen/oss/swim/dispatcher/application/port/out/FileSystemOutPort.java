@@ -31,6 +31,18 @@ public interface FileSystemOutPort {
             @NotNull Map<String, List<String>> excludeTags);
 
     /**
+     * Get names of subdirectories.
+     *
+     * @param bucket The bucket to look in.
+     * @param pathPrefix The path to look under.
+     * @return The names of the subdirectories.
+     */
+    List<String> getSubDirectories(
+            @NotBlank String bucket,
+            @NotNull String pathPrefix
+    );
+
+    /**
      * Add tags to a file.
      *
      * @param bucket The bucket the file is in.

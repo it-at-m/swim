@@ -84,4 +84,13 @@ public interface FileSystemOutPort {
      * @param presignedUrl The presigned url.
      */
     boolean verifyPresignedUrl(@NotBlank String presignedUrl) throws PresignedUrlException;
+
+    /**
+     * Move a file from one place to another.
+     *
+     * @param bucket The bucket the file is in.
+     * @param srcPath The source path of the file.
+     * @param destPath The destination path of the file.
+     */
+    void moveFile(@NotBlank String bucket, @NotBlank String srcPath, @NotBlank String destPath);
 }

@@ -12,11 +12,14 @@ import de.muenchen.oss.swim.dispatcher.domain.exception.ProtocolException;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import de.muenchen.oss.swim.dispatcher.domain.model.protocol.ProtocolEntry;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.minio.CopyObjectArgs;
+import io.minio.CopySource;
 import io.minio.GetObjectArgs;
 import io.minio.GetObjectTagsArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
 import io.minio.Result;
 import io.minio.SetObjectTagsArgs;
 import io.minio.StatObjectArgs;
@@ -200,6 +203,31 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
             return responseCode.is2xxSuccessful();
         } catch (final IOException | URISyntaxException e) {
             throw new PresignedUrlException("Presigned url verification failed", e);
+        }
+    }
+
+    @Override
+    public void moveFile(String bucket, String srcPath, String destPath) {
+        try {
+            // copy file
+            final CopySource copySource = CopySource.builder()
+                    .bucket(bucket)
+                    .object(srcPath)
+                    .build();
+            final CopyObjectArgs copyObjectArgs = CopyObjectArgs.builder()
+                    .bucket(bucket)
+                    .source(copySource)
+                    .object(destPath).build();
+            this.minioClient.copyObject(copyObjectArgs);
+            // delete file
+            final RemoveObjectArgs removeObjectArgs = RemoveObjectArgs.builder()
+                    .bucket(bucket).object(srcPath).build();
+            this.minioClient.removeObject(removeObjectArgs);
+            log.info("Moved file in bucket {} from {} to {}", bucket, srcPath, destPath);
+        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+            final String message = String.format("Error while moving s3 object for bucket %s from path %s to %s", bucket, srcPath, destPath);
+            log.error(message, e);
+            throw new FileSystemAccessException(message, e);
         }
     }
 

@@ -78,7 +78,11 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
             final Map<String, String> requiredTags,
             final Map<String, List<String>> excludeTags) {
         final String suffix = String.format(".%s", extension);
-        return getFilesInPath(bucket, pathPrefix, recursive).stream()
+        return getObjectsInPath(bucket, pathPrefix, recursive).stream()
+                // filter out dirs
+                .filter(i -> !i.isDir())
+                // map to file
+                .map(i -> new File(bucket, i.objectName(), i.size()))
                 // filter extension
                 .filter(i -> i.path().toLowerCase(Locale.ROOT).endsWith(suffix))
                 // filter tags
@@ -190,14 +194,14 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     /**
-     * Get files in a specific bucket and path.
+     * Get objects (dirs/files) in a specific bucket and path.
      *
      * @param bucket Bucket to look in.
      * @param pathPrefix Path prefix to look in.
      * @param recursive If searching recursive or only direct in the path.
-     * @return Files in the path.
+     * @return Objects in the path.
      */
-    protected List<File> getFilesInPath(final String bucket, final String pathPrefix, final boolean recursive) {
+    protected List<Item> getObjectsInPath(final String bucket, final String pathPrefix, final boolean recursive) {
         // ensure prefix is handled as specific dir
         final String escapedPathPrefix = pathPrefix.endsWith("/") ? pathPrefix : pathPrefix + "/";
         // build s3 list request
@@ -208,13 +212,13 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         // list objects
         final List<Result<Item>> listResult = IteratorUtils.toList(minioClient.listObjects(listObjectsArgs).iterator());
         try {
-            final List<File> files = new ArrayList<>();
+            final List<Item> objects = new ArrayList<>();
             for (final Result<Item> resultItem : listResult) {
-                files.add(new File(bucket, resultItem.get().objectName(), resultItem.get().size()));
+                objects.add(resultItem.get());
             }
-            return files;
+            return objects;
         } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
-            final String message = String.format("Error while listing s3 files for bucket %s in path %s", bucket, pathPrefix);
+            final String message = String.format("Error while listing s3 objects for bucket %s in path %s", bucket, pathPrefix);
             log.error(message, e);
             throw new FileSystemAccessException(message, e);
         }

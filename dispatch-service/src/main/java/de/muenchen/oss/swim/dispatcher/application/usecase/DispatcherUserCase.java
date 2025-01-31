@@ -68,7 +68,8 @@ public class DispatcherUserCase implements DispatcherInPort {
      * @param folder The full path of the folder.
      * @return Error which occurred during processing (Key: file path, value: error).
      */
-    private @NotNull Map<String, Throwable> processDirectory(final UseCase useCase, final String folder) {
+    private @NotNull
+    Map<String, Throwable> processDirectory(final UseCase useCase, final String folder) {
         final List<File> readyFiles = fileSystemOutPort.getMatchingFiles(
                 useCase.getBucket(),
                 folder,

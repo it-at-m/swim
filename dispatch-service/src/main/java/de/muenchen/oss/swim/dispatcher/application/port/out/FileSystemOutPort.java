@@ -39,8 +39,7 @@ public interface FileSystemOutPort {
      */
     List<String> getSubDirectories(
             @NotBlank String bucket,
-            @NotNull String pathPrefix
-    );
+            @NotNull String pathPrefix);
 
     /**
      * Add tags to a file.

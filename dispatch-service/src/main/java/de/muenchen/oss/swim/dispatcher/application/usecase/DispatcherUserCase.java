@@ -43,13 +43,18 @@ public class DispatcherUserCase implements DispatcherInPort {
     public void triggerDispatching() {
         log.info("Starting dispatching");
         for (final UseCase useCase : swimDispatcherProperties.getUseCases()) {
-            // get folders
-            final List<String> folders = fileSystemOutPort.getSubDirectories(useCase.getBucket(), useCase.getPath());
-            // dispatch files per folder if not in finished folder
-            final Map<String, Throwable> errors = new HashMap<>();
-            for (final String folder : folders) {
-                if (!folder.contains(swimDispatcherProperties.getFinishedFolder())) {
-                    errors.putAll(this.processDirectory(useCase, folder));
+            // handle files directly in directory
+            final Map<String, Throwable> errors = new HashMap<>(
+                    this.processDirectory(useCase, useCase.getPath(), false));
+            // handle recursive by directory
+            if (useCase.isRecursive()) {
+                // get folders
+                final List<String> folders = fileSystemOutPort.getSubDirectories(useCase.getBucket(), useCase.getPath());
+                // dispatch files per folder if not in finished folder
+                for (final String folder : folders) {
+                    if (!folder.contains(swimDispatcherProperties.getFinishedFolder())) {
+                        errors.putAll(this.processDirectory(useCase, folder, true));
+                    }
                 }
             }
             // send errors
@@ -69,11 +74,11 @@ public class DispatcherUserCase implements DispatcherInPort {
      * @return Error which occurred during processing (Key: file path, value: error).
      */
     private @NotNull
-    Map<String, Throwable> processDirectory(final UseCase useCase, final String folder) {
+    Map<String, Throwable> processDirectory(final UseCase useCase, final String folder, final boolean recursive) {
         final List<File> readyFiles = fileSystemOutPort.getMatchingFiles(
                 useCase.getBucket(),
                 folder,
-                useCase.isRecursive(),
+                recursive,
                 FILE_EXTENSION_PDF,
                 useCase.getRequiredTags(),
                 swimDispatcherProperties.getDispatchExcludeTags());

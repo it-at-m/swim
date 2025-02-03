@@ -12,11 +12,14 @@ import de.muenchen.oss.swim.dispatcher.domain.exception.ProtocolException;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import de.muenchen.oss.swim.dispatcher.domain.model.protocol.ProtocolEntry;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.minio.CopyObjectArgs;
+import io.minio.CopySource;
 import io.minio.GetObjectArgs;
 import io.minio.GetObjectTagsArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
 import io.minio.Result;
 import io.minio.SetObjectTagsArgs;
 import io.minio.StatObjectArgs;
@@ -78,7 +81,11 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
             final Map<String, String> requiredTags,
             final Map<String, List<String>> excludeTags) {
         final String suffix = String.format(".%s", extension);
-        return getFilesInPath(bucket, pathPrefix, recursive).stream()
+        return getObjectsInPath(bucket, pathPrefix, recursive).stream()
+                // filter out dirs
+                .filter(i -> !i.isDir())
+                // map to file
+                .map(i -> new File(bucket, i.objectName(), i.size()))
                 // filter extension
                 .filter(i -> i.path().toLowerCase(Locale.ROOT).endsWith(suffix))
                 // filter tags
@@ -89,6 +96,16 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                     return matchesMap(tags, requiredTags, excludeTags);
                 })
                 .toList();
+    }
+
+    @Override
+    public List<String> getSubDirectories(final String bucket, final String pathPrefix) {
+        // ensure prefix is handled as specific dir
+        final String escapedPathPrefix = pathPrefix.endsWith("/") ? pathPrefix : pathPrefix + "/";
+        // build s3 list request
+        return this.getObjectsInPath(bucket, escapedPathPrefix, false).stream()
+                .filter(Item::isDir)
+                .map(Item::objectName).toList();
     }
 
     @Override
@@ -189,15 +206,40 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         }
     }
 
+    @Override
+    public void moveFile(final String bucket, final String srcPath, final String destPath) {
+        try {
+            // copy file
+            final CopySource copySource = CopySource.builder()
+                    .bucket(bucket)
+                    .object(srcPath)
+                    .build();
+            final CopyObjectArgs copyObjectArgs = CopyObjectArgs.builder()
+                    .bucket(bucket)
+                    .source(copySource)
+                    .object(destPath).build();
+            this.minioClient.copyObject(copyObjectArgs);
+            // delete file
+            final RemoveObjectArgs removeObjectArgs = RemoveObjectArgs.builder()
+                    .bucket(bucket).object(srcPath).build();
+            this.minioClient.removeObject(removeObjectArgs);
+            log.info("Moved file in bucket {} from {} to {}", bucket, srcPath, destPath);
+        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+            final String message = String.format("Error while moving s3 object for bucket %s from path %s to %s", bucket, srcPath, destPath);
+            log.error(message, e);
+            throw new FileSystemAccessException(message, e);
+        }
+    }
+
     /**
-     * Get files in a specific bucket and path.
+     * Get objects (dirs/files) in a specific bucket and path.
      *
      * @param bucket Bucket to look in.
      * @param pathPrefix Path prefix to look in.
      * @param recursive If searching recursive or only direct in the path.
-     * @return Files in the path.
+     * @return Objects in the path.
      */
-    protected List<File> getFilesInPath(final String bucket, final String pathPrefix, final boolean recursive) {
+    protected List<Item> getObjectsInPath(final String bucket, final String pathPrefix, final boolean recursive) {
         // ensure prefix is handled as specific dir
         final String escapedPathPrefix = pathPrefix.endsWith("/") ? pathPrefix : pathPrefix + "/";
         // build s3 list request
@@ -208,13 +250,13 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         // list objects
         final List<Result<Item>> listResult = IteratorUtils.toList(minioClient.listObjects(listObjectsArgs).iterator());
         try {
-            final List<File> files = new ArrayList<>();
+            final List<Item> objects = new ArrayList<>();
             for (final Result<Item> resultItem : listResult) {
-                files.add(new File(bucket, resultItem.get().objectName(), resultItem.get().size()));
+                objects.add(resultItem.get());
             }
-            return files;
+            return objects;
         } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
-            final String message = String.format("Error while listing s3 files for bucket %s in path %s", bucket, pathPrefix);
+            final String message = String.format("Error while listing s3 objects for bucket %s in path %s", bucket, pathPrefix);
             log.error(message, e);
             throw new FileSystemAccessException(message, e);
         }

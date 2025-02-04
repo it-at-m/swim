@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.dispatcher.configuration;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -10,9 +11,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DispatchMeter {
     private final MeterRegistry meterRegistry;
-    private final ConcurrentHashMap<String, Counter> dispatchedCounters = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Counter> errorCounters = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Counter> finishedCounters = new ConcurrentHashMap<>();
+    private final Map<String, Counter> dispatchedCounters = new ConcurrentHashMap<>();
+    private final Map<String, Counter> errorCounters = new ConcurrentHashMap<>();
+    private final Map<String, Counter> finishedCounters = new ConcurrentHashMap<>();
 
     /**
      * Increment counter metric of successfully dispatched files.

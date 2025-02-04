@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import de.muenchen.oss.swim.dispatcher.TestConstants;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.NotificationOutPort;
+import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
@@ -28,6 +29,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
 class ErrorHandlerUseCaseTest {
+    @MockitoBean
+    private DispatchMeter dispatchMeter;
     @Autowired
     private SwimDispatcherProperties swimDispatcherProperties;
     @MockitoBean
@@ -53,6 +56,7 @@ class ErrorHandlerUseCaseTest {
                 eq(TEST_ERROR_DETAILS));
         verify(fileSystemOutPort, times(1)).tagFile(any(), any(), any());
         verify(notificationOutPort, times(0)).sendFileError(any(), any(), any(), any(), any());
+        verify(dispatchMeter, times(1)).incrementError(eq(TEST_USE_CASE), eq(TEST_ERROR_DETAILS.source()));
     }
 
     @Test

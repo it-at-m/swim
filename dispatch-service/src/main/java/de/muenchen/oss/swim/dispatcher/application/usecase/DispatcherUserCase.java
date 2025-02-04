@@ -6,6 +6,7 @@ import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.NotificationOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.ReadProtocolOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.StoreProtocolOutPort;
+import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
@@ -35,6 +36,7 @@ public class DispatcherUserCase implements DispatcherInPort {
     private final ReadProtocolOutPort readProtocolOutPort;
     private final StoreProtocolOutPort storeProtocolOutPort;
     private final NotificationOutPort notificationOutPort;
+    private final DispatchMeter dispatchMeter;
 
     private static final String FILE_EXTENSION_PDF = "pdf";
     private static final String FILE_EXTENSION_CSV = "csv";
@@ -141,6 +143,8 @@ public class DispatcherUserCase implements DispatcherInPort {
         fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(),
                 swimDispatcherProperties.getDispatchedStateTagValue()));
+        // update metric
+        dispatchMeter.incrementDispatched(useCase.getName(), useCase.getDestinationBinding());
     }
 
     @Override

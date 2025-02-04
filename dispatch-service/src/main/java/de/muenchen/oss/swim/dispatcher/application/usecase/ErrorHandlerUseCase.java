@@ -3,6 +3,7 @@ package de.muenchen.oss.swim.dispatcher.application.usecase;
 import de.muenchen.oss.swim.dispatcher.application.port.in.ErrorHandlerInPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.NotificationOutPort;
+import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
@@ -20,6 +21,7 @@ public class ErrorHandlerUseCase implements ErrorHandlerInPort {
     private final SwimDispatcherProperties swimDispatcherProperties;
     private final NotificationOutPort notificationOutPort;
     private final FileSystemOutPort fileSystemOutPort;
+    private final DispatchMeter dispatchMeter;
 
     @Override
     public void handleError(final String useCaseName, final String presignedUrl, final String metadataPresignedUrl, final ErrorDetails cause) {
@@ -31,9 +33,13 @@ public class ErrorHandlerUseCase implements ErrorHandlerInPort {
             this.markFileError(file, cause);
             // send notification
             notificationOutPort.sendFileError(useCase.getMailAddresses(), useCaseName, file.path(), cause);
+            // update metric
+            dispatchMeter.incrementError(useCaseName, cause.source());
         } catch (final Exception e) {
             log.error("Error while handling error", e);
             notificationOutPort.sendFileError(List.of(swimDispatcherProperties.getFallbackMail()), useCaseName, presignedUrl, cause, e);
+            // update metric
+            dispatchMeter.incrementError(useCaseName, cause.source());
         }
     }
 

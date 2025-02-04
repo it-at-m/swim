@@ -27,7 +27,7 @@
         <spring-cloud-dependencies.version>2024.0.0</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
 
         <!-- Other -->
-        <minio.version>8.5.13</minio.version>
+        <minio.version>8.5.17</minio.version>
 
         <!-- Logging -->
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>

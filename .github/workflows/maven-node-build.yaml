@@ -11,8 +11,13 @@ jobs:
       matrix:
         include:
           - app-path: matching-service
+            build-image: true
           - app-path: dispatch-service
+            build-image: true
+          - app-path: handler-core
+            build-image: false
           - app-path: dms-service
+            build-image: true
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - if: ${{ hashFiles(format('./{0}/package.json', matrix.app-path)) != null }}
@@ -25,7 +30,7 @@ jobs:
         uses: it-at-m/.github/.github/actions/action-maven-build@main
         with:
           app-path: "${{ matrix.app-path }}"
-      - if: github.ref == 'refs/heads/main'
+      - if: github.ref == 'refs/heads/main' && matrix.build-image
         uses: it-at-m/.github/.github/actions/action-build-image@main
         with:
           path: "${{ matrix.app-path }}"

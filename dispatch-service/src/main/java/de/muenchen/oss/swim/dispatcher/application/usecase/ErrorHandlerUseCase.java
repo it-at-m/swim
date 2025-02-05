@@ -4,8 +4,6 @@ import de.muenchen.oss.swim.dispatcher.application.port.in.ErrorHandlerInPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.NotificationOutPort;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
-import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
-import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
@@ -33,7 +31,7 @@ public class ErrorHandlerUseCase implements ErrorHandlerInPort {
             this.markFileError(file, cause);
             // send notification
             notificationOutPort.sendFileError(useCase.getMailAddresses(), useCaseName, file.path(), cause);
-        } catch (final UseCaseException | PresignedUrlException e) {
+        } catch (final Exception e) {
             log.error("Error while handling error", e);
             notificationOutPort.sendFileError(List.of(swimDispatcherProperties.getFallbackMail()), useCaseName, presignedUrl, cause, e);
         }

@@ -51,7 +51,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-@SuppressWarnings("PMD.CouplingBetweenObjects")
+@SuppressWarnings({ "PMD.CouplingBetweenObjects", "PMD.GodClass" })
 public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     /**
      * Response code from S3 storage when an object cannot be found.

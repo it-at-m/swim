@@ -6,6 +6,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.ReadProtocolOutPort;
+import de.muenchen.oss.swim.dispatcher.domain.exception.FileNotFoundException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSystemAccessException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.ProtocolException;
@@ -91,7 +92,12 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 // filter tags
                 .filter(i -> {
                     // get file tags
-                    final Map<String, String> tags = getTagsOfFile(bucket, i.path());
+                    final Map<String, String> tags;
+                    try {
+                        tags = getTagsOfFile(bucket, i.path());
+                    } catch (final FileNotFoundException e) {
+                        return false;
+                    }
                     // check if matching required and exclude
                     return matchesMap(tags, requiredTags, excludeTags);
                 })
@@ -110,21 +116,21 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
 
     @Override
     public void tagFile(final String bucket, final String path, final Map<String, String> tags) {
-        // get current tags
-        final Map<String, String> currentTags = getTagsOfFile(bucket, path);
-        // build new tags
-        final Map<String, String> newTags = new HashMap<>(currentTags);
-        newTags.putAll(tags);
-        // build request
-        final SetObjectTagsArgs setObjectTagsArgs = SetObjectTagsArgs.builder()
-                .bucket(bucket)
-                .object(path)
-                .tags(newTags)
-                .build();
         try {
+            // get current tags
+            final Map<String, String> currentTags = getTagsOfFile(bucket, path);
+            // build new tags
+            final Map<String, String> newTags = new HashMap<>(currentTags);
+            newTags.putAll(tags);
+            // build request
+            final SetObjectTagsArgs setObjectTagsArgs = SetObjectTagsArgs.builder()
+                    .bucket(bucket)
+                    .object(path)
+                    .tags(newTags)
+                    .build();
             // set tags
             minioClient.setObjectTags(setObjectTagsArgs);
-        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException | FileNotFoundException e) {
             final String message = String.format("Error while tagging s3 file for bucket %s in path %s", bucket, path);
             log.error(message, e);
             throw new FileSystemAccessException(message, e);
@@ -268,14 +274,25 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
      * @param bucket Bucket in which the file is in.
      * @param objectName Name of the file.
      * @return Tags the file has.
+     * @throws FileNotFoundException If key can't be found in S3.
      */
-    protected Map<String, String> getTagsOfFile(final String bucket, final String objectName) {
+    protected Map<String, String> getTagsOfFile(final String bucket, final String objectName) throws FileNotFoundException {
         final GetObjectTagsArgs getObjectTagsArgs = GetObjectTagsArgs.builder()
                 .bucket(bucket)
                 .object(objectName)
                 .build();
         try {
             return minioClient.getObjectTags(getObjectTagsArgs).get();
+        } catch (final ErrorResponseException e) {
+            // handle exception which indicates file doesn't exist
+            if (ERROR_CODE_NO_SUCH_KEY.equals(e.errorResponse().code())) {
+                final String message = String.format("File %s can't be found in bucket %s", objectName, bucket);
+                throw new FileNotFoundException(message, e);
+            } else {
+                final String message = String.format("ErrorResponseException while getting tags for s3 file %s in bucket %s", objectName, bucket);
+                log.error(message, e);
+                throw new FileSystemAccessException(message, e);
+            }
         } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
             final String message = String.format("Error while getting tags for s3 file %s in bucket %s", objectName, bucket);
             log.error(message, e);

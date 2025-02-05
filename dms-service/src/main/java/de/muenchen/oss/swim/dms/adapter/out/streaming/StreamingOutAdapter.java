@@ -19,6 +19,6 @@ public class StreamingOutAdapter implements FileEventOutPort {
         if (!sent) {
             throw new RuntimeException("Failed to send file finished event");
         }
-        log.info("File finished event sent for use case {}", useCase);
+        log.debug("File finished event sent for use case {}", useCase);
     }
 }

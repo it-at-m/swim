@@ -43,6 +43,7 @@ class MarkFileFinishedUseCaseTest {
         verify(fileSystemOutPort, times(1)).verifyPresignedUrl(TEST_PRESIGNED_URL);
         verify(fileSystemOutPort, times(1)).tagFile(eq("test-bucket"), eq("test/path/example.pdf"), eq(Map.of(
                 "SWIM_State", "finished")));
+        verify(fileSystemOutPort, times(1)).moveFile(eq("test-bucket"), eq("test/path/example.pdf"), eq("test/_finished/path/example.pdf"));
     }
 
     @Test

@@ -35,7 +35,7 @@
         <itm-java-codeformat.version>1.0.10</itm-java-codeformat.version>
         <pmd-maven-plugin.version>3.26.0</pmd-maven-plugin.version>
         <spotbugs-maven-plugin.version>4.8.6.6</spotbugs-maven-plugin.version>
-        <spotbugs-annotations.version>4.8.6</spotbugs-annotations.version>
+        <spotbugs-annotations.version>4.9.0</spotbugs-annotations.version>
         <findsecbugs-plugin.version>1.13.0</findsecbugs-plugin.version>
 
         <!-- Testing -->
@@ -46,12 +46,6 @@
         <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
 
         <!-- Utility -->
-        <commons-collections4.version>4.4</commons-collections4.version>
-        <commons-csv.version>1.12.0</commons-csv.version>
-        <commons-io.version>2.18.0</commons-io.version>
-        <commons-lang3.version>3.17.0</commons-lang3.version>
-        <commons-text.version>1.12.0</commons-text.version>
-        <commons-validator.version>1.9.0</commons-validator.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <refarch-tools.version>1.1.0</refarch-tools.version>
 
@@ -180,38 +174,6 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-        </dependency>
-
-        <!-- apache commons -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-collections4</artifactId>
-            <version>${commons-collections4.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
-            <version>${commons-csv.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>${commons-io.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${commons-lang3.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-text</artifactId>
-            <version>${commons-text.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-validator</groupId>
-            <artifactId>commons-validator</artifactId>
-            <version>${commons-validator.version}</version>
         </dependency>
 
         <!-- Configuration Processor -->

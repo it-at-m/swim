@@ -6,6 +6,7 @@ spring:
       default:
         consumer:
           max-attempts: 3
+          ack-mode: record
       kafka:
         binder:
           auto-create-topics: false
@@ -15,6 +16,9 @@ spring:
             key:
               serializer: org.springframework.kafka.support.serializer.JsonSerializer
           consumerProperties:
+            max:
+              poll:
+                records: 20
             auto:
               offset:
                 reset: latest

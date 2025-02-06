@@ -6,12 +6,12 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.4.0</version>
-        <relativePath/>
+        <relativePath />
     </parent>
 
     <groupId>de.muenchen.oss.swim</groupId>
     <artifactId>dispatch-service</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
     <name>dispatch-service</name>
     <description>SWIM service for notifying other services (i.e. DMS) that a file is ready for further processing via Kafka</description>
     <url>https://github.com/it-at-m/swim</url>
@@ -27,7 +27,7 @@
         <spring-cloud-dependencies.version>2024.0.0</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
 
         <!-- Other -->
-        <minio.version>8.5.13</minio.version>
+        <minio.version>8.5.17</minio.version>
 
         <!-- Logging -->
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
@@ -36,8 +36,8 @@
         <spotless-maven-plugin.version>2.34.0</spotless-maven-plugin.version>
         <itm-java-codeformat.version>1.0.10</itm-java-codeformat.version>
         <pmd-maven-plugin.version>3.26.0</pmd-maven-plugin.version>
-        <spotbugs-maven-plugin.version>4.8.6.5</spotbugs-maven-plugin.version>
-        <spotbugs-annotations.version>4.8.6</spotbugs-annotations.version>
+        <spotbugs-maven-plugin.version>4.8.6.6</spotbugs-maven-plugin.version>
+        <spotbugs-annotations.version>4.9.0</spotbugs-annotations.version>
         <findsecbugs-plugin.version>1.13.0</findsecbugs-plugin.version>
 
         <!-- Testing -->

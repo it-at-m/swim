@@ -64,6 +64,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         }
         // mark file as finished
         fileEventOutPort.fileFinished(useCaseName, presignedUrl, metadataPresignedUrl);
+        log.info("File {} in use case {} finished", file, useCaseName);
     }
 
     /**

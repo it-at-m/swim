@@ -6,17 +6,21 @@ import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.ReadProtocolOutPort;
+import de.muenchen.oss.swim.dispatcher.domain.exception.FileNotFoundException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSystemAccessException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.ProtocolException;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import de.muenchen.oss.swim.dispatcher.domain.model.protocol.ProtocolEntry;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.minio.CopyObjectArgs;
+import io.minio.CopySource;
 import io.minio.GetObjectArgs;
 import io.minio.GetObjectTagsArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
 import io.minio.Result;
 import io.minio.SetObjectTagsArgs;
 import io.minio.StatObjectArgs;
@@ -47,7 +51,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-@SuppressWarnings("PMD.CouplingBetweenObjects")
+@SuppressWarnings({ "PMD.CouplingBetweenObjects", "PMD.GodClass" })
 public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     /**
      * Response code from S3 storage when an object cannot be found.
@@ -78,13 +82,22 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
             final Map<String, String> requiredTags,
             final Map<String, List<String>> excludeTags) {
         final String suffix = String.format(".%s", extension);
-        return getFilesInPath(bucket, pathPrefix, recursive).stream()
+        return getObjectsInPath(bucket, pathPrefix, recursive).stream()
+                // filter out dirs
+                .filter(i -> !i.isDir())
+                // map to file
+                .map(i -> new File(bucket, i.objectName(), i.size()))
                 // filter extension
                 .filter(i -> i.path().toLowerCase(Locale.ROOT).endsWith(suffix))
                 // filter tags
                 .filter(i -> {
                     // get file tags
-                    final Map<String, String> tags = getTagsOfFile(bucket, i.path());
+                    final Map<String, String> tags;
+                    try {
+                        tags = getTagsOfFile(bucket, i.path());
+                    } catch (final FileNotFoundException e) {
+                        return false;
+                    }
                     // check if matching required and exclude
                     return matchesMap(tags, requiredTags, excludeTags);
                 })
@@ -92,22 +105,32 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     @Override
+    public List<String> getSubDirectories(final String bucket, final String pathPrefix) {
+        // ensure prefix is handled as specific dir
+        final String escapedPathPrefix = pathPrefix.endsWith("/") ? pathPrefix : pathPrefix + "/";
+        // build s3 list request
+        return this.getObjectsInPath(bucket, escapedPathPrefix, false).stream()
+                .filter(Item::isDir)
+                .map(Item::objectName).toList();
+    }
+
+    @Override
     public void tagFile(final String bucket, final String path, final Map<String, String> tags) {
-        // get current tags
-        final Map<String, String> currentTags = getTagsOfFile(bucket, path);
-        // build new tags
-        final Map<String, String> newTags = new HashMap<>(currentTags);
-        newTags.putAll(tags);
-        // build request
-        final SetObjectTagsArgs setObjectTagsArgs = SetObjectTagsArgs.builder()
-                .bucket(bucket)
-                .object(path)
-                .tags(newTags)
-                .build();
         try {
+            // get current tags
+            final Map<String, String> currentTags = getTagsOfFile(bucket, path);
+            // build new tags
+            final Map<String, String> newTags = new HashMap<>(currentTags);
+            newTags.putAll(tags);
+            // build request
+            final SetObjectTagsArgs setObjectTagsArgs = SetObjectTagsArgs.builder()
+                    .bucket(bucket)
+                    .object(path)
+                    .tags(newTags)
+                    .build();
             // set tags
             minioClient.setObjectTags(setObjectTagsArgs);
-        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException | FileNotFoundException e) {
             final String message = String.format("Error while tagging s3 file for bucket %s in path %s", bucket, path);
             log.error(message, e);
             throw new FileSystemAccessException(message, e);
@@ -189,15 +212,40 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         }
     }
 
+    @Override
+    public void moveFile(final String bucket, final String srcPath, final String destPath) {
+        try {
+            // copy file
+            final CopySource copySource = CopySource.builder()
+                    .bucket(bucket)
+                    .object(srcPath)
+                    .build();
+            final CopyObjectArgs copyObjectArgs = CopyObjectArgs.builder()
+                    .bucket(bucket)
+                    .source(copySource)
+                    .object(destPath).build();
+            this.minioClient.copyObject(copyObjectArgs);
+            // delete file
+            final RemoveObjectArgs removeObjectArgs = RemoveObjectArgs.builder()
+                    .bucket(bucket).object(srcPath).build();
+            this.minioClient.removeObject(removeObjectArgs);
+            log.info("Moved file in bucket {} from {} to {}", bucket, srcPath, destPath);
+        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+            final String message = String.format("Error while moving s3 object for bucket %s from path %s to %s", bucket, srcPath, destPath);
+            log.error(message, e);
+            throw new FileSystemAccessException(message, e);
+        }
+    }
+
     /**
-     * Get files in a specific bucket and path.
+     * Get objects (dirs/files) in a specific bucket and path.
      *
      * @param bucket Bucket to look in.
      * @param pathPrefix Path prefix to look in.
      * @param recursive If searching recursive or only direct in the path.
-     * @return Files in the path.
+     * @return Objects in the path.
      */
-    protected List<File> getFilesInPath(final String bucket, final String pathPrefix, final boolean recursive) {
+    protected List<Item> getObjectsInPath(final String bucket, final String pathPrefix, final boolean recursive) {
         // ensure prefix is handled as specific dir
         final String escapedPathPrefix = pathPrefix.endsWith("/") ? pathPrefix : pathPrefix + "/";
         // build s3 list request
@@ -208,13 +256,13 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         // list objects
         final List<Result<Item>> listResult = IteratorUtils.toList(minioClient.listObjects(listObjectsArgs).iterator());
         try {
-            final List<File> files = new ArrayList<>();
+            final List<Item> objects = new ArrayList<>();
             for (final Result<Item> resultItem : listResult) {
-                files.add(new File(bucket, resultItem.get().objectName(), resultItem.get().size()));
+                objects.add(resultItem.get());
             }
-            return files;
+            return objects;
         } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
-            final String message = String.format("Error while listing s3 files for bucket %s in path %s", bucket, pathPrefix);
+            final String message = String.format("Error while listing s3 objects for bucket %s in path %s", bucket, pathPrefix);
             log.error(message, e);
             throw new FileSystemAccessException(message, e);
         }
@@ -226,14 +274,25 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
      * @param bucket Bucket in which the file is in.
      * @param objectName Name of the file.
      * @return Tags the file has.
+     * @throws FileNotFoundException If key can't be found in S3.
      */
-    protected Map<String, String> getTagsOfFile(final String bucket, final String objectName) {
+    protected Map<String, String> getTagsOfFile(final String bucket, final String objectName) throws FileNotFoundException {
         final GetObjectTagsArgs getObjectTagsArgs = GetObjectTagsArgs.builder()
                 .bucket(bucket)
                 .object(objectName)
                 .build();
         try {
             return minioClient.getObjectTags(getObjectTagsArgs).get();
+        } catch (final ErrorResponseException e) {
+            // handle exception which indicates file doesn't exist
+            if (ERROR_CODE_NO_SUCH_KEY.equals(e.errorResponse().code())) {
+                final String message = String.format("File %s can't be found in bucket %s", objectName, bucket);
+                throw new FileNotFoundException(message, e);
+            } else {
+                final String message = String.format("ErrorResponseException while getting tags for s3 file %s in bucket %s", objectName, bucket);
+                log.error(message, e);
+                throw new FileSystemAccessException(message, e);
+            }
         } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
             final String message = String.format("Error while getting tags for s3 file %s in bucket %s", objectName, bucket);
             log.error(message, e);

@@ -44,12 +44,13 @@ public class DispatcherUserCase implements DispatcherInPort {
         log.info("Starting dispatching");
         for (final UseCase useCase : swimDispatcherProperties.getUseCases()) {
             // handle files directly in directory
+            final String dispatchPath = useCase.getDispatchPath(swimDispatcherProperties);
             final Map<String, Throwable> errors = new HashMap<>(
-                    this.processDirectory(useCase, useCase.getPath(), false));
+                    this.processDirectory(useCase, dispatchPath, false));
             // handle recursive by directory
             if (useCase.isRecursive()) {
                 // get folders
-                final List<String> folders = fileSystemOutPort.getSubDirectories(useCase.getBucket(), useCase.getPath());
+                final List<String> folders = fileSystemOutPort.getSubDirectories(useCase.getBucket(), dispatchPath);
                 // dispatch files per folder if not in finished folder
                 for (final String folder : folders) {
                     if (!folder.contains(swimDispatcherProperties.getFinishedFolder())) {

@@ -1,6 +1,7 @@
 package de.muenchen.oss.swim.dispatcher.application.usecase;
 
 import static de.muenchen.oss.swim.dispatcher.TestConstants.BUCKET;
+import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE_DISPATCH_PATH;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -62,10 +63,9 @@ class DispatcherUserCaseTest {
 
     private static final String USE_CASE = "test-meta";
     private static final List<String> USE_CASE_RECIPIENTS = List.of("test-meta@example.com");
-    private static final String USE_CASE_PATH = "test";
-    private static final String FOLDER_PATH = "test/path/";
-    private static final File FILE1 = new File(BUCKET, "test/path/test.pdf", 0L);
-    private static final File FILE2 = new File(BUCKET, "test/path/test2.pdf", 0L);
+    private static final String FOLDER_PATH = "test/inProcess/path/";
+    private static final File FILE1 = new File(BUCKET, "test/inProcess/path/test.pdf", 0L);
+    private static final File FILE2 = new File(BUCKET, "test/inProcess/path/test2.pdf", 0L);
 
     @Nested
     class FileDispatchingTest {
@@ -73,7 +73,7 @@ class DispatcherUserCaseTest {
         void testTriggerDispatching_Success() throws FileSizeException, MetadataException {
             // setup
             final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
-            when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_PATH))).thenReturn(List.of(FOLDER_PATH));
+            when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH))).thenReturn(List.of(FOLDER_PATH));
             when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(FOLDER_PATH), eq(true), eq("pdf"), anyMap(), anyMap())).thenReturn(List.of(FILE1, FILE2));
             doNothing().when(dispatcherUserCase).processFile(any(), any());
             // call
@@ -89,7 +89,7 @@ class DispatcherUserCaseTest {
         void testTriggerDispatching_Exception() throws FileSizeException, MetadataException {
             // setup
             final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
-            when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_PATH))).thenReturn(List.of(FOLDER_PATH));
+            when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH))).thenReturn(List.of(FOLDER_PATH));
             when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(FOLDER_PATH), eq(true), eq("pdf"), anyMap(), anyMap())).thenReturn(List.of(FILE1, FILE2));
             final FileSizeException e = new FileSizeException("Error");
             doThrow(e).when(dispatcherUserCase).processFile(any(), any());
@@ -107,8 +107,8 @@ class DispatcherUserCaseTest {
         void testProcessFile_Success() throws FileSizeException, MetadataException {
             // setup
             final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
-            when(fileSystemOutPort.fileExists(eq(BUCKET), eq("test/path/test.json"))).thenReturn(true);
-            when(fileSystemOutPort.getPresignedUrl(eq(BUCKET), eq("test/path/test.json"))).thenReturn("presignedMeta");
+            when(fileSystemOutPort.fileExists(eq(BUCKET), eq("test/inProcess/path/test.json"))).thenReturn(true);
+            when(fileSystemOutPort.getPresignedUrl(eq(BUCKET), eq("test/inProcess/path/test.json"))).thenReturn("presignedMeta");
             when(fileSystemOutPort.getPresignedUrl(eq(BUCKET), eq(FILE1.path()))).thenReturn("presignedFile");
             // call
             dispatcherUserCase.processFile(useCase, FILE1);

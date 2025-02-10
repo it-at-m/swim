@@ -1,7 +1,8 @@
 package de.muenchen.oss.swim.dms.application.usecase;
 
 import static de.muenchen.oss.swim.dms.TestConstants.METADATA_DMS_TARGET_USER;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -14,6 +15,7 @@ import de.muenchen.oss.swim.dms.TestConstants;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileEventOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileSystemOutPort;
+import de.muenchen.oss.swim.dms.configuration.DmsMeter;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
@@ -50,6 +52,8 @@ class ProcessFileUseCaseTest {
     private DmsOutPort dmsOutPort;
     @MockitoBean
     private FileEventOutPort fileEventOutPort;
+    @MockitoBean
+    private DmsMeter dmsMeter;
     @MockitoSpyBean
     @Autowired
     private MetadataHelper metadataHelper;
@@ -87,6 +91,7 @@ class ProcessFileUseCaseTest {
         verify(processFileUseCase, times(1)).resolveTargetCoo(eq(METADATA_PRESIGNED_URL), eq(useCase), eq(FILE));
         verify(metadataHelper, times(1)).resolveDmsTarget(any());
         verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(METADATA_DMS_TARGET_USER), eq(FILE_NAME), eq(null));
+        verify(dmsMeter, times(1)).incrementProcessed(eq(useCaseName), eq("INBOX"));
     }
 
     @Test

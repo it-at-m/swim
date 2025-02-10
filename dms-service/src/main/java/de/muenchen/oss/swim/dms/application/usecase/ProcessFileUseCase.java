@@ -4,6 +4,7 @@ import de.muenchen.oss.swim.dms.application.port.in.ProcessFileInPort;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileEventOutPort;
 import de.muenchen.oss.swim.dms.application.port.out.FileSystemOutPort;
+import de.muenchen.oss.swim.dms.configuration.DmsMeter;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
@@ -38,6 +39,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     private final DmsOutPort dmsOutPort;
     private final FileEventOutPort fileEventOutPort;
     private final MetadataHelper metadataHelper;
+    private final DmsMeter dmsMeter;
 
     @Override
     public void processFile(final String useCaseName, final File file, final String presignedUrl, final String metadataPresignedUrl)
@@ -65,6 +67,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         // mark file as finished
         fileEventOutPort.fileFinished(useCaseName, presignedUrl, metadataPresignedUrl);
         log.info("File {} in use case {} finished", file, useCaseName);
+        // update metric
+        dmsMeter.incrementProcessed(useCaseName, useCase.getType().name());
     }
 
     /**

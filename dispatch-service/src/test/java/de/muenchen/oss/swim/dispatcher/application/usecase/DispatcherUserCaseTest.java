@@ -129,7 +129,7 @@ class DispatcherUserCaseTest {
         void testProcessFile_MetadataException() {
             // setup
             final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
-            when(fileSystemOutPort.fileExists(eq(BUCKET), eq("test/path/test.json"))).thenReturn(false);
+            when(fileSystemOutPort.fileExists(eq(BUCKET), eq("test/inProcess/path/test.json"))).thenReturn(false);
             // call and test
             assertThrows(MetadataException.class, () -> dispatcherUserCase.processFile(useCase, FILE1));
         }
@@ -194,7 +194,7 @@ class DispatcherUserCaseTest {
             when(fileSystemOutPort.getMatchingFiles(any(), any(), anyBoolean(), any(), any(), anyMap())).thenReturn(List.of(
                     FILE1,
                     FILE2,
-                    new File(BUCKET, "test/path/test3.pdf", 0L)));
+                    new File(BUCKET, "test/inProcess/path/test3.pdf", 0L)));
             final InputStream protocolStream = getClass().getResourceAsStream("file/protocol.csv");
             when(fileSystemOutPort.readFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(protocolStream);
             // call

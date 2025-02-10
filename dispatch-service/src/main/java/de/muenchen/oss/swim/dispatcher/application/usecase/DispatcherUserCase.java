@@ -215,7 +215,9 @@ public class DispatcherUserCase implements DispatcherInPort {
             // tag protocol as processed
             fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
                     swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue()));
-
+            // move protocol
+            final String destPath = useCase.getFinishedPath(swimDispatcherProperties, file.path());
+            fileSystemOutPort.moveFile(file.bucket(), file.path(), destPath);
         } catch (final ProtocolException | IOException | DataIntegrityViolationException e) {
             log.warn("Error file processing {} for use case {}", file.path(), useCase.getName(), e);
             markFileError(file, swimDispatcherProperties.getProtocolStateTagKey(), e);

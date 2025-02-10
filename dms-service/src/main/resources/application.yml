@@ -6,6 +6,7 @@ spring:
       default:
         consumer:
           max-attempts: 3
+          ack-mode: record
       kafka:
         binder:
           auto-create-topics: false
@@ -15,6 +16,9 @@ spring:
             key:
               serializer: org.springframework.kafka.support.serializer.JsonSerializer
           consumerProperties:
+            max:
+              poll:
+                records: 20
             auto:
               offset:
                 reset: latest
@@ -43,7 +47,8 @@ server:
 management:
   server.port: ${server.port}
   endpoints:
-    enabled-by-default: false
+    access:
+      default: none
     web:
       exposure:
         include: health, info, prometheus
@@ -51,11 +56,13 @@ management:
         prometheus: metrics
   endpoint:
     health:
-      enabled: true
+      access: read_only
       probes:
         enabled: true
-    info.enabled: true
-    prometheus.enabled: true
+    info:
+      access: read_only
+    prometheus:
+      access: read_only
   info:
     env:
       enabled: true

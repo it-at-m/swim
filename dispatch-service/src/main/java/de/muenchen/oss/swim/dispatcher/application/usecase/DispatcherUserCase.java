@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -42,29 +43,18 @@ public class DispatcherUserCase implements DispatcherInPort {
     public void triggerDispatching() {
         log.info("Starting dispatching");
         for (final UseCase useCase : swimDispatcherProperties.getUseCases()) {
-            // get files ready for dispatching
-            final List<File> readyFiles = fileSystemOutPort.getMatchingFiles(
-                    useCase.getBucket(),
-                    useCase.getPath(),
-                    useCase.isRecursive(),
-                    FILE_EXTENSION_PDF,
-                    useCase.getRequiredTags(),
-                    swimDispatcherProperties.getDispatchExcludeTags());
-            // for each file
-            log.info("Found {} ready to process files for use case {}", readyFiles.size(), useCase.getName());
-            final Map<String, Throwable> errors = new HashMap<>();
-            for (final File file : readyFiles) {
-                if (!useCase.isSensitiveFilename()) {
-                    log.info("Processing file {} for use case {}", file.path(), useCase.getName());
-                }
-                try {
-                    this.processFile(useCase, file);
-                } catch (final MetadataException | FileSizeException e) {
-                    log.warn("Error while processing file {} for use case {}", file.path(), useCase.getName(), e);
-                    // mark file as failed
-                    markFileError(file, swimDispatcherProperties.getDispatchStateTagKey(), e);
-                    // store exception for later notification
-                    errors.put(file.path(), e);
+            // handle files directly in directory
+            final Map<String, Throwable> errors = new HashMap<>(
+                    this.processDirectory(useCase, useCase.getPath(), false));
+            // handle recursive by directory
+            if (useCase.isRecursive()) {
+                // get folders
+                final List<String> folders = fileSystemOutPort.getSubDirectories(useCase.getBucket(), useCase.getPath());
+                // dispatch files per folder if not in finished folder
+                for (final String folder : folders) {
+                    if (!folder.contains(swimDispatcherProperties.getFinishedFolder())) {
+                        errors.putAll(this.processDirectory(useCase, folder, true));
+                    }
                 }
             }
             // send errors
@@ -73,6 +63,43 @@ public class DispatcherUserCase implements DispatcherInPort {
             }
         }
         log.info("Finished dispatching");
+    }
+
+    /**
+     * Process all files inside a folder recursively.
+     * See {@link DispatcherUserCase#processFile(UseCase, File)}.
+     *
+     * @param useCase The bucket of the folder.
+     * @param folder The full path of the folder.
+     * @return Error which occurred during processing (Key: file path, value: error).
+     */
+    private @NotNull
+    Map<String, Throwable> processDirectory(final UseCase useCase, final String folder, final boolean recursive) {
+        final List<File> readyFiles = fileSystemOutPort.getMatchingFiles(
+                useCase.getBucket(),
+                folder,
+                recursive,
+                FILE_EXTENSION_PDF,
+                useCase.getRequiredTags(),
+                swimDispatcherProperties.getDispatchExcludeTags());
+        // for each file
+        log.info("Found {} ready to process files for use case {} in folder {}", readyFiles.size(), useCase.getName(), folder);
+        final Map<String, Throwable> errors = new HashMap<>();
+        for (final File file : readyFiles) {
+            if (!useCase.isSensitiveFilename()) {
+                log.info("Processing file {} for use case {}", file.path(), useCase.getName());
+            }
+            try {
+                this.processFile(useCase, file);
+            } catch (final MetadataException | FileSizeException e) {
+                log.warn("Error while processing file {} for use case {}", file.path(), useCase.getName(), e);
+                // mark file as failed
+                markFileError(file, swimDispatcherProperties.getDispatchStateTagKey(), e);
+                // store exception for later notification
+                errors.put(file.path(), e);
+            }
+        }
+        return errors;
     }
 
     /**

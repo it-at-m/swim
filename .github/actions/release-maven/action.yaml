@@ -34,7 +34,7 @@ runs:
   using: "composite"
   steps:
     - name: Set up JDK
-      uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
+      uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
       with:
         java-version: ${{ inputs.java-version }}
         distribution: "temurin"
@@ -57,7 +57,7 @@ runs:
         CENTRAL_USERNAME: ${{ inputs.sonatype-username }}
         CENTRAL_PASSWORD: ${{ inputs.sonatype-password }}
     - name: "Upload target artifacts"
-      uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
       with:
         name: target
         path: "**/target"
@@ -65,18 +65,18 @@ runs:
     - name: Push changes to new branch
       shell: bash
       run: |
-        git checkout -b ${{ github.ref_name }}-version-bump
-        git push --force origin ${{ github.ref_name }}-version-bump
+        git checkout -b ${{ inputs.module }}-version-bump
+        git push --force origin ${{ inputs.module }}-version-bump
     - name: Create pull request
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
       with:
         script: |
           const { repo, owner } = context.repo;
           const pullResult = await github.rest.pulls.create({
-            title: 'chore: bump release version ${{ github.ref_name }}',
+            title: 'chore: bump release version ${{ inputs.module }}',
             owner,
             repo,
-            head: '${{ github.ref_name }}-version-bump',
+            head: '${{ inputs.module }}-version-bump',
             base: '${{ github.ref_name }}',
             body: [
               'This PR is auto-generated'

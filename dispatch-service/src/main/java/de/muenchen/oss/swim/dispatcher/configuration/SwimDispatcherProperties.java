@@ -82,7 +82,8 @@ public class SwimDispatcherProperties {
     private String finishedFolder;
     /**
      * Folder name where to look in for files to dispatch.
-     * Looks inside {@link UseCase#getPath()} for this folder and dispatches files inside if matching requirements.
+     * Looks inside {@link UseCase#getPath()} for this folder and dispatches files inside if matching
+     * requirements.
      */
     @NotBlank
     private String dispatchFolder;

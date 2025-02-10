@@ -191,8 +191,9 @@ public class DispatcherUserCase implements DispatcherInPort {
             final List<ProtocolEntry> protocolEntries = readProtocolOutPort.loadProtocol(file.bucket(), file.path());
             final List<String> protocolFileNames = protocolEntries.stream().map(ProtocolEntry::fileName).toList();
             // load files in folder
-            final List<File> folderFiles = new ArrayList<>(fileSystemOutPort.getMatchingFiles(file.bucket(), file.getParentPath(), false, FILE_EXTENSION_PDF, Map.of(),
-                    Map.of()));
+            final List<File> folderFiles = new ArrayList<>(
+                    fileSystemOutPort.getMatchingFiles(file.bucket(), file.getParentPath(), false, FILE_EXTENSION_PDF, Map.of(),
+                            Map.of()));
             // load files in finished folder
             final String finishedPath = useCase.getFinishedPath(swimDispatcherProperties, file.getParentPath());
             folderFiles.addAll(fileSystemOutPort.getMatchingFiles(file.bucket(), finishedPath, false, FILE_EXTENSION_PDF, Map.of(), Map.of()));

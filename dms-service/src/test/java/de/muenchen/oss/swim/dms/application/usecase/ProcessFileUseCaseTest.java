@@ -84,7 +84,7 @@ class ProcessFileUseCaseTest {
         processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, METADATA_PRESIGNED_URL);
         // test
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
-        verify(processFileUseCase, times(1)).resolveTargetCoo(eq(METADATA_PRESIGNED_URL), eq(useCase), eq(FILE));
+        verify(processFileUseCase, times(1)).resolveTargetCoo(any(), eq(useCase), eq(FILE));
         verify(metadataHelper, times(1)).resolveDmsTarget(any());
         verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(METADATA_DMS_TARGET_USER), eq(FILE_NAME), eq(null));
     }

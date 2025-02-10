@@ -47,8 +47,15 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         log.debug("Resolved use case: {}", useCase);
         // load file
         try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(presignedUrl)) {
+            // parse metadata file if present
+            JsonNode metadataJson = null;
+            if (Strings.isNotBlank(metadataPresignedUrl)) {
+                try (InputStream metadataFileStream = fileSystemOutPort.getPresignedUrlFile(metadataPresignedUrl)) {
+                    metadataJson = metadataHelper.parseMetadataFile(metadataFileStream);
+                }
+            }
             // get target coo
-            final DmsTarget dmsTarget = resolveTargetCoo(metadataPresignedUrl, useCase, file);
+            final DmsTarget dmsTarget = resolveTargetCoo(metadataJson, useCase, file);
             log.debug("Resolved dms target: {}", dmsTarget);
             // get ContentObject name
             final String contentObjectName = this.applyPattern(useCase.getFilenameOverwritePattern(), file.getFileName(), PATTERN_JOINER);
@@ -115,14 +122,14 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * Resolve target coo for useCase.
      * {@link UseCase.Type}
      *
-     * @param metadataPresignedUrl Presigned url for metadata file.
+     * @param metadataJson Parsed JsonNode of metadata file.
      * @param useCase The use case.
      * @return The resolved coo.
      */
-    protected DmsTarget resolveTargetCoo(final String metadataPresignedUrl, final UseCase useCase, final File file)
+    protected DmsTarget resolveTargetCoo(final JsonNode metadataJson, final UseCase useCase, final File file)
             throws MetadataException, PresignedUrlException {
         return switch (useCase.getCooSource()) {
-        case METADATA_FILE -> this.resolveMetadataTargetCoo(metadataPresignedUrl, useCase);
+        case METADATA_FILE -> this.resolveMetadataTargetCoo(metadataJson, useCase);
         case FILENAME -> {
             if (Strings.isBlank(useCase.getFilenameCooPattern())) {
                 throw new IllegalArgumentException("Filename coo pattern is required");
@@ -147,24 +154,20 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     /**
      * Resolve DmsTarget via metadata file.
      *
-     * @param metadataPresignedUrl Presigned url of the metadata file.
+     * @param metadataJson Parsed JsonNode of metadata file.
      * @param useCase UseCase of the file.
      * @return Resolved DmsTarget.
      */
-    protected DmsTarget resolveMetadataTargetCoo(final String metadataPresignedUrl, final UseCase useCase) throws MetadataException, PresignedUrlException {
-        // validate metadata presigned url provided
-        if (Strings.isBlank(metadataPresignedUrl)) {
-            throw new MetadataException("Metadata presigned url empty but required");
+    protected DmsTarget resolveMetadataTargetCoo(final JsonNode metadataJson, final UseCase useCase) throws MetadataException, PresignedUrlException {
+        // validate metadata json provided
+        if (metadataJson == null) {
+            throw new MetadataException("Metadata JSON is required");
         }
-        // get metadata file
-        try (InputStream metadataStream = fileSystemOutPort.getPresignedUrlFile(metadataPresignedUrl)) {
-            // extract coo and username from metadata
-            final DmsTarget metadataTarget = metadataHelper.resolveDmsTarget(metadataStream);
-            // combine with use case joboe and jobposition
-            return new DmsTarget(metadataTarget.coo(), metadataTarget.userName(), useCase.getJoboe(), useCase.getJobposition());
-        } catch (final IOException e) {
-            throw new MetadataException("Error while processing metadata file", e);
-        }
+        // extract coo and username from metadata
+        final DmsTarget metadataTarget = metadataHelper.resolveDmsTarget(metadataJson);
+        // combine with use case joboe and jobposition
+        return new DmsTarget(metadataTarget.coo(), metadataTarget.userName(), useCase.getJoboe(), useCase.getJobposition());
+
     }
 
     /**

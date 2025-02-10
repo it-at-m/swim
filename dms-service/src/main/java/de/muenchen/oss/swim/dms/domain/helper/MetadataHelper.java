@@ -8,6 +8,8 @@ import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
@@ -24,51 +26,60 @@ public class MetadataHelper {
     private final ObjectMapper objectMapper;
 
     /**
-     * Extract dms target from metadata file.
+     * Parse metadata file to JsonNode.
      *
-     * @param inputStream InputStream of metadata file.
-     * @return The dms target.
-     * @throws MetadataException If file can't be parsed or required values are missing.
+     * @param inputStream The content of the metadata file.
+     * @return The parsed metadata.
+     * @throws MetadataException If the file can't be parsed.
      */
-    @SuppressWarnings("PMD.CyclomaticComplexity")
-    public DmsTarget resolveDmsTarget(@NotNull final InputStream inputStream) throws MetadataException {
+    public JsonNode parseMetadataFile(@NotNull final InputStream inputStream) throws MetadataException {
         try {
-            final JsonNode rootNode = objectMapper.readTree(inputStream);
-            final JsonNode documentNode = rootNode.get(METADATA_DOCUMENT_KEY);
-            if (documentNode == null) {
-                throw new MetadataException("Missing '" + METADATA_DOCUMENT_KEY + "' in metadata JSON");
-            }
-            final JsonNode indexFieldsNode = documentNode.get(METADATA_INDEX_FIELDS_KEY);
-            if (indexFieldsNode == null || !indexFieldsNode.isArray()) {
-                throw new MetadataException("Missing or invalid '" + METADATA_INDEX_FIELDS_KEY + "' in metadata JSON");
-            }
-            String userInboxCoo = null;
-            String userInboxOwner = null;
-            String groupInboxCoo = null;
-            String groupInboxOwner = null;
-            for (final JsonNode indexField : indexFieldsNode) {
-                // user inbox coo
-                if (swimDmsProperties.getMetadataUserInboxCooKey().equals(indexField.path(METADATA_KEY_KEY).asText())) {
-                    userInboxCoo = indexField.path(METADATA_VALUE_KEY).asText();
-                }
-                // user inbox owner username
-                else if (swimDmsProperties.getMetadataUserInboxUserKey().equals(indexField.path(METADATA_KEY_KEY).asText())) {
-                    userInboxOwner = indexField.path(METADATA_VALUE_KEY).asText();
-                }
-                // group inbox coo
-                else if (swimDmsProperties.getMetadataGroupInboxCooKey().equals(indexField.path(METADATA_KEY_KEY).asText())) {
-                    groupInboxCoo = indexField.path(METADATA_VALUE_KEY).asText();
-                }
-                // group inbox owner username
-                else if (swimDmsProperties.getMetadataGroupInboxUserKey().equals(indexField.path(METADATA_KEY_KEY).asText())) {
-                    groupInboxOwner = indexField.path(METADATA_VALUE_KEY).asText();
-                }
-            }
-            // check combination of data is allowed and build DmsTarget
-            return this.dmsTargetFromUserAndGroupInbox(userInboxCoo, userInboxOwner, groupInboxCoo, groupInboxOwner);
+            return objectMapper.readTree(inputStream);
         } catch (final IOException e) {
             throw new MetadataException("Error while parsing metadata json", e);
         }
+    }
+
+    /**
+     * Extract IndexFields as Map from metadata JSON.
+     *
+     * @param rootNode The parsed metadata file.
+     * @return The IndexFields as Map.
+     * @throws MetadataException If fields are missing.
+     */
+    public Map<String, String> getIndexFields(@NotNull final JsonNode rootNode) throws MetadataException {
+        final JsonNode documentNode = rootNode.get(METADATA_DOCUMENT_KEY);
+        if (documentNode == null) {
+            throw new MetadataException("Missing '" + METADATA_DOCUMENT_KEY + "' in metadata JSON");
+        }
+        final JsonNode indexFieldsNode = documentNode.get(METADATA_INDEX_FIELDS_KEY);
+        if (indexFieldsNode == null || !indexFieldsNode.isArray()) {
+            throw new MetadataException("Missing or invalid '" + METADATA_INDEX_FIELDS_KEY + "' in metadata JSON");
+        }
+        final Map<String, String> indexFields = new HashMap<>();
+        for (final JsonNode indexField : indexFieldsNode) {
+            final String key = indexField.path(METADATA_KEY_KEY).asText();
+            final String value = indexField.path(METADATA_VALUE_KEY).asText();
+            indexFields.put(key, value);
+        }
+        return indexFields;
+    }
+
+    /**
+     * Extract dms target from metadata file.
+     *
+     * @param rootNode Parsed JsonNode of metadata file.
+     * @return The dms target.
+     * @throws MetadataException If required values are missing.
+     */
+    public DmsTarget resolveDmsTarget(@NotNull final JsonNode rootNode) throws MetadataException {
+        final Map<String, String> indexFields = this.getIndexFields(rootNode);
+        String userInboxCoo = indexFields.get(swimDmsProperties.getMetadataUserInboxCooKey());
+        String userInboxOwner = indexFields.get(swimDmsProperties.getMetadataUserInboxUserKey());
+        String groupInboxCoo = indexFields.get(swimDmsProperties.getMetadataGroupInboxCooKey());
+        String groupInboxOwner = indexFields.get(swimDmsProperties.getMetadataGroupInboxUserKey());
+        // check combination of data is allowed and build DmsTarget
+        return this.dmsTargetFromUserAndGroupInbox(userInboxCoo, userInboxOwner, groupInboxCoo, groupInboxOwner);
     }
 
     /**

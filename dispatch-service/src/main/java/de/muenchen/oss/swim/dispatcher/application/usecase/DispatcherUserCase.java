@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -151,7 +153,7 @@ public class DispatcherUserCase implements DispatcherInPort {
             // get protocols not already processed
             final List<File> protocolFiles = fileSystemOutPort.getMatchingFiles(
                     useCase.getBucket(),
-                    useCase.getPath(),
+                    useCase.getDispatchPath(swimDispatcherProperties),
                     useCase.isRecursive(),
                     FILE_EXTENSION_CSV,
                     Map.of(),
@@ -189,9 +191,13 @@ public class DispatcherUserCase implements DispatcherInPort {
             final List<ProtocolEntry> protocolEntries = readProtocolOutPort.loadProtocol(file.bucket(), file.path());
             final List<String> protocolFileNames = protocolEntries.stream().map(ProtocolEntry::fileName).toList();
             // load files in folder
-            final List<File> folderFiles = fileSystemOutPort.getMatchingFiles(file.bucket(), file.getParentPath(), false, FILE_EXTENSION_PDF, Map.of(),
-                    Map.of());
-            final List<String> folderFileNames = folderFiles.stream().map(File::getFileName).toList();
+            final List<File> folderFiles = new ArrayList<>(fileSystemOutPort.getMatchingFiles(file.bucket(), file.getParentPath(), false, FILE_EXTENSION_PDF, Map.of(),
+                    Map.of()));
+            // load files in finished folder
+            final String finishedPath = useCase.getFinishedPath(swimDispatcherProperties, file.getParentPath());
+            folderFiles.addAll(fileSystemOutPort.getMatchingFiles(file.bucket(), finishedPath, false, FILE_EXTENSION_PDF, Map.of(), Map.of()));
+            // parse files
+            final Set<String> folderFileNames = folderFiles.stream().map(File::getFileName).collect(Collectors.toSet());
             // compare files with protocol
             final List<String> missingInProtocol = new ArrayList<>(folderFileNames);
             missingInProtocol.removeAll(protocolFileNames);

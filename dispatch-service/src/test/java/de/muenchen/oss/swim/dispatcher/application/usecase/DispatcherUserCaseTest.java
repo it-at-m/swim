@@ -137,8 +137,8 @@ class DispatcherUserCaseTest {
 
     @Nested
     class ProtocolProcessingTest {
-        private static final File PROTOCOL_FILE = new File(BUCKET, "test/path/path.csv", 0L);
-        private static final File NO_PROTOCOL_FILE = new File(BUCKET, "test/path/path2.csv", 0L);
+        private static final File PROTOCOL_FILE = new File(BUCKET, "test/inProcess/path/path.csv", 0L);
+        private static final File NO_PROTOCOL_FILE = new File(BUCKET, "test/inProcess/path/path2.csv", 0L);
         private static final String PROTOCOL_FILENAME = "path.csv";
         private static final ProtocolEntry PROTOCOL_ENTRY1 = new ProtocolEntry("test.pdf", 1, null, null, null, Map.of());
         private static final ProtocolEntry PROTOCOL_ENTRY2 = new ProtocolEntry("test2.pdf", 2, null, null, null, Map.of());
@@ -146,7 +146,7 @@ class DispatcherUserCaseTest {
         @Test
         void testTriggerProtocolProcessing_Successful() {
             // setup
-            when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(USE_CASE_PATH), eq(true), eq("csv"), anyMap(), anyMap())).thenReturn(List.of(
+            when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH), eq(true), eq("csv"), anyMap(), anyMap())).thenReturn(List.of(
                     PROTOCOL_FILE,
                     NO_PROTOCOL_FILE));
             doNothing().when(dispatcherUserCase).processProtocolFile(any(), any());
@@ -162,9 +162,13 @@ class DispatcherUserCaseTest {
         @Test
         @SuppressWarnings("PMD.CloseResource")
         void testProcessProtocolFile_Successful() {
+            final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
             // setup
             when(readProtocolOutPort.loadProtocol(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(List.of(PROTOCOL_ENTRY1, PROTOCOL_ENTRY2));
-            when(fileSystemOutPort.getMatchingFiles(any(), any(), anyBoolean(), any(), any(), anyMap())).thenReturn(List.of(FILE1, FILE2));
+            final String protocolDir = PROTOCOL_FILE.getParentPath();
+            when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(protocolDir), eq(false), any(), any(), anyMap())).thenReturn(List.of(FILE1));
+            final String protocolDirFinished = useCase.getFinishedPath(swimDispatcherProperties, protocolDir);
+            when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(protocolDirFinished), eq(false), any(), any(), anyMap())).thenReturn(List.of(FILE1, FILE2));
             final InputStream protocolStream = getClass().getResourceAsStream("file/protocol.csv");
             when(fileSystemOutPort.readFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(protocolStream);
             // call

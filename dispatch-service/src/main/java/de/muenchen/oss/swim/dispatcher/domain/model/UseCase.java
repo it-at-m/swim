@@ -92,6 +92,11 @@ public class UseCase {
      * @return Path of the file in the finished folder.
      */
     public String getFinishedPath(final SwimDispatcherProperties properties, final String originalPath) {
+        final String dispatchPath = this.getDispatchPath(properties);
+        if (!originalPath.startsWith(dispatchPath)) {
+            throw new IllegalArgumentException(
+                String.format("Original path '%s' must start with dispatch path '%s'", originalPath, dispatchPath));
+        }
         return originalPath.replaceFirst("^" + this.getDispatchPath(properties), this.getFinishedPath(properties));
     }
 }

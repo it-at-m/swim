@@ -84,6 +84,9 @@ info:
     spring-cloud.version: @spring-cloud-dependencies.version@
 
 swim:
+  # dirs
+  dispatch-folder: inProcess
+  finished-folder: _finished
   # s3 tags
   dispatch-state-tag-key: SWIM_State
   dispatched-state-tag-value: sentToKafka

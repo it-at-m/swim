@@ -33,10 +33,7 @@ public class MarkFileFinishedUseCase implements MarkFileFinishedInPort {
         fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchFileFinishedTagValue()));
         // move file
-        final String useCasePath = useCase.getPath().endsWith("/") ? useCase.getPath() : useCase.getPath() + "/";
-        final String finishedFolder = swimDispatcherProperties.getFinishedFolder().endsWith("/") ? swimDispatcherProperties.getFinishedFolder()
-                : swimDispatcherProperties.getFinishedFolder() + "/";
-        final String destPath = file.path().replace(useCasePath, String.format("%s%s", useCasePath, finishedFolder));
+        final String destPath = useCase.getFinishedPath(swimDispatcherProperties, file.path());
         fileSystemOutPort.moveFile(file.bucket(), file.path(), destPath);
         log.info("Finished file {} in use case {}", file.path(), useCaseName);
     }

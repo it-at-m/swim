@@ -79,7 +79,13 @@ public class SwimDispatcherProperties {
      * Folder paths which contain this sequence are ignored from dispatching.
      */
     @NotBlank
-    private String finishedFolder = "_finished";
+    private String finishedFolder;
+    /**
+     * Folder name where to look in for files to dispatch.
+     * Looks inside {@link UseCase#getPath()} for this folder and dispatches files inside if matching requirements.
+     */
+    @NotBlank
+    private String dispatchFolder;
 
     /**
      * Default tags which are excluded when looking up files for dispatching.

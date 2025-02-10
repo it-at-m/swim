@@ -33,14 +33,12 @@ public class ErrorHandlerUseCase implements ErrorHandlerInPort {
             this.markFileError(file, cause);
             // send notification
             notificationOutPort.sendFileError(useCase.getMailAddresses(), useCaseName, file.path(), cause);
-            // update metric
-            dispatchMeter.incrementError(useCaseName, cause.source());
         } catch (final Exception e) {
             log.error("Error while handling error", e);
             notificationOutPort.sendFileError(List.of(swimDispatcherProperties.getFallbackMail()), useCaseName, presignedUrl, cause, e);
-            // update metric
-            dispatchMeter.incrementError(useCaseName, cause.source());
         }
+        // update metric
+        dispatchMeter.incrementError(useCaseName, cause.source());
     }
 
     /**

@@ -1,6 +1,6 @@
 # handler-core
 
-Core library for creating dispatch handlers.
+Library with base componentes for building a new service for handling events from the `dispatch-service`
 
 ## Usage
 

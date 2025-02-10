@@ -1,6 +1,7 @@
 package de.muenchen.oss.swim.libs.handlercore.adapter.out.streaming;
 
 import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileEventOutPort;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEventDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;
@@ -14,7 +15,7 @@ public class StreamingOutAdapter implements FileEventOutPort {
 
     @Override
     public void fileFinished(final String useCase, final String presignedUrl, final String metadataPresignedUrl) {
-        final FileFinishedEventDTO event = new FileFinishedEventDTO(useCase, presignedUrl, metadataPresignedUrl);
+        final FileEventDTO event = new FileEventDTO(useCase, presignedUrl, metadataPresignedUrl);
         final boolean sent = streamBridge.send("finished-out", event);
         if (!sent) {
             throw new RuntimeException("Failed to send file finished event");

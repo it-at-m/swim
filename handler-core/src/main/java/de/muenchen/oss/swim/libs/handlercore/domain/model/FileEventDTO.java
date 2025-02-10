@@ -1,8 +1,8 @@
-package de.muenchen.oss.swim.libs.handlercore.adapter.out.streaming;
+package de.muenchen.oss.swim.libs.handlercore.domain.model;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record FileFinishedEventDTO(
+public record FileEventDTO(
         @NotBlank String useCase,
         @NotBlank String presignedUrl,
         String metadataPresignedUrl) {

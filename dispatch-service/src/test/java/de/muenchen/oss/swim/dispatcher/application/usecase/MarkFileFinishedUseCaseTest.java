@@ -2,7 +2,7 @@ package de.muenchen.oss.swim.dispatcher.application.usecase;
 
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_USE_CASE;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -43,7 +43,7 @@ class MarkFileFinishedUseCaseTest {
         verify(fileSystemOutPort, times(1)).verifyPresignedUrl(TEST_PRESIGNED_URL);
         verify(fileSystemOutPort, times(1)).tagFile(eq("test-bucket"), eq("test/inProcess/path/example.pdf"), eq(Map.of(
                 "SWIM_State", "finished")));
-        verify(fileSystemOutPort, times(1)).moveFile(eq("test-bucket"), eq("test/inProcess/path/example.pdf"), eq("test/_finished/path/example.pdf"));
+        verify(fileSystemOutPort, times(1)).moveFile(eq("test-bucket"), eq("test/inProcess/path/example.pdf"), eq("test/finished/path/example.pdf"));
     }
 
     @Test

@@ -86,7 +86,7 @@ info:
 swim:
   # dirs
   dispatch-folder: inProcess
-  finished-folder: _finished
+  finished-folder: finished
   # s3 tags
   dispatch-state-tag-key: SWIM_State
   dispatched-state-tag-value: sentToKafka

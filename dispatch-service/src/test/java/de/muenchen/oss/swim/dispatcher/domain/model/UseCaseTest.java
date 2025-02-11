@@ -36,19 +36,19 @@ class UseCaseTest {
 
     @Test
     void testGetFinishedPath() {
-        assertEquals("testPath/_finished", useCase.getFinishedPath(swimDispatcherProperties));
+        assertEquals("testPath/finished", useCase.getFinishedPath(swimDispatcherProperties));
     }
 
     @Test
     void testGetFinishedPath_File() {
-        assertEquals("testPath/_finished/test/asd.pdf", useCase.getFinishedPath(swimDispatcherProperties, "testPath/inProcess/test/asd.pdf"));
+        assertEquals("testPath/finished/test/asd.pdf", useCase.getFinishedPath(swimDispatcherProperties, "testPath/inProcess/test/asd.pdf"));
     }
 
     @Test
     void testGetRawPath() {
         assertEquals("test/asd.pdf", useCase.getRawPath(swimDispatcherProperties, "testPath/inProcess/test/asd.pdf"));
-        assertEquals("test/asd.pdf", useCase.getRawPath(swimDispatcherProperties, "testPath/_finished/test/asd.pdf"));
+        assertEquals("test/asd.pdf", useCase.getRawPath(swimDispatcherProperties, "testPath/finished/test/asd.pdf"));
         assertEquals("test", useCase.getRawPath(swimDispatcherProperties, "testPath/inProcess/test"));
-        assertEquals("test", useCase.getRawPath(swimDispatcherProperties, "testPath/_finished/test"));
+        assertEquals("test", useCase.getRawPath(swimDispatcherProperties, "testPath/finished/test"));
     }
 }

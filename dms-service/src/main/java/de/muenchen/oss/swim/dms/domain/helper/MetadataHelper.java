@@ -74,10 +74,10 @@ public class MetadataHelper {
      */
     public DmsTarget resolveDmsTarget(@NotNull final JsonNode rootNode) throws MetadataException {
         final Map<String, String> indexFields = this.getIndexFields(rootNode);
-        String userInboxCoo = indexFields.get(swimDmsProperties.getMetadataUserInboxCooKey());
-        String userInboxOwner = indexFields.get(swimDmsProperties.getMetadataUserInboxUserKey());
-        String groupInboxCoo = indexFields.get(swimDmsProperties.getMetadataGroupInboxCooKey());
-        String groupInboxOwner = indexFields.get(swimDmsProperties.getMetadataGroupInboxUserKey());
+        final String userInboxCoo = indexFields.get(swimDmsProperties.getMetadataUserInboxCooKey());
+        final String userInboxOwner = indexFields.get(swimDmsProperties.getMetadataUserInboxUserKey());
+        final String groupInboxCoo = indexFields.get(swimDmsProperties.getMetadataGroupInboxCooKey());
+        final String groupInboxOwner = indexFields.get(swimDmsProperties.getMetadataGroupInboxUserKey());
         // check combination of data is allowed and build DmsTarget
         return this.dmsTargetFromUserAndGroupInbox(userInboxCoo, userInboxOwner, groupInboxCoo, groupInboxOwner);
     }

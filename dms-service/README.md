@@ -42,8 +42,8 @@ Fileplan (Aktenplan) → (multiple) Apentry (Aktenplaneintrag) → SubjectArea (
 ## Configuration
 
 ```yaml
-# dms connection configuration
 swim:
+  # dms connection configuration
   dms:
     base-url:
     username:
@@ -61,7 +61,30 @@ swim:
       filename-to-coo: # for coo-source filename_map
       filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
       incoming-name-pattern: # overwrite Incoming name via Regex pattern, only applies to type incoming_object
+      verify-procedure-name-pattern: # verifies target procedure name matches this pattern, only applies to type incoming_object
 ```
+
+### Pattern
+
+The fields `filename-coo-pattern`, `incoming-name-pattern`, `filename-overwrite-pattern` and `verify-procedure-name-pattern` require a specific syntax (inspired by the sed command and regex substitution).
+
+```
+s/<regex>/<substitution>/<options>
+```
+
+The pattern is applied as following:
+- `<regex>` is applied to input
+- Build substitution values
+  - Matching groups of regex are available via name and index
+  - If option `m` is present metadata file is loaded
+    - Values from `IndexFields` are available as `${if.<Name>}`
+- Evaluate `<substitution>` and inject collected substitution values
+
+Example:
+- Filename: `Test-File.pdf`
+- Pattern: `s/^(.+)-(.+)$/${1}_${if.CustomValue}_${2}/m`
+- Metadata file: `{"Document" : { "IndexFields" : [{ "Name": "CustomValue", "Value": "ExampleValue" }] } }`
+- Result: `Test_ExampleValue_File.pdf`
 
 ### Type
 

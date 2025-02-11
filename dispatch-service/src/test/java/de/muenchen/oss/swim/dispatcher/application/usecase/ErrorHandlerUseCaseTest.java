@@ -2,7 +2,7 @@ package de.muenchen.oss.swim.dispatcher.application.usecase;
 
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL_PATH;
-import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_USE_CASE;
+import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -47,9 +47,9 @@ class ErrorHandlerUseCaseTest {
     void handleError_Success() {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         // call
-        errorHandlerUseCase.handleError(TEST_USE_CASE, TEST_PRESIGNED_URL, null, TEST_ERROR_DETAILS);
+        errorHandlerUseCase.handleError(USE_CASE, TEST_PRESIGNED_URL, null, TEST_ERROR_DETAILS);
         // test
-        verify(notificationOutPort, times(1)).sendFileError(eq(useCase.getMailAddresses()), eq(TEST_USE_CASE), eq(TEST_PRESIGNED_URL_PATH),
+        verify(notificationOutPort, times(1)).sendFileError(eq(useCase.getMailAddresses()), eq(USE_CASE), eq(TEST_PRESIGNED_URL_PATH),
                 eq(TEST_ERROR_DETAILS));
         verify(fileSystemOutPort, times(1)).tagFile(any(), any(), any());
         verify(notificationOutPort, times(0)).sendFileError(any(), any(), any(), any(), any());
@@ -59,10 +59,10 @@ class ErrorHandlerUseCaseTest {
     void handleError_PresignedUrlException() {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         // call
-        errorHandlerUseCase.handleError(TEST_USE_CASE, null, null, TEST_ERROR_DETAILS);
+        errorHandlerUseCase.handleError(USE_CASE, null, null, TEST_ERROR_DETAILS);
         // test
         verify(notificationOutPort, times(0)).sendFileError(any(), any(), any(), any());
-        verify(notificationOutPort, times(0)).sendFileError(eq(useCase.getMailAddresses()), eq(TEST_USE_CASE), eq(TEST_PRESIGNED_URL_PATH),
+        verify(notificationOutPort, times(0)).sendFileError(eq(useCase.getMailAddresses()), eq(USE_CASE), eq(TEST_PRESIGNED_URL_PATH),
                 eq(TEST_ERROR_DETAILS), any());
     }
 }

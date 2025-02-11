@@ -1,7 +1,8 @@
 package de.muenchen.oss.swim.dms.application.usecase;
 
 import static de.muenchen.oss.swim.dms.TestConstants.METADATA_DMS_TARGET_USER;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -20,6 +21,7 @@ import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dms.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dms.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.dms.domain.helper.MetadataHelper;
+import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.File;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
@@ -35,7 +37,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-@SpringBootTest(classes = { SwimDmsProperties.class, ProcessFileUseCase.class, ObjectMapper.class, MetadataHelper.class })
+@SpringBootTest(classes = { SwimDmsProperties.class, ProcessFileUseCase.class, ObjectMapper.class, MetadataHelper.class, PatternHelper.class })
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
@@ -176,15 +178,5 @@ class ProcessFileUseCaseTest {
         verify(metadataHelper, times(0)).resolveDmsTarget(any());
         verify(dmsOutPort, times(0)).createContentObjectInInbox(any(), any(), any());
         verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(contentObjectName), eq(null));
-    }
-
-    @Test
-    void testApplyPattern() {
-        // null pattern
-        final String resultNull = processFileUseCase.applyPattern(null, "input", "-");
-        assertEquals("input", resultNull);
-        // with pattern
-        final String result = processFileUseCase.applyPattern("(.+)-COO[\\d\\.]+-(.*)", "Test123-COO123.123.123-ExampleTest.pdf", "-");
-        assertEquals("Test123-ExampleTest.pdf", result);
     }
 }

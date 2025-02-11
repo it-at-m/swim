@@ -40,11 +40,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-@SpringBootTest(classes = { SwimDispatcherProperties.class, DispatcherUserCase.class })
+@SpringBootTest(classes = { SwimDispatcherProperties.class, DispatcherUseCase.class })
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
-class DispatcherUserCaseTest {
+class DispatcherUseCaseTest {
     @MockitoBean
     private FileSystemOutPort fileSystemOutPort;
     @MockitoBean
@@ -57,7 +57,7 @@ class DispatcherUserCaseTest {
     private NotificationOutPort notificationOutPort;
     @MockitoSpyBean
     @Autowired
-    private DispatcherUserCase dispatcherUserCase;
+    private DispatcherUseCase dispatcherUseCase;
     @Autowired
     private SwimDispatcherProperties swimDispatcherProperties;
 
@@ -75,13 +75,13 @@ class DispatcherUserCaseTest {
             final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
             when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH))).thenReturn(List.of(FOLDER_PATH));
             when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(FOLDER_PATH), eq(true), eq("pdf"), anyMap(), anyMap())).thenReturn(List.of(FILE1, FILE2));
-            doNothing().when(dispatcherUserCase).processFile(any(), any());
+            doNothing().when(dispatcherUseCase).processFile(any(), any());
             // call
-            dispatcherUserCase.triggerDispatching();
+            dispatcherUseCase.triggerDispatching();
             // test
-            verify(dispatcherUserCase, times(1)).processFile(eq(useCase), eq(FILE1));
-            verify(dispatcherUserCase, times(1)).processFile(eq(useCase), eq(FILE2));
-            verify(dispatcherUserCase, times(0)).markFileError(any(), any(), any());
+            verify(dispatcherUseCase, times(1)).processFile(eq(useCase), eq(FILE1));
+            verify(dispatcherUseCase, times(1)).processFile(eq(useCase), eq(FILE2));
+            verify(dispatcherUseCase, times(0)).markFileError(any(), any(), any());
             verify(notificationOutPort, times(0)).sendDispatchErrors(any(), any(), any());
         }
 
@@ -92,12 +92,12 @@ class DispatcherUserCaseTest {
             when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH))).thenReturn(List.of(FOLDER_PATH));
             when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(FOLDER_PATH), eq(true), eq("pdf"), anyMap(), anyMap())).thenReturn(List.of(FILE1, FILE2));
             final FileSizeException e = new FileSizeException("Error");
-            doThrow(e).when(dispatcherUserCase).processFile(any(), any());
+            doThrow(e).when(dispatcherUseCase).processFile(any(), any());
             // call
-            dispatcherUserCase.triggerDispatching();
+            dispatcherUseCase.triggerDispatching();
             // test
-            verify(dispatcherUserCase, times(1)).markFileError(eq(FILE1), eq(swimDispatcherProperties.getDispatchStateTagKey()), eq(e));
-            verify(dispatcherUserCase, times(1)).markFileError(eq(FILE2), eq(swimDispatcherProperties.getDispatchStateTagKey()), eq(e));
+            verify(dispatcherUseCase, times(1)).markFileError(eq(FILE1), eq(swimDispatcherProperties.getDispatchStateTagKey()), eq(e));
+            verify(dispatcherUseCase, times(1)).markFileError(eq(FILE2), eq(swimDispatcherProperties.getDispatchStateTagKey()), eq(e));
             verify(notificationOutPort, times(1)).sendDispatchErrors(eq(USE_CASE_RECIPIENTS), eq(useCase.getName()), eq(Map.of(
                     FILE1.path(), e,
                     FILE2.path(), e)));
@@ -111,7 +111,7 @@ class DispatcherUserCaseTest {
             when(fileSystemOutPort.getPresignedUrl(eq(BUCKET), eq("test/inProcess/path/test.json"))).thenReturn("presignedMeta");
             when(fileSystemOutPort.getPresignedUrl(eq(BUCKET), eq(FILE1.path()))).thenReturn("presignedFile");
             // call
-            dispatcherUserCase.processFile(useCase, FILE1);
+            dispatcherUseCase.processFile(useCase, FILE1);
             // test
             verify(fileDispatchingOutPort, times(1)).dispatchFile(eq(useCase.getDestinationBinding()), eq(USE_CASE), eq("presignedFile"), eq("presignedMeta"));
             verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
@@ -122,7 +122,7 @@ class DispatcherUserCaseTest {
         void testProcessFile_FileSizeException() {
             final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
             assertThrows(FileSizeException.class,
-                    () -> dispatcherUserCase.processFile(useCase, new File(BUCKET, "test.pdf", swimDispatcherProperties.getMaxFileSize() + 1)));
+                    () -> dispatcherUseCase.processFile(useCase, new File(BUCKET, "test.pdf", swimDispatcherProperties.getMaxFileSize() + 1)));
         }
 
         @Test
@@ -131,7 +131,7 @@ class DispatcherUserCaseTest {
             final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
             when(fileSystemOutPort.fileExists(eq(BUCKET), eq("test/inProcess/path/test.json"))).thenReturn(false);
             // call and test
-            assertThrows(MetadataException.class, () -> dispatcherUserCase.processFile(useCase, FILE1));
+            assertThrows(MetadataException.class, () -> dispatcherUseCase.processFile(useCase, FILE1));
         }
     }
 
@@ -149,13 +149,13 @@ class DispatcherUserCaseTest {
             when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH), eq(true), eq("csv"), anyMap(), anyMap())).thenReturn(List.of(
                     PROTOCOL_FILE,
                     NO_PROTOCOL_FILE));
-            doNothing().when(dispatcherUserCase).processProtocolFile(any(), any());
+            doNothing().when(dispatcherUseCase).processProtocolFile(any(), any());
             // call
-            dispatcherUserCase.triggerProtocolProcessing();
+            dispatcherUseCase.triggerProtocolProcessing();
             // test
             verify(fileSystemOutPort, times(1)).getMatchingFiles(any(), any(), anyBoolean(), any(), any(), anyMap());
-            verify(dispatcherUserCase, times(1)).processProtocolFile(any(), any());
-            verify(dispatcherUserCase, times(1)).processProtocolFile(any(), eq(PROTOCOL_FILE));
+            verify(dispatcherUseCase, times(1)).processProtocolFile(any(), any());
+            verify(dispatcherUseCase, times(1)).processProtocolFile(any(), eq(PROTOCOL_FILE));
             verify(notificationOutPort, times(1)).sendProtocolError(any(), eq(USE_CASE), eq(NO_PROTOCOL_FILE.path()), any());
         }
 
@@ -172,14 +172,14 @@ class DispatcherUserCaseTest {
             final InputStream protocolStream = getClass().getResourceAsStream("file/protocol.csv");
             when(fileSystemOutPort.readFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(protocolStream);
             // call
-            dispatcherUserCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE);
+            dispatcherUseCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE);
             // test
             verify(notificationOutPort, times(1)).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_FILENAME), eq(protocolStream), eq(List.of()),
                     eq(List.of()));
             verify(storeProtocolOutPort, times(1)).storeProtocol(eq(USE_CASE), eq(PROTOCOL_FILENAME), eq(List.of(PROTOCOL_ENTRY1, PROTOCOL_ENTRY2)));
             verify(fileSystemOutPort, times(1)).tagFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()), eq(Map.of(
                     swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue())));
-            verify(dispatcherUserCase, times(0)).markFileError(any(), any(), any());
+            verify(dispatcherUseCase, times(0)).markFileError(any(), any(), any());
             verify(notificationOutPort, times(0)).sendProtocolError(any(), any(), any(), any());
         }
 
@@ -198,11 +198,11 @@ class DispatcherUserCaseTest {
             final InputStream protocolStream = getClass().getResourceAsStream("file/protocol.csv");
             when(fileSystemOutPort.readFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(protocolStream);
             // call
-            dispatcherUserCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE);
+            dispatcherUseCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE);
             // test
             verify(notificationOutPort, times(1)).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_FILENAME), eq(protocolStream),
                     eq(List.of("test4.pdf")), eq(List.of("test3.pdf")));
-            verify(dispatcherUserCase, times(0)).markFileError(any(), any(), any());
+            verify(dispatcherUseCase, times(0)).markFileError(any(), any(), any());
             verify(notificationOutPort, times(0)).sendProtocolError(any(), any(), any(), any());
         }
 
@@ -212,9 +212,9 @@ class DispatcherUserCaseTest {
             final ProtocolException e = new ProtocolException("Error", new Exception());
             when(readProtocolOutPort.loadProtocol(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenThrow(e);
             // call
-            dispatcherUserCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE);
+            dispatcherUseCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE);
             // test
-            verify(dispatcherUserCase, times(1)).markFileError(eq(PROTOCOL_FILE), eq(swimDispatcherProperties.getProtocolStateTagKey()), eq(e));
+            verify(dispatcherUseCase, times(1)).markFileError(eq(PROTOCOL_FILE), eq(swimDispatcherProperties.getProtocolStateTagKey()), eq(e));
             verify(notificationOutPort, times(1)).sendProtocolError(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_FILE.path()), eq(e));
         }
     }

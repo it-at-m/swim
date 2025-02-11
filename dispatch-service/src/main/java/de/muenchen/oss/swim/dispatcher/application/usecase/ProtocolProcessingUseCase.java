@@ -108,13 +108,11 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
                         missingInProtocol);
             }
             // tag protocol as processed
-            final String matchState = !isMissmatch ? "correct" :
-                    isMissingInProtocol && isMissingFiles ? "missingInProtocolAndFiles" :
-                            isMissingInProtocol ? "missingInProtocol" : "missingFiles";
+            final String matchState = !isMissmatch ? "correct"
+                    : isMissingInProtocol && isMissingFiles ? "missingInProtocolAndFiles" : isMissingInProtocol ? "missingInProtocol" : "missingFiles";
             fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
                     swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue(),
-                    swimDispatcherProperties.getProtocolMatchTagKey(), matchState
-            ));
+                    swimDispatcherProperties.getProtocolMatchTagKey(), matchState));
             // move protocol
             final String destPath = useCase.getFinishedPath(swimDispatcherProperties, file.path());
             fileSystemOutPort.moveFile(file.bucket(), file.path(), destPath);

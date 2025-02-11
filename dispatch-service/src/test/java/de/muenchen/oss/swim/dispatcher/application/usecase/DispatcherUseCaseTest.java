@@ -139,7 +139,7 @@ class DispatcherUseCaseTest {
     class ProtocolProcessingTest {
         private static final File PROTOCOL_FILE = new File(BUCKET, "test/inProcess/path/path.csv", 0L);
         private static final File NO_PROTOCOL_FILE = new File(BUCKET, "test/inProcess/path/path2.csv", 0L);
-        private static final String PROTOCOL_FILENAME = "path.csv";
+        private static final String PROTOCOL_RAW_PATH = "path/path.csv";
         private static final ProtocolEntry PROTOCOL_ENTRY1 = new ProtocolEntry("test.pdf", 1, null, null, null, Map.of());
         private static final ProtocolEntry PROTOCOL_ENTRY2 = new ProtocolEntry("test2.pdf", 2, null, null, null, Map.of());
 
@@ -174,10 +174,10 @@ class DispatcherUseCaseTest {
             // call
             dispatcherUseCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE);
             // test
-            verify(notificationOutPort, times(1)).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_FILENAME), eq(protocolStream), eq(List.of()),
+            verify(notificationOutPort, times(1)).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_RAW_PATH), eq(protocolStream), eq(List.of()),
                     eq(List.of()));
-            verify(storeProtocolOutPort, times(1)).deleteProtocol(eq(USE_CASE), eq(PROTOCOL_FILENAME));
-            verify(storeProtocolOutPort, times(1)).storeProtocol(eq(USE_CASE), eq(PROTOCOL_FILENAME), eq(List.of(PROTOCOL_ENTRY1, PROTOCOL_ENTRY2)));
+            verify(storeProtocolOutPort, times(1)).deleteProtocol(eq(USE_CASE), eq(PROTOCOL_RAW_PATH));
+            verify(storeProtocolOutPort, times(1)).storeProtocol(eq(USE_CASE), eq(PROTOCOL_RAW_PATH), eq(List.of(PROTOCOL_ENTRY1, PROTOCOL_ENTRY2)));
             verify(fileSystemOutPort, times(1)).tagFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()), eq(Map.of(
                     swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue())));
             verify(dispatcherUseCase, times(0)).markFileError(any(), any(), any());
@@ -201,7 +201,7 @@ class DispatcherUseCaseTest {
             // call
             dispatcherUseCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE);
             // test
-            verify(notificationOutPort, times(1)).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_FILENAME), eq(protocolStream),
+            verify(notificationOutPort, times(1)).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_RAW_PATH), eq(protocolStream),
                     eq(List.of("test4.pdf")), eq(List.of("test3.pdf")));
             verify(dispatcherUseCase, times(0)).markFileError(any(), any(), any());
             verify(notificationOutPort, times(0)).sendProtocolError(any(), any(), any(), any());

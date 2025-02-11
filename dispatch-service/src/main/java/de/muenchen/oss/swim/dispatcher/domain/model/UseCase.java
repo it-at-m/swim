@@ -99,4 +99,22 @@ public class UseCase {
         }
         return originalPath.replaceFirst("^" + this.getDispatchPath(properties), this.getFinishedPath(properties));
     }
+
+    /**
+     * Get raw path without use case path and finished or dispatch folder.
+     *
+     * @param properties Used for getting dispatch and finished folder name.
+     * @param originalPath Full path.
+     * @return Path of the file without use case prefix.
+     */
+    public String getRawPath(final SwimDispatcherProperties properties, final String originalPath) {
+        if (!originalPath.startsWith(this.getPath())) {
+            throw new IllegalArgumentException(
+                    String.format("Original path '%s' must start with use case path '%s'", originalPath, this.getPath()));
+        }
+        return originalPath
+                .replaceFirst("^" + this.getDispatchPath(properties), "")
+                .replaceFirst("^" + this.getFinishedPath(properties), "")
+                .replaceFirst("^/", "");
+    }
 }

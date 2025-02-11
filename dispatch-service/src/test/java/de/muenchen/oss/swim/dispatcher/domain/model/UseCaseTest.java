@@ -1,6 +1,6 @@
 package de.muenchen.oss.swim.dispatcher.domain.model;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import de.muenchen.oss.swim.dispatcher.TestConstants;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
@@ -42,5 +42,13 @@ class UseCaseTest {
     @Test
     void testGetFinishedPath_File() {
         assertEquals("testPath/_finished/test/asd.pdf", useCase.getFinishedPath(swimDispatcherProperties, "testPath/inProcess/test/asd.pdf"));
+    }
+
+    @Test
+    void testGetRawPath() {
+        assertEquals("test/asd.pdf", useCase.getRawPath(swimDispatcherProperties, "testPath/inProcess/test/asd.pdf"));
+        assertEquals("test/asd.pdf", useCase.getRawPath(swimDispatcherProperties, "testPath/_finished/test/asd.pdf"));
+        assertEquals("test", useCase.getRawPath(swimDispatcherProperties, "testPath/inProcess/test"));
+        assertEquals("test", useCase.getRawPath(swimDispatcherProperties, "testPath/_finished/test"));
     }
 }

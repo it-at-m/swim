@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-interface ProtocolRepository extends JpaRepository<DbProtolEntry, String> {
+interface ProtocolRepository extends JpaRepository<DbProtocolEntry, String> {
     @Transactional
     @Modifying
     void deleteAllByUseCaseAndProtocolName(String useCase, String protocolName);

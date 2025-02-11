@@ -20,7 +20,7 @@ import org.hibernate.type.SqlTypes;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "protocol")
-class DbProtolEntry {
+class DbProtocolEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)

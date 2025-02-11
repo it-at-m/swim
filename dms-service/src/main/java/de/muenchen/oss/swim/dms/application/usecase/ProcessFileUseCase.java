@@ -30,8 +30,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class ProcessFileUseCase implements ProcessFileInPort {
-    public static final String PATTERN_JOINER = "-";
-
     private final SwimDmsProperties swimDmsProperties;
     private final FileSystemOutPort fileSystemOutPort;
     private final DmsOutPort dmsOutPort;
@@ -128,7 +126,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @return The resolved coo.
      */
     protected DmsTarget resolveTargetCoo(final JsonNode metadataJson, final UseCase useCase, final File file)
-            throws MetadataException, PresignedUrlException {
+            throws MetadataException {
         return switch (useCase.getCooSource()) {
         case METADATA_FILE -> this.resolveMetadataTargetCoo(metadataJson, useCase);
         case FILENAME -> {

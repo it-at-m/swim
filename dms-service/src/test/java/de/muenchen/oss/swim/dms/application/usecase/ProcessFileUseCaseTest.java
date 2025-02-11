@@ -171,7 +171,7 @@ class ProcessFileUseCaseTest {
     }
 
     private void testDefaults(final String useCaseName, final DmsTarget dmsTarget, final String fileName, final String contentObjectName)
-            throws UnknownUseCaseException, MetadataException, PresignedUrlException {
+            throws UnknownUseCaseException, MetadataException {
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(processFileUseCase, times(1)).resolveTargetCoo(isNull(), eq(useCase), eq(FILE));

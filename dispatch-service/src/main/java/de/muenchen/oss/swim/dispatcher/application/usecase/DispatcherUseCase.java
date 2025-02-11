@@ -206,6 +206,7 @@ public class DispatcherUseCase implements DispatcherInPort {
             missingFiles.removeAll(folderFileNames);
             // write protocol to db
             final String protocolName = file.getFileName();
+            storeProtocolOutPort.deleteProtocol(useCase.getName(), protocolName);
             storeProtocolOutPort.storeProtocol(useCase.getName(), protocolName, protocolEntries);
             // send protocol
             try (InputStream inputStream = fileSystemOutPort.readFile(file.bucket(), file.path())) {

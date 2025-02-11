@@ -176,6 +176,7 @@ class DispatcherUseCaseTest {
             // test
             verify(notificationOutPort, times(1)).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_FILENAME), eq(protocolStream), eq(List.of()),
                     eq(List.of()));
+            verify(storeProtocolOutPort, times(1)).deleteProtocol(eq(USE_CASE), eq(PROTOCOL_FILENAME));
             verify(storeProtocolOutPort, times(1)).storeProtocol(eq(USE_CASE), eq(PROTOCOL_FILENAME), eq(List.of(PROTOCOL_ENTRY1, PROTOCOL_ENTRY2)));
             verify(fileSystemOutPort, times(1)).tagFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()), eq(Map.of(
                     swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue())));

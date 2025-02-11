@@ -121,7 +121,7 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
                     swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue(),
                     swimDispatcherProperties.getProtocolMatchTagKey(), matchState));
             // move protocol
-            final String destPath = useCase.getFinishedPath(swimDispatcherProperties, file.path());
+            final String destPath = useCase.getFinishedProtocolPath(swimDispatcherProperties, file.path());
             fileSystemOutPort.moveFile(file.bucket(), file.path(), destPath);
         } catch (final ProtocolException | IOException | DataIntegrityViolationException e) {
             log.warn("Error file processing {} for use case {}", file.path(), useCase.getName(), e);

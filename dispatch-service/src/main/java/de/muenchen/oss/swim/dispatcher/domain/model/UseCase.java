@@ -101,6 +101,24 @@ public class UseCase {
     }
 
     /**
+     * Get finished protocol path for a given file path.
+     * Transforms the file path from the process folder to the finished protocol folder.
+     *
+     * @param properties Used for getting dispatch and finished protocol folder name.
+     * @param originalPath Path of the file in the process folder.
+     * @return Path of the file in the finished protocol folder.
+     */
+    public String getFinishedProtocolPath(final SwimDispatcherProperties properties, final String originalPath) {
+        final String dispatchPath = this.getDispatchPath(properties);
+        if (!originalPath.startsWith(dispatchPath)) {
+            throw new IllegalArgumentException(
+                    String.format("Original path '%s' must start with dispatch path '%s'", originalPath, dispatchPath));
+        }
+        final String finishedProtocolPath = String.format("%s/%s", this.getPathWithoutSlash(), properties.getProtocolFinishedFolder());
+        return originalPath.replaceFirst("^" + this.getDispatchPath(properties), finishedProtocolPath);
+    }
+
+    /**
      * Get raw path without use case path and finished or dispatch folder.
      *
      * @param properties Used for getting dispatch and finished folder name.

@@ -45,6 +45,11 @@ class UseCaseTest {
     }
 
     @Test
+    void testGetFinishedProtocolPath() {
+        assertEquals("testPath/finishedProtocols/test/asd.csv", useCase.getFinishedProtocolPath(swimDispatcherProperties, "testPath/inProcess/test/asd.csv"));
+    }
+
+    @Test
     void testGetRawPath() {
         assertEquals("test/asd.pdf", useCase.getRawPath(swimDispatcherProperties, "testPath/inProcess/test/asd.pdf"));
         assertEquals("test/asd.pdf", useCase.getRawPath(swimDispatcherProperties, "testPath/finished/test/asd.pdf"));

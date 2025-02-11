@@ -81,10 +81,14 @@ public class SwimDispatcherProperties {
     private Long maxFileSize = 100 * 1024 * 1024L;
     /**
      * Folder name where finished files are moved to.
-     * Folder paths which contain this sequence are ignored from dispatching.
      */
     @NotBlank
     private String finishedFolder;
+    /**
+     * Folder name where finished protocols are moved to.
+     */
+    @NotBlank
+    private String protocolFinishedFolder;
     /**
      * Folder name where to look in for files to dispatch.
      * Looks inside {@link UseCase#getPath()} for this folder and dispatches files inside if matching

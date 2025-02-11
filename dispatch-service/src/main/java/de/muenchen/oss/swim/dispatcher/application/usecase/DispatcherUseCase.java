@@ -202,8 +202,11 @@ public class DispatcherUseCase implements DispatcherInPort {
             // compare files with protocol
             final List<String> missingInProtocol = new ArrayList<>(folderFileNames);
             missingInProtocol.removeAll(protocolFileNames);
+            final boolean isMissingInProtocol = !missingInProtocol.isEmpty();
             final List<String> missingFiles = new ArrayList<>(protocolFileNames);
             missingFiles.removeAll(folderFileNames);
+            final boolean isMissingFiles = !missingFiles.isEmpty();
+            final boolean isMissmatch = isMissingInProtocol || isMissingFiles;
             // write protocol to db
             final String protocolName = useCase.getRawPath(swimDispatcherProperties, file.path());
             storeProtocolOutPort.deleteProtocol(useCase.getName(), protocolName);
@@ -214,8 +217,13 @@ public class DispatcherUseCase implements DispatcherInPort {
                         missingInProtocol);
             }
             // tag protocol as processed
+            final String matchState = !isMissmatch ? "correct" :
+                    isMissingInProtocol && isMissingFiles ? "missingInProtocolAndFiles" :
+                    isMissingInProtocol ? "missingInProtocol" : "missingFiles";
             fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
-                    swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue()));
+                    swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue(),
+                    swimDispatcherProperties.getProtocolMatchTagKey(), matchState
+            ));
             // move protocol
             final String destPath = useCase.getFinishedPath(swimDispatcherProperties, file.path());
             fileSystemOutPort.moveFile(file.bucket(), file.path(), destPath);

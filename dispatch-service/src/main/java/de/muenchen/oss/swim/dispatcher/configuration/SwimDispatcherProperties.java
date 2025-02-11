@@ -26,6 +26,11 @@ public class SwimDispatcherProperties {
     @NotBlank
     private String protocolStateTagKey;
     /**
+     * Tag key used for protocol match state.
+     */
+    @NotBlank
+    private String protocolMatchTagKey;
+    /**
      * Tag key used for error class name.
      */
     @NotBlank

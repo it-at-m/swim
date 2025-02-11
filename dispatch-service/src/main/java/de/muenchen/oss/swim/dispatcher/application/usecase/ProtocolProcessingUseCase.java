@@ -97,7 +97,6 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
             final List<String> missingFiles = new ArrayList<>(protocolFileNames);
             missingFiles.removeAll(folderFileNames);
             final boolean isMissingFiles = !missingFiles.isEmpty();
-            final boolean isMissmatch = isMissingInProtocol || isMissingFiles;
             // write protocol to db
             final String protocolName = useCase.getRawPath(swimDispatcherProperties, file.path());
             storeProtocolOutPort.deleteProtocol(useCase.getName(), protocolName);
@@ -108,8 +107,16 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
                         missingInProtocol);
             }
             // tag protocol as processed
-            final String matchState = !isMissmatch ? "correct"
-                    : isMissingInProtocol && isMissingFiles ? "missingInProtocolAndFiles" : isMissingInProtocol ? "missingInProtocol" : "missingFiles";
+            final String matchState;
+            if (isMissingInProtocol && isMissingFiles) {
+                matchState = "missingInProtocolAndFiles";
+            } else if (isMissingInProtocol) {
+                matchState = "missingInProtocol";
+            } else if (isMissingFiles) {
+                matchState = "missingFiles";
+            } else {
+                matchState = "correct";
+            }
             fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
                     swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue(),
                     swimDispatcherProperties.getProtocolMatchTagKey(), matchState));

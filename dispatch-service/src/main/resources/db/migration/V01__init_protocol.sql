@@ -9,7 +9,7 @@ CREATE TABLE protocol
     document_type           VARCHAR,
     coo_address             VARCHAR,
     additional_properties   jsonb,
-    created_at              TIMESTAMP,
+    created_at              TIMESTAMP NOT NULL,
     CONSTRAINT pk_protocol PRIMARY KEY (id),
     CONSTRAINT protocol_entries_unique UNIQUE (use_case, protocol_name, file_name)
 );

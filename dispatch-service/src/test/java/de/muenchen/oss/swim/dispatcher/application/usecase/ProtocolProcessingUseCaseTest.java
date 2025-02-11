@@ -104,6 +104,7 @@ class ProtocolProcessingUseCaseTest {
         verify(fileSystemOutPort, times(1)).tagFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()), eq(Map.of(
                 swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue(),
                 swimDispatcherProperties.getProtocolMatchTagKey(), "correct")));
+        verify(fileSystemOutPort, times(1)).moveFile(eq(BUCKET), eq(PROTOCOL_FILE.path()), eq("test/finished/path/path.csv"));
         verify(fileHandlingHelper, times(0)).markFileError(any(), any(), any());
         verify(notificationOutPort, times(0)).sendProtocolError(any(), any(), any(), any());
     }

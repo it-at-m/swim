@@ -16,7 +16,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class PatternHelper {
-    public static final Pattern PATTERN = Pattern.compile("^s/(.+)/(.+)/(m?)$");
+    public static final String RAW_PATTERN = "^s/(.+)/(.+)/(m?)$";
+    public static final Pattern PATTERN = Pattern.compile(RAW_PATTERN);
     public static final String OPTION_METADATA = "m";
 
     private final MetadataHelper metadataHelper;

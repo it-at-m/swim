@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class DispatcherUserCase implements DispatcherInPort {
+public class DispatcherUseCase implements DispatcherInPort {
     private final SwimDispatcherProperties swimDispatcherProperties;
     private final FileSystemOutPort fileSystemOutPort;
     private final FileDispatchingOutPort fileDispatchingOutPort;
@@ -69,7 +69,7 @@ public class DispatcherUserCase implements DispatcherInPort {
 
     /**
      * Process all files inside a folder recursively.
-     * See {@link DispatcherUserCase#processFile(UseCase, File)}.
+     * See {@link DispatcherUseCase#processFile(UseCase, File)}.
      *
      * @param useCase The bucket of the folder.
      * @param folder The full path of the folder.

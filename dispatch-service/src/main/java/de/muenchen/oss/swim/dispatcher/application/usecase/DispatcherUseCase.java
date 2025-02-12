@@ -94,7 +94,7 @@ public class DispatcherUseCase implements DispatcherInPort {
             }
             try {
                 this.processFile(useCase, file, tags);
-            } catch (final MetadataException | FileSizeException | UseCaseException e) {
+            } catch (final MetadataException | FileSizeException | UseCaseException | IllegalStateException e) {
                 log.warn("Error while processing file {} for use case {}", file.path(), useCase.getName(), e);
                 // mark file as failed
                 fileHandlingHelper.markFileError(file, swimDispatcherProperties.getDispatchStateTagKey(), e);

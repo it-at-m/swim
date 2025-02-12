@@ -140,8 +140,7 @@ class DispatcherUseCaseTest {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         final Map<String, String> tags = Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue(),
-                swimDispatcherProperties.getDispatchActionTagKey(), DispatcherUseCase.ACTION_IGNORE
-        );
+                swimDispatcherProperties.getDispatchActionTagKey(), DispatcherUseCase.ACTION_IGNORE);
         // call
         dispatcherUseCase.processFile(useCase, FILE1, tags);
         // test
@@ -160,14 +159,14 @@ class DispatcherUseCaseTest {
         final Map<String, String> tags = Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue(),
                 swimDispatcherProperties.getDispatchActionTagKey(), DispatcherUseCase.ACTION_REROUTE,
-                DispatcherUseCase.ACTION_REROUTE_DESTINATION_TAG_KEY, "test2"
-        );
+                DispatcherUseCase.ACTION_REROUTE_DESTINATION_TAG_KEY, "test2");
         // call
         dispatcherUseCase.processFile(useCase, FILE1, tags);
         // test
         verify(fileDispatchingOutPort, times(0)).dispatchFile(any(), any(), any(), any());
         verify(dispatcherUseCase, times(1)).rerouteFileToUseCase(eq(useCase), eq(FILE1), eq(tags));
-        verify(fileSystemOutPort, times(1)).copyFile(eq(BUCKET), eq(FILE1.path()), eq("test-bucket-2"), eq("path/test2/inProcess/from_test-meta/path/test.pdf"));
+        verify(fileSystemOutPort, times(1)).copyFile(eq(BUCKET), eq(FILE1.path()), eq("test-bucket-2"),
+                eq("path/test2/inProcess/from_test-meta/path/test.pdf"));
         verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
         verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(DispatcherUseCase.ACTION_REROUTE));

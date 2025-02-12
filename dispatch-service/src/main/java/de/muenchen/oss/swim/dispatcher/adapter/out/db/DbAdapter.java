@@ -16,4 +16,9 @@ public class DbAdapter implements StoreProtocolOutPort {
     public void storeProtocol(final String useCase, final String protocolName, final List<ProtocolEntry> entries) {
         protocolRepository.saveAll(dbProtocolMapper.toDb(useCase, protocolName, entries));
     }
+
+    @Override
+    public void deleteProtocol(final String useCase, final String protocolName) {
+        protocolRepository.deleteAllByUseCaseAndProtocolName(useCase, protocolName);
+    }
 }

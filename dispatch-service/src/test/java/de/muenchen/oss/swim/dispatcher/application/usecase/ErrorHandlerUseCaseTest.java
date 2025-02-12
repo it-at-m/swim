@@ -56,7 +56,7 @@ class ErrorHandlerUseCaseTest {
                 eq(TEST_ERROR_DETAILS));
         verify(fileSystemOutPort, times(1)).tagFile(any(), any(), any());
         verify(notificationOutPort, times(0)).sendFileError(any(), any(), any(), any(), any());
-        verify(dispatchMeter, times(1)).incrementError(eq(TEST_USE_CASE), eq(TEST_ERROR_DETAILS.source()));
+        verify(dispatchMeter, times(1)).incrementError(eq(USE_CASE), eq(TEST_ERROR_DETAILS.source()));
     }
 
     @Test

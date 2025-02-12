@@ -7,6 +7,7 @@ import de.muenchen.oss.swim.dispatcher.application.port.out.FileDispatchingOutPo
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.NotificationOutPort;
 import de.muenchen.oss.swim.dispatcher.application.usecase.helper.FileHandlingHelper;
+import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
@@ -29,6 +30,7 @@ public class DispatcherUseCase implements DispatcherInPort {
     private final FileDispatchingOutPort fileDispatchingOutPort;
     private final NotificationOutPort notificationOutPort;
     private final FileHandlingHelper fileHandlingHelper;
+    private final DispatchMeter dispatchMeter;
 
     @Override
     public void triggerDispatching() {
@@ -133,5 +135,7 @@ public class DispatcherUseCase implements DispatcherInPort {
         fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(),
                 swimDispatcherProperties.getDispatchedStateTagValue()));
+        // update metric
+        dispatchMeter.incrementDispatched(useCase.getName(), useCase.getDestinationBinding());
     }
 }

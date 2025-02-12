@@ -42,7 +42,7 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
         log.info("Starting protocol processing");
         for (final UseCase useCase : swimDispatcherProperties.getUseCases()) {
             // get protocols not already processed
-            final List<File> protocolFiles = fileSystemOutPort.getMatchingFiles(
+            final Map<File, Map<String, String>> protocolFiles = fileSystemOutPort.getMatchingFiles(
                     useCase.getBucket(),
                     useCase.getDispatchPath(swimDispatcherProperties),
                     useCase.isRecursive(),
@@ -51,7 +51,7 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
                     swimDispatcherProperties.getProtocolExcludeTags());
             // for each file
             log.info("Found {} protocol files for use case {}", protocolFiles.size(), useCase.getName());
-            for (final File file : protocolFiles) {
+            for (final File file : protocolFiles.keySet()) {
                 log.info("Processing protocol {} for use case {}", file.path(), useCase.getName());
                 // skip file if name not matching parent folder
                 if (!file.getParentName().equals(file.getFileNameWithoutExtension())) {
@@ -84,10 +84,10 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
             // load files in folder
             final List<File> folderFiles = new ArrayList<>(
                     fileSystemOutPort.getMatchingFiles(file.bucket(), file.getParentPath(), false, FILE_EXTENSION_PDF, Map.of(),
-                            Map.of()));
+                            Map.of()).keySet());
             // load files in finished folder
             final String finishedPath = useCase.getFinishedPath(swimDispatcherProperties, file.getParentPath());
-            folderFiles.addAll(fileSystemOutPort.getMatchingFiles(file.bucket(), finishedPath, false, FILE_EXTENSION_PDF, Map.of(), Map.of()));
+            folderFiles.addAll(fileSystemOutPort.getMatchingFiles(file.bucket(), finishedPath, false, FILE_EXTENSION_PDF, Map.of(), Map.of()).keySet());
             // parse files
             final Set<String> folderFileNames = folderFiles.stream().map(File::getFileName).collect(Collectors.toSet());
             // compare files with protocol

@@ -38,11 +38,13 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IteratorUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +76,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     @Override
-    public List<File> getMatchingFiles(
+    public Map<File, Map<String, String>> getMatchingFiles(
             final String bucket,
             final String pathPrefix,
             final boolean recursive,
@@ -89,19 +91,24 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .map(i -> new File(bucket, i.objectName(), i.size()))
                 // filter extension
                 .filter(i -> i.path().toLowerCase(Locale.ROOT).endsWith(suffix))
-                // filter tags
-                .filter(i -> {
-                    // get file tags
-                    final Map<String, String> tags;
+                // map tags to each file
+                .map(i -> {
+                    Map<String, String> tags;
                     try {
                         tags = getTagsOfFile(bucket, i.path());
-                    } catch (final FileNotFoundException e) {
+                    } catch (final FileNotFoundException ignored) {
+                        tags = null;
+                    }
+                    return new AbstractMap.SimpleEntry<>(i, tags);
+                })
+                // filter tags
+                .filter((entry) -> {
+                    if (entry.getValue() == null) {
                         return false;
                     }
                     // check if matching required and exclude
-                    return matchesMap(tags, requiredTags, excludeTags);
-                })
-                .toList();
+                    return matchesMap(entry.getValue(), requiredTags, excludeTags);
+                }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override

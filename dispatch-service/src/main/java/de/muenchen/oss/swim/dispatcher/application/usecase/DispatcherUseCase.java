@@ -61,7 +61,7 @@ public class DispatcherUseCase implements DispatcherInPort {
 
     /**
      * Process all files inside a folder recursively.
-     * See {@link DispatcherUseCase#processFile(UseCase, File)}.
+     * See {@link DispatcherUseCase#processFile}.
      *
      * @param useCase The bucket of the folder.
      * @param folder The full path of the folder.
@@ -69,7 +69,7 @@ public class DispatcherUseCase implements DispatcherInPort {
      */
     private @NotNull
     Map<String, Throwable> processDirectory(final UseCase useCase, final String folder, final boolean recursive) {
-        final List<File> readyFiles = fileSystemOutPort.getMatchingFiles(
+        final Map<File, Map<String, String>> readyFiles = fileSystemOutPort.getMatchingFiles(
                 useCase.getBucket(),
                 folder,
                 recursive,
@@ -79,12 +79,14 @@ public class DispatcherUseCase implements DispatcherInPort {
         // for each file
         log.info("Found {} ready to process files for use case {} in folder {}", readyFiles.size(), useCase.getName(), folder);
         final Map<String, Throwable> errors = new HashMap<>();
-        for (final File file : readyFiles) {
+        for (final Map.Entry<File, Map<String, String>> entry : readyFiles.entrySet()) {
+            final File file = entry.getKey();
+            final Map<String, String> tags = entry.getValue();
             if (!useCase.isSensitiveFilename()) {
                 log.info("Processing file {} for use case {}", file.path(), useCase.getName());
             }
             try {
-                this.processFile(useCase, file);
+                this.processFile(useCase, file, tags);
             } catch (final MetadataException | FileSizeException e) {
                 log.warn("Error while processing file {} for use case {}", file.path(), useCase.getName(), e);
                 // mark file as failed
@@ -108,7 +110,7 @@ public class DispatcherUseCase implements DispatcherInPort {
      *             {@link SwimDispatcherProperties#getMaxFileSize()}
      * @throws MetadataException If metadata file required but could not be loaded
      */
-    protected void processFile(final UseCase useCase, final File file) throws FileSizeException, MetadataException {
+    protected void processFile(final UseCase useCase, final File file, final Map<String, String> tags) throws FileSizeException, MetadataException {
         // check file size
         if (file.size() > swimDispatcherProperties.getMaxFileSize()) {
             final String message = String.format("File %s too large. %d > %d", file.path(), file.size(), swimDispatcherProperties.getMaxFileSize());

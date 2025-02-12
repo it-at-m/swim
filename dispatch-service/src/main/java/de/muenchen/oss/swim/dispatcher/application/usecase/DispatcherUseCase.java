@@ -132,8 +132,11 @@ public class DispatcherUseCase implements DispatcherInPort {
         case ACTION_REROUTE:
             this.rerouteFileToUseCase(useCase, file, tags);
             break;
-        default:
+        case ACTION_DISPATCH:
             this.dispatchFile(useCase, file);
+            break;
+        default:
+            throw new IllegalStateException("Unknown dispatch action: " + action);
         }
         // update metric
         final String destination = ACTION_DISPATCH.equals(action) ? useCase.getDestinationBinding() : action;
@@ -212,6 +215,7 @@ public class DispatcherUseCase implements DispatcherInPort {
         fileSystemOutPort.copyFile(file.bucket(), file.path(), targetUseCase.getBucket(), destPath, true);
         // finish file
         this.finishFile(useCase, file);
+        log.info("File {} in bucket {} rerouted from use case {} to use case {}", file.path(), file.bucket(), useCase.getName(), targetUseCase.getName());
     }
 
 }

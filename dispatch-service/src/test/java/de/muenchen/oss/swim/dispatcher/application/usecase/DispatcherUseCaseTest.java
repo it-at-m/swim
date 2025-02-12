@@ -42,7 +42,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-@SpringBootTest(classes = { SwimDispatcherProperties.class, DispatcherUseCase.class })
+@SpringBootTest(classes = { SwimDispatcherProperties.class, DispatcherUseCase.class, FileHandlingHelper.class })
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
@@ -55,7 +55,8 @@ class DispatcherUseCaseTest {
     private FileDispatchingOutPort fileDispatchingOutPort;
     @MockitoBean
     private NotificationOutPort notificationOutPort;
-    @MockitoBean
+    @MockitoSpyBean
+    @Autowired
     private FileHandlingHelper fileHandlingHelper;
     @MockitoSpyBean
     @Autowired
@@ -148,7 +149,7 @@ class DispatcherUseCaseTest {
         verify(dispatcherUseCase, times(0)).dispatchFile(any(), any());
         verify(dispatcherUseCase, times(0)).rerouteFileToUseCase(any(), any(), any());
         verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
-                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
+                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchFileFinishedTagValue())));
         verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(DispatcherUseCase.ACTION_IGNORE));
     }
 
@@ -168,7 +169,7 @@ class DispatcherUseCaseTest {
         verify(fileSystemOutPort, times(1)).copyFile(eq(BUCKET), eq(FILE1.path()), eq("test-bucket-2"),
                 eq("path/test2/inProcess/from_test-meta/path/test.pdf"));
         verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
-                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
+                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchFileFinishedTagValue())));
         verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(DispatcherUseCase.ACTION_REROUTE));
     }
 }

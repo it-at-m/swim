@@ -127,6 +127,7 @@ public class DispatcherUseCase implements DispatcherInPort {
         final String action = tags.getOrDefault(swimDispatcherProperties.getDispatchActionTagKey(), ACTION_DISPATCH);
         switch (action) {
         case ACTION_DELETE, ACTION_IGNORE:
+            this.finishFile(useCase, file);
             break;
         case ACTION_REROUTE:
             this.rerouteFileToUseCase(useCase, file, tags);
@@ -134,10 +135,6 @@ public class DispatcherUseCase implements DispatcherInPort {
         default:
             this.dispatchFile(useCase, file);
         }
-        // mark file as finished
-        fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
-                swimDispatcherProperties.getDispatchStateTagKey(),
-                swimDispatcherProperties.getDispatchedStateTagValue()));
         // update metric
         final String destination = ACTION_DISPATCH.equals(action) ? useCase.getDestinationBinding() : action;
         dispatchMeter.incrementDispatched(useCase.getName(), destination);
@@ -155,7 +152,7 @@ public class DispatcherUseCase implements DispatcherInPort {
         final String metadataPresignedUrl;
         if (useCase.isRequiresMetadata()) {
             // build metadata file path
-            final String metadataPath = String.format("%s/%s.json", file.getParentPath(), file.getFileNameWithoutExtension());
+            final String metadataPath = file.getMetadataFilePath();
             // continue if not existing
             if (!fileSystemOutPort.fileExists(file.bucket(), metadataPath)) {
                 final String message = String.format("Metadata file %s missing", metadataPath);
@@ -168,6 +165,25 @@ public class DispatcherUseCase implements DispatcherInPort {
         // dispatch file
         final String presignedUrl = fileSystemOutPort.getPresignedUrl(file.bucket(), file.path());
         fileDispatchingOutPort.dispatchFile(useCase.getDestinationBinding(), useCase.getName(), presignedUrl, metadataPresignedUrl);
+        // mark file as dispatched
+        fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
+                swimDispatcherProperties.getDispatchStateTagKey(),
+                swimDispatcherProperties.getDispatchedStateTagValue()));
+    }
+
+    /**
+     * Tag file and move to finished directory.
+     *
+     * @param useCase The use case of the file.
+     * @param file The file to finish.
+     */
+    protected void finishFile(final UseCase useCase, final File file) {
+        // finish metadata file if required and exists
+        if (useCase.isRequiresMetadata() && this.fileSystemOutPort.fileExists(file.bucket(), file.getMetadataFilePath())) {
+            this.fileHandlingHelper.finishFile(useCase, file.bucket(), file.getMetadataFilePath());
+        }
+        // finish file
+        this.fileHandlingHelper.finishFile(useCase, file.bucket(), file.path());
     }
 
     /**
@@ -190,6 +206,8 @@ public class DispatcherUseCase implements DispatcherInPort {
         final String rawPath = useCase.getRawPath(swimDispatcherProperties, file.path());
         final String destPath = String.format("%s/from_%s/%s", targetUseCase.getDispatchPath(swimDispatcherProperties), useCase.getName(), rawPath);
         fileSystemOutPort.copyFile(file.bucket(), file.path(), targetUseCase.getBucket(), destPath);
+        // finish file
+        this.finishFile(useCase, file);
     }
 
 }

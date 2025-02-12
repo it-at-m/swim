@@ -16,4 +16,12 @@ public interface StoreProtocolOutPort {
      * @param entries The entries of the protocol.
      */
     void storeProtocol(@NotBlank String useCase, @NotBlank String protocolName, @Valid List<ProtocolEntry> entries);
+
+    /**
+     * Delete entries for existing protocol.
+     *
+     * @param useCase The use case name of the protocol.
+     * @param protocolName The name of the protocol.
+     */
+    void deleteProtocol(@NotBlank String useCase, @NotBlank String protocolName);
 }

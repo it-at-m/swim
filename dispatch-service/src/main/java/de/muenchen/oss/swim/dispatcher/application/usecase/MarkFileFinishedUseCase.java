@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.dispatcher.application.usecase;
 
 import de.muenchen.oss.swim.dispatcher.application.port.in.MarkFileFinishedInPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
+import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 public class MarkFileFinishedUseCase implements MarkFileFinishedInPort {
     private final SwimDispatcherProperties swimDispatcherProperties;
     private final FileSystemOutPort fileSystemOutPort;
+    private final DispatchMeter dispatchMeter;
 
     @Override
     public void markFileFinished(final String useCaseName, final String presignedUrl) throws PresignedUrlException, UseCaseException {
@@ -33,11 +35,10 @@ public class MarkFileFinishedUseCase implements MarkFileFinishedInPort {
         fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchFileFinishedTagValue()));
         // move file
-        final String useCasePath = useCase.getPath().endsWith("/") ? useCase.getPath() : useCase.getPath() + "/";
-        final String finishedFolder = swimDispatcherProperties.getFinishedFolder().endsWith("/") ? swimDispatcherProperties.getFinishedFolder()
-                : swimDispatcherProperties.getFinishedFolder() + "/";
-        final String destPath = file.path().replace(useCasePath, String.format("%s%s", useCasePath, finishedFolder));
+        final String destPath = useCase.getFinishedPath(swimDispatcherProperties, file.path());
         fileSystemOutPort.moveFile(file.bucket(), file.path(), destPath);
         log.info("Finished file {} in use case {}", file.path(), useCaseName);
+        // update metric
+        dispatchMeter.incrementFinished(useCaseName);
     }
 }

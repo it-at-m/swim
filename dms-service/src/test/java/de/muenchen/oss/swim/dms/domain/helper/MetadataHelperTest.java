@@ -5,6 +5,7 @@ import static de.muenchen.oss.swim.dms.TestConstants.METADATA_DMS_TARGET_USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dms.TestConstants;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
@@ -29,19 +30,24 @@ class MetadataHelperTest {
     @Test
     void testResolveDmsTarget() throws MetadataException {
         // test user
-        final DmsTarget dmsTargetUser = metadataHelper.resolveDmsTarget(getClass().getResourceAsStream("/files/example-metadata-user.json"));
+        final JsonNode metadataUserNode = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-user.json"));
+        final DmsTarget dmsTargetUser = metadataHelper.resolveDmsTarget(metadataUserNode);
         assertEquals(METADATA_DMS_TARGET_USER, dmsTargetUser);
         // test group
-        final DmsTarget dmsTargetGroup = metadataHelper.resolveDmsTarget(getClass().getResourceAsStream("/files/example-metadata-group.json"));
+        final JsonNode metadataGroupNode = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-group.json"));
+        final DmsTarget dmsTargetGroup = metadataHelper.resolveDmsTarget(metadataGroupNode);
         assertEquals(METADATA_DMS_TARGET_GROUP, dmsTargetGroup);
         // test invalid both
+        final JsonNode metadataInvalidBoth = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-invalid-both.json"));
         assertThrows(MetadataException.class,
-                () -> metadataHelper.resolveDmsTarget(getClass().getResourceAsStream("/files/example-metadata-invalid-both.json")));
+                () -> metadataHelper.resolveDmsTarget(metadataInvalidBoth));
         // test invalid none
+        final JsonNode metadataInvalidNone = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-invalid-none.json"));
         assertThrows(MetadataException.class,
-                () -> metadataHelper.resolveDmsTarget(getClass().getResourceAsStream("/files/example-metadata-invalid-none.json")));
+                () -> metadataHelper.resolveDmsTarget(metadataInvalidNone));
         // test invalid empty
+        final JsonNode metadataInvalidEmpty = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-invalid-empty.json"));
         assertThrows(MetadataException.class,
-                () -> metadataHelper.resolveDmsTarget(getClass().getResourceAsStream("/files/example-metadata-invalid-empty.json")));
+                () -> metadataHelper.resolveDmsTarget(metadataInvalidEmpty));
     }
 }

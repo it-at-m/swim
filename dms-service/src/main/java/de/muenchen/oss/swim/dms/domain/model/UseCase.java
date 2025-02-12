@@ -1,7 +1,9 @@
 package de.muenchen.oss.swim.dms.domain.model;
 
+import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import java.util.Map;
 import lombok.Data;
 
@@ -25,17 +27,20 @@ public class UseCase {
      * Pattern is applied to S3 filename.
      * The filename is used as ContentObject name.
      */
+    @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String filenameOverwritePattern;
     /**
      * Regex pattern for defining a custom Incoming name.
      * If not defined overwritten filename is used.
      * Only applies to {@link Type#INCOMING_OBJECT}
      */
+    @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String incomingNamePattern;
     /**
      * Regex pattern for extracting target coo from filename.
      * {@link UseCase.CooSource#FILENAME}
      */
+    @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String filenameCooPattern;
     /**
      * Map for resolving target coo via filename.
@@ -54,6 +59,7 @@ public class UseCase {
      * Verify name of resolved Procedure against pattern, if defined.
      * Only applies to {@link Type#INCOMING_OBJECT}
      */
+    @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String verifyProcedureNamePattern;
     /**
      * Reuse Incoming with same name if true.

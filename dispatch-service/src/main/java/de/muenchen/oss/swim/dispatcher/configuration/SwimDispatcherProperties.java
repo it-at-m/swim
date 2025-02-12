@@ -13,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 @Data
 @ConfigurationProperties(prefix = "swim")
 @Validated
+@SuppressWarnings("PMD.TooManyFields")
 public class SwimDispatcherProperties {
     // ########### tag keys ###########
     /**

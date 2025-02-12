@@ -101,5 +101,6 @@ public interface FileSystemOutPort {
      * @param destBucket The destination bucket of the file.
      * @param destPath The destination path of the file.
      */
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
     void copyFile(@NotBlank String srcBucket, @NotBlank String srcPath, @NotBlank String destBucket, @NotBlank String destPath);
 }

@@ -139,7 +139,7 @@ public class DispatcherUseCase implements DispatcherInPort {
                 swimDispatcherProperties.getDispatchStateTagKey(),
                 swimDispatcherProperties.getDispatchedStateTagValue()));
         // update metric
-        final String destination = action.equals(ACTION_DISPATCH) ? useCase.getDestinationBinding() : action;
+        final String destination = ACTION_DISPATCH.equals(action) ? useCase.getDestinationBinding() : action;
         dispatchMeter.incrementDispatched(useCase.getName(), destination);
     }
 

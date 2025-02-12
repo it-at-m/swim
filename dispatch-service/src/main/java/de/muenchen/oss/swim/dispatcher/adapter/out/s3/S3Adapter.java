@@ -93,21 +93,17 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .filter(i -> i.path().toLowerCase(Locale.ROOT).endsWith(suffix))
                 // map tags to each file
                 .map(i -> {
-                    Map<String, String> tags;
+                    Map<String, String> tags = null;
                     try {
                         tags = getTagsOfFile(bucket, i.path());
                     } catch (final FileNotFoundException ignored) {
-                        tags = null;
                     }
                     return new AbstractMap.SimpleEntry<>(i, tags);
                 })
                 // filter tags
                 .filter((entry) -> {
-                    if (entry.getValue() == null) {
-                        return false;
-                    }
-                    // check if matching required and exclude
-                    return matchesMap(entry.getValue(), requiredTags, excludeTags);
+                    // check if tags could be loaded and matching required and exclude
+                    return entry.getValue() != null && matchesMap(entry.getValue(), requiredTags, excludeTags);
                 }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
@@ -245,6 +241,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     @Override
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
     public void copyFile(final String srcBucket, final String srcPath, final String destBucket, final String destPath) {
         try {
             final CopySource copySource = CopySource.builder()

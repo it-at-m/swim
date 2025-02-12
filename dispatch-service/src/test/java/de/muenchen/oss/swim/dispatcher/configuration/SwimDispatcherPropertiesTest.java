@@ -1,6 +1,6 @@
 package de.muenchen.oss.swim.dispatcher.configuration;
 
-import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_USE_CASE;
+import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -23,8 +23,8 @@ class SwimDispatcherPropertiesTest {
     @Test
     void testFindUseCase() throws UseCaseException {
         // found
-        final UseCase useCase = this.swimDispatcherProperties.findUseCase(TEST_USE_CASE);
-        assertEquals(TEST_USE_CASE, useCase.getName());
+        final UseCase useCase = this.swimDispatcherProperties.findUseCase(USE_CASE);
+        assertEquals(USE_CASE, useCase.getName());
         // not found
         assertThrows(UseCaseException.class, () -> swimDispatcherProperties.findUseCase("unknown-usecase"));
     }

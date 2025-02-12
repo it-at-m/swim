@@ -7,15 +7,15 @@ swim:
       type: incoming_object
       coo-source: static
       target-coo: staticCoo
-      filename-overwrite-pattern: "^(.+)(?:-COO.[^-]+-)(.+)$"
-      incoming-name-pattern: "^(.+)(?:-COO.[^-]+-).+$"
+      filename-overwrite-pattern: "s/^(.+)(?:-COO.[^-]+-)(.+)$/\\${1}-\\${2}/"
+      incoming-name-pattern: "s/^(.+)(?:-COO.[^-]+-).+$/\\${1}/"
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition
     - name: filename-incoming
       type: incoming_object
       coo-source: filename
-      filename-coo-pattern: "^.+-(COO.[^-]+)-.+$"
+      filename-coo-pattern: "s/^.+-(COO.[^-]+)-.+$/\\${1}/"
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition
@@ -31,16 +31,16 @@ swim:
     - name: verifyProcedure-incoming
       type: incoming_object
       coo-source: filename
-      filename-coo-pattern: "^.+-(COO.[^-]+)-.+$"
-      verify-procedure-name-pattern: "^(.+)(?:-COO.[^-]+-).+$"
+      filename-coo-pattern: "s/^.+-(COO.[^-]+)-.+$/\\${1}/"
+      verify-procedure-name-pattern: "s/^(.+)(?:-COO.[^-]+-).+$/\\${1}/"
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition
     - name: reuseIncoming-incoming
       type: incoming_object
       coo-source: filename
-      filename-coo-pattern: "^.+-(COO.[^-]+)-.+$"
-      incoming-name-pattern: "^(.+)(?:-COO.[^-]+-).+$"
+      filename-coo-pattern: "s/^.+-(COO.[^-]+)-.+$/\\${1}/"
+      incoming-name-pattern: "s/^(.+)(?:-COO.[^-]+-).+$/\\${1}/"
       reuse-incoming: true
       username: staticUsername
       joboe: staticJobOe

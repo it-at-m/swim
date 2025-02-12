@@ -84,11 +84,16 @@ info:
     spring-cloud.version: @spring-cloud-dependencies.version@
 
 swim:
+  # dirs
+  dispatch-folder: inProcess
+  finished-folder: finished
+  protocol-finished-folder: finishedProtocols
   # s3 tags
   dispatch-state-tag-key: SWIM_State
   dispatched-state-tag-value: sentToKafka
   dispatch-file-finished-tag-value: finished
   protocol-state-tag-key: CSV_State
+  protocol-match-tag-key: CSV_Match
   protocol-processed-state-tage-value: finished
   error-class-tag-key: errorClass
   error-message-tag-key: errorMessage

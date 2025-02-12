@@ -8,9 +8,9 @@ import org.mapstruct.Mapping;
 @Mapper
 interface DbProtocolMapper {
     @Mapping(target = "id", ignore = true)
-    DbProtolEntry toDb(String useCase, String protocolName, ProtocolEntry entry);
+    DbProtocolEntry toDb(String useCase, String protocolName, ProtocolEntry entry);
 
-    default List<DbProtolEntry> toDb(final String useCase, final String protocolName, final List<ProtocolEntry> entries) {
+    default List<DbProtocolEntry> toDb(final String useCase, final String protocolName, final List<ProtocolEntry> entries) {
         return entries.stream().map(i -> toDb(useCase, protocolName, i)).toList();
     }
 }

@@ -244,6 +244,27 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         }
     }
 
+    @Override
+    public void copyFile(final String srcBucket, final String srcPath, final String destBucket, final String destPath) {
+        try {
+            final CopySource copySource = CopySource.builder()
+                    .bucket(srcBucket)
+                    .object(srcPath)
+                    .build();
+            final CopyObjectArgs copyObjectArgs = CopyObjectArgs.builder()
+                    .bucket(destBucket)
+                    .source(copySource)
+                    .object(destPath).build();
+            this.minioClient.copyObject(copyObjectArgs);
+            log.info("Copied file {} from bucket {} to {} in bucket {}", srcPath, srcBucket, destPath, destBucket);
+        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+            final String message = String.format("Error while copying s3 object %s from bucket %s to %s in bucket %s", srcPath, srcBucket, destPath,
+                    destBucket);
+            log.error(message, e);
+            throw new FileSystemAccessException(message, e);
+        }
+    }
+
     /**
      * Get objects (dirs/files) in a specific bucket and path.
      *

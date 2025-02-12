@@ -13,4 +13,7 @@ swim:
       destination-binding: dms-out
       mail-addresses:
         - test-meta@example.com
+    - name: test2
+      bucket: test-bucket-2
+      path: path/test2
   fallback-mail: swim@example.com

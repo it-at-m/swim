@@ -11,6 +11,7 @@ import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
+import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.HashMap;
@@ -25,6 +26,12 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class DispatcherUseCase implements DispatcherInPort {
+    protected static final String ACTION_DISPATCH = "dispatch";
+    protected static final String ACTION_REROUTE = "reroute";
+    protected static final String ACTION_DELETE = "delete";
+    protected static final String ACTION_IGNORE = "ignore";
+    protected static final String ACTION_REROUTE_DESTINATION_TAG_KEY = "SWIM_Reroute_Destination";
+
     private final SwimDispatcherProperties swimDispatcherProperties;
     private final FileSystemOutPort fileSystemOutPort;
     private final FileDispatchingOutPort fileDispatchingOutPort;
@@ -87,7 +94,7 @@ public class DispatcherUseCase implements DispatcherInPort {
             }
             try {
                 this.processFile(useCase, file, tags);
-            } catch (final MetadataException | FileSizeException e) {
+            } catch (final MetadataException | FileSizeException | UseCaseException e) {
                 log.warn("Error while processing file {} for use case {}", file.path(), useCase.getName(), e);
                 // mark file as failed
                 fileHandlingHelper.markFileError(file, swimDispatcherProperties.getDispatchStateTagKey(), e);
@@ -99,23 +106,51 @@ public class DispatcherUseCase implements DispatcherInPort {
     }
 
     /**
-     * Process a single file.
-     * Validate metadata exists if required by use case.
-     * Dispatch file for further processing.
-     * Mark file as dispatched.
+     * Process a single file by executing according action (dispatch, reroute, ignore, ...)
+     * and mark file as finished.
      *
      * @param useCase The use case the file was found for.
      * @param file The file to be processed.
      * @throws FileSizeException If file is above configured
      *             {@link SwimDispatcherProperties#getMaxFileSize()}
      * @throws MetadataException If metadata file required but could not be loaded
+     * @throws UseCaseException If use case can't be resolved in reroute action.
      */
-    protected void processFile(final UseCase useCase, final File file, final Map<String, String> tags) throws FileSizeException, MetadataException {
+    protected void processFile(final UseCase useCase, final File file, final Map<String, String> tags)
+            throws FileSizeException, MetadataException, UseCaseException {
         // check file size
         if (file.size() > swimDispatcherProperties.getMaxFileSize()) {
             final String message = String.format("File %s too large. %d > %d", file.path(), file.size(), swimDispatcherProperties.getMaxFileSize());
             throw new FileSizeException(message);
         }
+        // execute action
+        final String action = tags.getOrDefault(swimDispatcherProperties.getDispatchActionTagKey(), ACTION_DISPATCH);
+        switch (action) {
+        case ACTION_DELETE, ACTION_IGNORE:
+            break;
+        case ACTION_REROUTE:
+            this.rerouteFileToUseCase(useCase, file, tags);
+            break;
+        default:
+            this.dispatchFile(useCase, file);
+        }
+        // mark file as finished
+        fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
+                swimDispatcherProperties.getDispatchStateTagKey(),
+                swimDispatcherProperties.getDispatchedStateTagValue()));
+        // update metric
+        final String destination = action.equals(ACTION_DISPATCH) ? useCase.getDestinationBinding() : action;
+        dispatchMeter.incrementDispatched(useCase.getName(), destination);
+    }
+
+    /**
+     * Dispatch a file to the use case destination binding.
+     *
+     * @param useCase The use case of the file.
+     * @param file The file.
+     * @throws MetadataException If metadata file required but could not be loaded.
+     */
+    protected void dispatchFile(final UseCase useCase, final File file) throws MetadataException {
         // check metadata file exists if required
         final String metadataPresignedUrl;
         if (useCase.isRequiresMetadata()) {
@@ -133,11 +168,28 @@ public class DispatcherUseCase implements DispatcherInPort {
         // dispatch file
         final String presignedUrl = fileSystemOutPort.getPresignedUrl(file.bucket(), file.path());
         fileDispatchingOutPort.dispatchFile(useCase.getDestinationBinding(), useCase.getName(), presignedUrl, metadataPresignedUrl);
-        // mark file as dispatched
-        fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
-                swimDispatcherProperties.getDispatchStateTagKey(),
-                swimDispatcherProperties.getDispatchedStateTagValue()));
-        // update metric
-        dispatchMeter.incrementDispatched(useCase.getName(), useCase.getDestinationBinding());
     }
+
+    /**
+     * Reroute a file to another use case.
+     *
+     * @param useCase The use case of the file.
+     * @param file The file to reroute
+     * @param tags The tags of the file. Used for resolving target.
+     * @throws UseCaseException If target use case can't be resolved.
+     */
+    protected void rerouteFileToUseCase(final UseCase useCase, final File file, final Map<String, String> tags) throws UseCaseException {
+        // resolve target use case
+        final String targetUseCaseName = tags.get(ACTION_REROUTE_DESTINATION_TAG_KEY);
+        if (targetUseCaseName == null) {
+            final String message = String.format("Action reroute but no target use case found for file %s in use case %s ", file.path(), useCase.getName());
+            throw new IllegalStateException(message);
+        }
+        final UseCase targetUseCase = swimDispatcherProperties.findUseCase(targetUseCaseName);
+        // copy file to target use case
+        final String rawPath = useCase.getRawPath(swimDispatcherProperties, file.path());
+        final String destPath = String.format("%s/from_%s/%s", targetUseCase.getDispatchPath(swimDispatcherProperties), useCase.getName(), rawPath);
+        fileSystemOutPort.copyFile(file.bucket(), file.path(), targetUseCase.getBucket(), destPath);
+    }
+
 }

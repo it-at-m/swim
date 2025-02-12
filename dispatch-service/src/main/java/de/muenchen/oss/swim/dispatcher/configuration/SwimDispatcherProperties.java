@@ -21,6 +21,11 @@ public class SwimDispatcherProperties {
     @NotBlank
     private String dispatchStateTagKey;
     /**
+     * Tag key used for custom dispatching actions.
+     */
+    @NotBlank
+    private String dispatchActionTagKey;
+    /**
      * Tag key used for protocol state.
      */
     @NotBlank

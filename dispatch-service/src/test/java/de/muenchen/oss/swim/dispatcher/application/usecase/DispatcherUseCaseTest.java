@@ -27,6 +27,7 @@ import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
+import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.List;
@@ -64,11 +65,10 @@ class DispatcherUseCaseTest {
 
     private static final Map<File, Map<String, String>> FILE_LIST = Map.of(
             FILE1, TAGS,
-            FILE2, TAGS
-    );
+            FILE2, TAGS);
 
     @Test
-    void testTriggerDispatching_Success() throws FileSizeException, MetadataException {
+    void testTriggerDispatching_Success() throws FileSizeException, MetadataException, UseCaseException {
         // setup
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH))).thenReturn(List.of(FOLDER_PATH));
@@ -84,7 +84,7 @@ class DispatcherUseCaseTest {
     }
 
     @Test
-    void testTriggerDispatching_Exception() throws FileSizeException, MetadataException {
+    void testTriggerDispatching_Exception() throws FileSizeException, MetadataException, UseCaseException {
         // setup
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH))).thenReturn(List.of(FOLDER_PATH));
@@ -102,7 +102,7 @@ class DispatcherUseCaseTest {
     }
 
     @Test
-    void testProcessFile_Success() throws FileSizeException, MetadataException {
+    void testProcessFile_Success() throws FileSizeException, MetadataException, UseCaseException {
         // setup
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         when(fileSystemOutPort.fileExists(eq(BUCKET), eq("test/inProcess/path/test.json"))).thenReturn(true);
@@ -112,6 +112,7 @@ class DispatcherUseCaseTest {
         dispatcherUseCase.processFile(useCase, FILE1, TAGS);
         // test
         verify(fileDispatchingOutPort, times(1)).dispatchFile(eq(useCase.getDestinationBinding()), eq(USE_CASE), eq("presignedFile"), eq("presignedMeta"));
+        verify(dispatcherUseCase, times(0)).rerouteFileToUseCase(any(), any(), any());
         verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
         verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(useCase.getDestinationBinding()));
@@ -131,5 +132,44 @@ class DispatcherUseCaseTest {
         when(fileSystemOutPort.fileExists(eq(BUCKET), eq("test/inProcess/path/test.json"))).thenReturn(false);
         // call and test
         assertThrows(MetadataException.class, () -> dispatcherUseCase.processFile(useCase, FILE1, TAGS));
+    }
+
+    @Test
+    void testProcessFile_ActionIgnore() throws FileSizeException, UseCaseException, MetadataException {
+        // setup
+        final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
+        final Map<String, String> tags = Map.of(
+                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue(),
+                swimDispatcherProperties.getDispatchActionTagKey(), DispatcherUseCase.ACTION_IGNORE
+        );
+        // call
+        dispatcherUseCase.processFile(useCase, FILE1, tags);
+        // test
+        verify(fileDispatchingOutPort, times(0)).dispatchFile(any(), any(), any(), any());
+        verify(dispatcherUseCase, times(0)).dispatchFile(any(), any());
+        verify(dispatcherUseCase, times(0)).rerouteFileToUseCase(any(), any(), any());
+        verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
+                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
+        verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(DispatcherUseCase.ACTION_IGNORE));
+    }
+
+    @Test
+    void testProcessFile_ActionReroute() throws FileSizeException, UseCaseException, MetadataException {
+        // setup
+        final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
+        final Map<String, String> tags = Map.of(
+                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue(),
+                swimDispatcherProperties.getDispatchActionTagKey(), DispatcherUseCase.ACTION_REROUTE,
+                DispatcherUseCase.ACTION_REROUTE_DESTINATION_TAG_KEY, "test2"
+        );
+        // call
+        dispatcherUseCase.processFile(useCase, FILE1, tags);
+        // test
+        verify(fileDispatchingOutPort, times(0)).dispatchFile(any(), any(), any(), any());
+        verify(dispatcherUseCase, times(1)).rerouteFileToUseCase(eq(useCase), eq(FILE1), eq(tags));
+        verify(fileSystemOutPort, times(1)).copyFile(eq(BUCKET), eq(FILE1.path()), eq("test-bucket-2"), eq("path/test2/inProcess/from_test-meta/path/test.pdf"));
+        verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
+                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
+        verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(DispatcherUseCase.ACTION_REROUTE));
     }
 }

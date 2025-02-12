@@ -92,6 +92,7 @@ swim:
   dispatch-state-tag-key: SWIM_State
   dispatched-state-tag-value: sentToKafka
   dispatch-file-finished-tag-value: finished
+  dispatch-action-tag-key: SWIM_Action
   protocol-state-tag-key: CSV_State
   protocol-match-tag-key: CSV_Match
   protocol-processed-state-tage-value: finished

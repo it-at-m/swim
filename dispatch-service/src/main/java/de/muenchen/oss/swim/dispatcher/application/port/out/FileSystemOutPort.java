@@ -92,4 +92,14 @@ public interface FileSystemOutPort {
      * @param destPath The destination path of the file.
      */
     void moveFile(@NotBlank String bucket, @NotBlank String srcPath, @NotBlank String destPath);
+
+    /**
+     * Copy a file from one place to another.
+     *
+     * @param srcBucket The bucket the file is in.
+     * @param srcPath The source path of the file.
+     * @param destBucket The destination bucket of the file.
+     * @param destPath The destination path of the file.
+     */
+    void copyFile(@NotBlank String srcBucket, @NotBlank String srcPath, @NotBlank String destBucket, @NotBlank String destPath);
 }

@@ -77,7 +77,7 @@ class ProtocolProcessingUseCaseTest {
         // call
         protocolProcessingUseCase.triggerProtocolProcessing();
         // test
-        verify(fileSystemOutPort, times(1)).getMatchingFiles(any(), any(), anyBoolean(), any(), any(), anyMap());
+        verify(fileSystemOutPort, times(1)).getMatchingFiles(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH), anyBoolean(), any(), any(), anyMap());
         verify(protocolProcessingUseCase, times(1)).processProtocolFile(any(), any());
         verify(protocolProcessingUseCase, times(1)).processProtocolFile(any(), eq(PROTOCOL_FILE));
         verify(notificationOutPort, times(1)).sendProtocolError(any(), eq(USE_CASE), eq(NO_PROTOCOL_FILE.path()), any());
@@ -92,7 +92,8 @@ class ProtocolProcessingUseCaseTest {
         final String protocolDir = PROTOCOL_FILE.getParentPath();
         when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(protocolDir), eq(false), any(), any(), anyMap())).thenReturn(Map.of(FILE1, TAGS));
         final String protocolDirFinished = useCase.getFinishedPath(swimDispatcherProperties, protocolDir);
-        when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(protocolDirFinished), eq(false), any(), any(), anyMap())).thenReturn(Map.of(FILE1, TAGS, FILE2, TAGS));
+        when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(protocolDirFinished), eq(false), any(), any(), anyMap()))
+                .thenReturn(Map.of(FILE1, TAGS, FILE2, TAGS));
         final InputStream protocolStream = getClass().getResourceAsStream("file/protocol.csv");
         when(fileSystemOutPort.readFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(protocolStream);
         // call

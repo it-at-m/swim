@@ -15,6 +15,7 @@ import de.muenchen.oss.swim.dispatcher.domain.model.protocol.ProtocolEntry;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
+import io.minio.Directive;
 import io.minio.GetObjectArgs;
 import io.minio.GetObjectTagsArgs;
 import io.minio.GetPresignedObjectUrlArgs;
@@ -242,17 +243,20 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
 
     @Override
     @SuppressWarnings("PMD.UseObjectForClearerAPI")
-    public void copyFile(final String srcBucket, final String srcPath, final String destBucket, final String destPath) {
+    public void copyFile(final String srcBucket, final String srcPath, final String destBucket, final String destPath, final boolean clearTags) {
         try {
             final CopySource copySource = CopySource.builder()
                     .bucket(srcBucket)
                     .object(srcPath)
                     .build();
-            final CopyObjectArgs copyObjectArgs = CopyObjectArgs.builder()
+            final CopyObjectArgs.Builder copyObjectArgs = CopyObjectArgs.builder()
                     .bucket(destBucket)
                     .source(copySource)
-                    .object(destPath).build();
-            this.minioClient.copyObject(copyObjectArgs);
+                    .object(destPath);
+            if (clearTags) {
+                copyObjectArgs.taggingDirective(Directive.REPLACE).tags(Map.of());
+            }
+            this.minioClient.copyObject(copyObjectArgs.build());
             log.info("Copied file {} from bucket {} to {} in bucket {}", srcPath, srcBucket, destPath, destBucket);
         } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
             final String message = String.format("Error while copying s3 object %s from bucket %s to %s in bucket %s", srcPath, srcBucket, destPath,

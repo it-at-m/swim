@@ -201,11 +201,15 @@ public class DispatcherUseCase implements DispatcherInPort {
             final String message = String.format("Action reroute but no target use case found for file %s in use case %s ", file.path(), useCase.getName());
             throw new IllegalStateException(message);
         }
+        if (useCase.getName().equals(targetUseCaseName)) {
+            final String message = String.format("Action reroute to same use case for file %s in use case %s ", file.path(), useCase.getName());
+            throw new IllegalStateException(message);
+        }
         final UseCase targetUseCase = swimDispatcherProperties.findUseCase(targetUseCaseName);
         // copy file to target use case
         final String rawPath = useCase.getRawPath(swimDispatcherProperties, file.path());
         final String destPath = String.format("%s/from_%s/%s", targetUseCase.getDispatchPath(swimDispatcherProperties), useCase.getName(), rawPath);
-        fileSystemOutPort.copyFile(file.bucket(), file.path(), targetUseCase.getBucket(), destPath);
+        fileSystemOutPort.copyFile(file.bucket(), file.path(), targetUseCase.getBucket(), destPath, true);
         // finish file
         this.finishFile(useCase, file);
     }

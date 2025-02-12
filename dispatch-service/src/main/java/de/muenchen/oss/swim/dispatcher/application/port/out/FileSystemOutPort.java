@@ -100,7 +100,8 @@ public interface FileSystemOutPort {
      * @param srcPath The source path of the file.
      * @param destBucket The destination bucket of the file.
      * @param destPath The destination path of the file.
+     * @param clearTags If the existing tags should be removed.
      */
     @SuppressWarnings("PMD.UseObjectForClearerAPI")
-    void copyFile(@NotBlank String srcBucket, @NotBlank String srcPath, @NotBlank String destBucket, @NotBlank String destPath);
+    void copyFile(@NotBlank String srcBucket, @NotBlank String srcPath, @NotBlank String destBucket, @NotBlank String destPath, boolean clearTags);
 }

@@ -9,7 +9,8 @@ public record File(
         @NotBlank String bucket,
         @NotBlank String path) {
     public String getFileName() {
-        return path.substring(path.lastIndexOf('/') + 1);
+        final int lastSlash = path.lastIndexOf('/');
+        return lastSlash == -1 ? path : path.substring(lastSlash + 1);
     }
 
     /**
@@ -21,8 +22,14 @@ public record File(
     static public File fromPresignedUrl(final String presignedUrlString) throws PresignedUrlException {
         try {
             final URI presignedUrl = new URI(presignedUrlString);
-            final String path = presignedUrl.getPath().replaceAll("^/", "");
+            final String path = presignedUrl.getPath().replaceFirst("^/", "");
+            if (path.isEmpty()) {
+                throw new PresignedUrlException("Empty path in presigned URL");
+            }
             final int firstSlash = path.indexOf('/');
+            if (firstSlash == -1) {
+                throw new PresignedUrlException("Invalid path format: missing bucket/file structure");
+            }
             final String bucket = path.substring(0, firstSlash);
             final String filePath = path.substring(firstSlash + 1);
             return new File(bucket, filePath);

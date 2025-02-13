@@ -122,9 +122,9 @@ public class DispatcherUseCase implements DispatcherInPort {
             final String message = String.format("File %s too large. %d > %d", file.path(), file.size(), swimDispatcherProperties.getMaxFileSize());
             throw new FileSizeException(message);
         }
+        // resolve action
+        final DispatchActions action = this.resolveDispatchAction(tags);
         // execute action
-        final String actionString = tags.getOrDefault(swimDispatcherProperties.getDispatchActionTagKey(), DISPATCH.name());
-        final DispatchActions action = DispatchActions.valueOf(actionString.toUpperCase(Locale.ROOT));
         switch (action) {
         case DELETE, IGNORE:
             this.finishFile(useCase, file);
@@ -136,11 +136,27 @@ public class DispatcherUseCase implements DispatcherInPort {
             this.dispatchFile(useCase, file);
             break;
         default:
-            throw new IllegalStateException("Unknown dispatch action: " + action);
+            throw new IllegalStateException(String.format("Unknown dispatch action '%s' for file '%s'", action, file.path()));
         }
         // update metric
         final String destination = DISPATCH == action ? useCase.getDestinationBinding() : action.name();
         dispatchMeter.incrementDispatched(useCase.getName(), destination);
+    }
+
+    /**
+     * Resolve dispatch action from tags.
+     * If tag isn't present defaults to {@link DispatchActions#DISPATCH}.
+     *
+     * @param tags The tags of the file.
+     * @return The resolved action.
+     */
+    protected @NotNull
+    DispatchActions resolveDispatchAction(final Map<String, String> tags) {
+        final String actionString = tags.getOrDefault(swimDispatcherProperties.getDispatchActionTagKey(), DISPATCH.name());
+        if (actionString == null) {
+            throw new IllegalStateException("Action tag value cannot be null");
+        }
+        return DispatchActions.valueOf(actionString.toUpperCase(Locale.ROOT));
     }
 
     /**
@@ -201,14 +217,22 @@ public class DispatcherUseCase implements DispatcherInPort {
         // resolve target use case
         final String targetUseCaseName = tags.get(ACTION_REROUTE_DESTINATION_TAG_KEY);
         if (targetUseCaseName == null) {
-            final String message = String.format("Action reroute but no target use case found for file %s in use case %s ", file.path(), useCase.getName());
+            final String message = String.format("Reroute action failed: No target use case specified in tag '%s' for file %s in use case %s",
+                    ACTION_REROUTE_DESTINATION_TAG_KEY, file.path(), useCase.getName());
             throw new IllegalStateException(message);
         }
         if (useCase.getName().equals(targetUseCaseName)) {
-            final String message = String.format("Action reroute to same use case for file %s in use case %s ", file.path(), useCase.getName());
+            final String message = String.format("Reroute action failed: Cannot reroute file %s to the same use case '%s'",
+                    file.path(), useCase.getName());
             throw new IllegalStateException(message);
         }
-        final UseCase targetUseCase = swimDispatcherProperties.findUseCase(targetUseCaseName);
+        final UseCase targetUseCase;
+        try {
+            targetUseCase = swimDispatcherProperties.findUseCase(targetUseCaseName);
+        } catch (final UseCaseException e) {
+            final String message = String.format("Reroute action failed: Unknown use case %s", targetUseCaseName);
+            throw new UseCaseException(message, e);
+        }
         // copy file to target use case
         final String rawPath = useCase.getRawPath(swimDispatcherProperties, file.path());
         final String destPath = String.format("%s/from_%s/%s", targetUseCase.getDispatchPath(swimDispatcherProperties), useCase.getName(), rawPath);

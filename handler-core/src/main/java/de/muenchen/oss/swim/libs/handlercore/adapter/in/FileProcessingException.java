@@ -1,7 +1,7 @@
-package de.muenchen.oss.swim.libs.handlercore.domain.exception;
+package de.muenchen.oss.swim.libs.handlercore.adapter.in;
 
 @SuppressWarnings("PMD.MissingSerialVersionUID")
-public class FileProcessingException extends RuntimeException {
+class FileProcessingException extends RuntimeException {
     public FileProcessingException(final Throwable cause) {
         super(cause);
     }

@@ -1,7 +1,6 @@
 package de.muenchen.oss.swim.libs.handlercore.adapter.in;
 
 import de.muenchen.oss.swim.libs.handlercore.application.port.in.ProcessFileInPort;
-import de.muenchen.oss.swim.libs.handlercore.domain.exception.FileProcessingException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;

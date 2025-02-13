@@ -6,6 +6,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.ReadProtocolOutPort;
+import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileNotFoundException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSystemAccessException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
@@ -66,14 +67,17 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     private final MinioClient minioClient;
     private final ProtocolMapper protocolMapper;
     private final S3Properties s3Properties;
+    private final SwimDispatcherProperties swimDispatcherProperties;
 
-    /* default */ S3Adapter(@Autowired final S3Properties s3Properties, @Autowired final ProtocolMapper protocolMapper) {
+    /* default */ S3Adapter(@Autowired final S3Properties s3Properties, @Autowired final ProtocolMapper protocolMapper,
+            @Autowired final SwimDispatcherProperties swimDispatcherProperties) {
         this.protocolMapper = protocolMapper;
         this.s3Properties = s3Properties;
         this.minioClient = MinioClient.builder()
                 .endpoint(s3Properties.getUrl())
                 .credentials(s3Properties.getAccessKey(), s3Properties.getSecretKey())
                 .build();
+        this.swimDispatcherProperties = swimDispatcherProperties;
     }
 
     @Override
@@ -125,6 +129,9 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         try {
             // get current tags
             final Map<String, String> currentTags = getTagsOfFile(bucket, path);
+            // clear errors
+            currentTags.remove(swimDispatcherProperties.getErrorClassTagKey());
+            currentTags.remove(swimDispatcherProperties.getErrorMessageTagKey());
             // build new tags
             final Map<String, String> newTags = new HashMap<>(currentTags);
             newTags.putAll(tags);
@@ -313,7 +320,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .object(objectName)
                 .build();
         try {
-            return minioClient.getObjectTags(getObjectTagsArgs).get();
+            return new HashMap<>(minioClient.getObjectTags(getObjectTagsArgs).get());
         } catch (final ErrorResponseException e) {
             // handle exception which indicates file doesn't exist
             if (ERROR_CODE_NO_SUCH_KEY.equals(e.errorResponse().code())) {

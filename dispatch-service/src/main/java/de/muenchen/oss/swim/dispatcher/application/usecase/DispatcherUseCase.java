@@ -1,6 +1,7 @@
 package de.muenchen.oss.swim.dispatcher.application.usecase;
 
 import static de.muenchen.oss.swim.dispatcher.application.usecase.helper.FileHandlingHelper.FILE_EXTENSION_PDF;
+import static de.muenchen.oss.swim.dispatcher.domain.model.DispatchActions.DISPATCH;
 
 import de.muenchen.oss.swim.dispatcher.application.port.in.DispatcherInPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileDispatchingOutPort;
@@ -12,10 +13,12 @@ import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
+import de.muenchen.oss.swim.dispatcher.domain.model.DispatchActions;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,10 +29,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class DispatcherUseCase implements DispatcherInPort {
-    protected static final String ACTION_DISPATCH = "dispatch";
-    protected static final String ACTION_REROUTE = "reroute";
-    protected static final String ACTION_DELETE = "delete";
-    protected static final String ACTION_IGNORE = "ignore";
     protected static final String ACTION_REROUTE_DESTINATION_TAG_KEY = "SWIM_Reroute_Destination";
 
     private final SwimDispatcherProperties swimDispatcherProperties;
@@ -124,22 +123,23 @@ public class DispatcherUseCase implements DispatcherInPort {
             throw new FileSizeException(message);
         }
         // execute action
-        final String action = tags.getOrDefault(swimDispatcherProperties.getDispatchActionTagKey(), ACTION_DISPATCH);
+        final String actionString = tags.getOrDefault(swimDispatcherProperties.getDispatchActionTagKey(), DISPATCH.name());
+        final DispatchActions action = DispatchActions.valueOf(actionString.toUpperCase(Locale.ROOT));
         switch (action) {
-        case ACTION_DELETE, ACTION_IGNORE:
+        case DELETE, IGNORE:
             this.finishFile(useCase, file);
             break;
-        case ACTION_REROUTE:
+        case REROUTE:
             this.rerouteFileToUseCase(useCase, file, tags);
             break;
-        case ACTION_DISPATCH:
+        case DISPATCH:
             this.dispatchFile(useCase, file);
             break;
         default:
             throw new IllegalStateException("Unknown dispatch action: " + action);
         }
         // update metric
-        final String destination = ACTION_DISPATCH.equals(action) ? useCase.getDestinationBinding() : action;
+        final String destination = DISPATCH == action ? useCase.getDestinationBinding() : action.name();
         dispatchMeter.incrementDispatched(useCase.getName(), destination);
     }
 

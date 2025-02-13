@@ -8,6 +8,8 @@ import static de.muenchen.oss.swim.dispatcher.TestConstants.TAGS;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE_DISPATCH_PATH;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE_RECIPIENTS;
+import static de.muenchen.oss.swim.dispatcher.domain.model.DispatchActions.IGNORE;
+import static de.muenchen.oss.swim.dispatcher.domain.model.DispatchActions.REROUTE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -141,7 +143,7 @@ class DispatcherUseCaseTest {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         final Map<String, String> tags = Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue(),
-                swimDispatcherProperties.getDispatchActionTagKey(), DispatcherUseCase.ACTION_IGNORE);
+                swimDispatcherProperties.getDispatchActionTagKey(), "ignore");
         // call
         dispatcherUseCase.processFile(useCase, FILE1, tags);
         // test
@@ -150,7 +152,7 @@ class DispatcherUseCaseTest {
         verify(dispatcherUseCase, times(0)).rerouteFileToUseCase(any(), any(), any());
         verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchFileFinishedTagValue())));
-        verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(DispatcherUseCase.ACTION_IGNORE));
+        verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(IGNORE.name()));
     }
 
     @Test
@@ -159,7 +161,7 @@ class DispatcherUseCaseTest {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         final Map<String, String> tags = Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue(),
-                swimDispatcherProperties.getDispatchActionTagKey(), DispatcherUseCase.ACTION_REROUTE,
+                swimDispatcherProperties.getDispatchActionTagKey(), "reroute",
                 DispatcherUseCase.ACTION_REROUTE_DESTINATION_TAG_KEY, "test2");
         // call
         dispatcherUseCase.processFile(useCase, FILE1, tags);
@@ -170,6 +172,6 @@ class DispatcherUseCaseTest {
                 eq("path/test2/inProcess/from_test-meta/path/test.pdf"), eq(true));
         verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchFileFinishedTagValue())));
-        verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(DispatcherUseCase.ACTION_REROUTE));
+        verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(REROUTE.name()));
     }
 }

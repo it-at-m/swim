@@ -124,7 +124,7 @@ public class SwimDispatcherProperties {
     }
 
     /**
-     * Finde UseCase via name.
+     * Find UseCase via name.
      *
      * @param useCaseName Name of the UseCase to find.
      * @return The first UseCase with the given name.

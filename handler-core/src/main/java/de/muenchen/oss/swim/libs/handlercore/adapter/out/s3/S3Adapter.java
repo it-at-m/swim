@@ -22,13 +22,14 @@ public class S3Adapter implements FileSystemOutPort {
     )
     public InputStream getPresignedUrlFile(final String presignedUrl) throws PresignedUrlException {
         HttpURLConnection connection = null;
+        int responseCode = -1;
         try {
             final URI uri = new URI(presignedUrl);
             connection = (HttpURLConnection) uri.toURL().openConnection();
             connection.setConnectTimeout(CONNECTION_TIMEOUT);
             connection.setReadTimeout(READ_TIMEOUT);
             connection.setRequestMethod("GET");
-            final int responseCode = connection.getResponseCode();
+            responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 return connection.getInputStream();
             } else {
@@ -37,7 +38,7 @@ public class S3Adapter implements FileSystemOutPort {
         } catch (URISyntaxException | IOException e) {
             throw new PresignedUrlException("Error while downloading with presigned url", e);
         } finally {
-            if (connection != null) {
+            if (connection != null && responseCode != HttpURLConnection.HTTP_OK) {
                 connection.disconnect();
             }
         }

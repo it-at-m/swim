@@ -42,7 +42,7 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
         log.info("Starting protocol processing");
         for (final UseCase useCase : swimDispatcherProperties.getUseCases()) {
             // get protocols not already processed
-            final Map<File, Map<String, String>> protocolFiles = fileSystemOutPort.getMatchingFiles(
+            final Map<File, Map<String, String>> protocolFiles = fileSystemOutPort.getMatchingFilesWithTags(
                     useCase.getBucket(),
                     useCase.getDispatchPath(swimDispatcherProperties),
                     useCase.isRecursive(),
@@ -83,11 +83,11 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
             final List<String> protocolFileNames = protocolEntries.stream().map(ProtocolEntry::fileName).toList();
             // load files in folder
             final List<File> folderFiles = new ArrayList<>(
-                    fileSystemOutPort.getMatchingFiles(file.bucket(), file.getParentPath(), false, FILE_EXTENSION_PDF, Map.of(),
+                    fileSystemOutPort.getMatchingFilesWithTags(file.bucket(), file.getParentPath(), false, FILE_EXTENSION_PDF, Map.of(),
                             Map.of()).keySet());
             // load files in finished folder
             final String finishedPath = useCase.getFinishedPath(swimDispatcherProperties, file.getParentPath());
-            folderFiles.addAll(fileSystemOutPort.getMatchingFiles(file.bucket(), finishedPath, false, FILE_EXTENSION_PDF, Map.of(), Map.of()).keySet());
+            folderFiles.addAll(fileSystemOutPort.getMatchingFilesWithTags(file.bucket(), finishedPath, false, FILE_EXTENSION_PDF, Map.of(), Map.of()).keySet());
             // parse files
             final Set<String> folderFileNames = folderFiles.stream().map(File::getFileName).collect(Collectors.toSet());
             // compare files with protocol

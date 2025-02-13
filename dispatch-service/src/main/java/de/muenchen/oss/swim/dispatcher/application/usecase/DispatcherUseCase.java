@@ -76,7 +76,7 @@ public class DispatcherUseCase implements DispatcherInPort {
      */
     private @NotNull
     Map<String, Throwable> processDirectory(final UseCase useCase, final String folder, final boolean recursive) {
-        final Map<File, Map<String, String>> readyFiles = fileSystemOutPort.getMatchingFiles(
+        final Map<File, Map<String, String>> readyFiles = fileSystemOutPort.getMatchingFilesWithTags(
                 useCase.getBucket(),
                 folder,
                 recursive,

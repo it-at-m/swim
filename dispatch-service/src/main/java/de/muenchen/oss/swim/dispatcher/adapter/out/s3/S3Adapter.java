@@ -77,7 +77,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     @Override
-    public Map<File, Map<String, String>> getMatchingFiles(
+    public Map<File, Map<String, String>> getMatchingFilesWithTags(
             final String bucket,
             final String pathPrefix,
             final boolean recursive,
@@ -98,6 +98,8 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                     try {
                         tags = getTagsOfFile(bucket, i.path());
                     } catch (final FileNotFoundException ignored) {
+                        // could occur if file was moved between getObjectsInPath and this tag load
+                        log.trace("File not found while getting tags for file list: {} in {}", i.path(), i.bucket());
                     }
                     return new AbstractMap.SimpleEntry<>(i, tags);
                 })

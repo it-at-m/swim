@@ -22,7 +22,7 @@ public interface FileSystemOutPort {
      * @param excludeTags Tag entries where none should be on the file.
      * @return Map of files (with all tags) having required and not having any exclude tags.
      */
-    Map<File, Map<String, String>> getMatchingFiles(
+    Map<File, Map<String, String>> getMatchingFilesWithTags(
             @NotBlank String bucket,
             @NotNull String pathPrefix,
             @NotNull boolean recursive,

@@ -73,7 +73,7 @@ class DispatcherUseCaseTest {
         // setup
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH))).thenReturn(List.of(FOLDER_PATH));
-        when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(FOLDER_PATH), eq(true), eq("pdf"), anyMap(), anyMap())).thenReturn(FILE_LIST);
+        when(fileSystemOutPort.getMatchingFilesWithTags(eq(BUCKET), eq(FOLDER_PATH), eq(true), eq("pdf"), anyMap(), anyMap())).thenReturn(FILE_LIST);
         doNothing().when(dispatcherUseCase).processFile(any(), any(), any());
         // call
         dispatcherUseCase.triggerDispatching();
@@ -89,7 +89,7 @@ class DispatcherUseCaseTest {
         // setup
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH))).thenReturn(List.of(FOLDER_PATH));
-        when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(FOLDER_PATH), eq(true), eq("pdf"), anyMap(), anyMap())).thenReturn(FILE_LIST);
+        when(fileSystemOutPort.getMatchingFilesWithTags(eq(BUCKET), eq(FOLDER_PATH), eq(true), eq("pdf"), anyMap(), anyMap())).thenReturn(FILE_LIST);
         final FileSizeException e = new FileSizeException("Error");
         doThrow(e).when(dispatcherUseCase).processFile(any(), any(), any());
         // call

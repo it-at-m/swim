@@ -1,6 +1,7 @@
 package de.muenchen.oss.swim.libs.handlercore.application.port.out;
 
-import jakarta.validation.constraints.NotBlank;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
+import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
@@ -8,9 +9,7 @@ public interface FileEventOutPort {
     /**
      * Notify dispatcher that file processing was finished successfully.
      *
-     * @param useCase The use case of the file.
-     * @param presignedUrl The presigned url of the file.
-     * @param metadataPresignedUrl The presigned url of the metadata file.
+     * @param event The event of the file to finish.
      */
-    void fileFinished(@NotBlank String useCase, @NotBlank String presignedUrl, String metadataPresignedUrl);
+    void fileFinished(@Valid FileEvent event);
 }

@@ -3,76 +3,31 @@ package de.muenchen.oss.swim.dms.domain.helper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
-import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
+import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import jakarta.validation.constraints.NotNull;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
-public class MetadataHelper {
-    public static final String METADATA_VALUE_KEY = "Value";
-    public static final String METADATA_KEY_KEY = "Name";
-    public static final String METADATA_DOCUMENT_KEY = "Document";
-    public static final String METADATA_INDEX_FIELDS_KEY = "IndexFields";
-
+public class MetadataHelper extends de.muenchen.oss.swim.libs.handlercore.domain.helper.MetadataHelper {
     private final SwimDmsProperties swimDmsProperties;
-    private final ObjectMapper objectMapper;
 
-    /**
-     * Parse metadata file to JsonNode.
-     *
-     * @param inputStream The content of the metadata file.
-     * @return The parsed metadata.
-     * @throws MetadataException If the file can't be parsed.
-     */
-    public JsonNode parseMetadataFile(@NotNull final InputStream inputStream) throws MetadataException {
-        try {
-            return objectMapper.readTree(inputStream);
-        } catch (final IOException e) {
-            throw new MetadataException("Error while parsing metadata json", e);
-        }
+    public MetadataHelper(@Autowired final SwimDmsProperties swimDmsProperties, @Autowired final ObjectMapper objectMapper) {
+        super(objectMapper);
+        this.swimDmsProperties = swimDmsProperties;
     }
 
     /**
-     * Extract IndexFields as Map from metadata JSON.
-     *
-     * @param rootNode The parsed metadata file.
-     * @return The IndexFields as Map.
-     * @throws MetadataException If fields are missing.
-     */
-    public Map<String, String> getIndexFields(@NotNull final JsonNode rootNode) throws MetadataException {
-        final JsonNode documentNode = rootNode.get(METADATA_DOCUMENT_KEY);
-        if (documentNode == null) {
-            throw new MetadataException("Missing '" + METADATA_DOCUMENT_KEY + "' in metadata JSON");
-        }
-        final JsonNode indexFieldsNode = documentNode.get(METADATA_INDEX_FIELDS_KEY);
-        if (indexFieldsNode == null || !indexFieldsNode.isArray()) {
-            throw new MetadataException("Missing or invalid '" + METADATA_INDEX_FIELDS_KEY + "' in metadata JSON");
-        }
-        final Map<String, String> indexFields = new HashMap<>();
-        for (final JsonNode indexField : indexFieldsNode) {
-            final String key = indexField.path(METADATA_KEY_KEY).asText();
-            final String value = indexField.path(METADATA_VALUE_KEY).asText();
-            indexFields.put(key, value);
-        }
-        return indexFields;
-    }
-
-    /**
-     * Extract dms target from metadata file.
+     * Extract inbox dms target from metadata file.
      *
      * @param rootNode Parsed JsonNode of metadata file.
      * @return The dms target.
      * @throws MetadataException If required values are missing.
      */
-    public DmsTarget resolveDmsTarget(@NotNull final JsonNode rootNode) throws MetadataException {
+    public DmsTarget resolveInboxDmsTarget(@NotNull final JsonNode rootNode) throws MetadataException {
         final Map<String, String> indexFields = this.getIndexFields(rootNode);
         final String userInboxCoo = indexFields.get(swimDmsProperties.getMetadataUserInboxCooKey());
         final String userInboxOwner = indexFields.get(swimDmsProperties.getMetadataUserInboxUserKey());

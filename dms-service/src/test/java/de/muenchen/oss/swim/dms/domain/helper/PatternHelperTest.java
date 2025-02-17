@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dms.TestConstants;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
-import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
+import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

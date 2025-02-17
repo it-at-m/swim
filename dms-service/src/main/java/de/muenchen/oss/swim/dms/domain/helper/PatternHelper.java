@@ -1,7 +1,7 @@
 package de.muenchen.oss.swim.dms.domain.helper;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
+import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import jakarta.validation.constraints.NotBlank;
 import java.util.HashMap;
 import java.util.Map;

@@ -13,19 +13,20 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dms.TestConstants;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
-import de.muenchen.oss.swim.dms.application.port.out.FileEventOutPort;
-import de.muenchen.oss.swim.dms.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dms.configuration.DmsMeter;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
-import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
-import de.muenchen.oss.swim.dms.domain.exception.PresignedUrlException;
-import de.muenchen.oss.swim.dms.domain.exception.UnknownUseCaseException;
-import de.muenchen.oss.swim.dms.domain.helper.MetadataHelper;
+import de.muenchen.oss.swim.dms.domain.helper.DmsMetadataHelper;
 import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
-import de.muenchen.oss.swim.dms.domain.model.File;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
+import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileEventOutPort;
+import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileSystemOutPort;
+import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
+import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
+import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-@SpringBootTest(classes = { SwimDmsProperties.class, ProcessFileUseCase.class, ObjectMapper.class, MetadataHelper.class, PatternHelper.class })
+@SpringBootTest(classes = { SwimDmsProperties.class, ProcessFileUseCase.class, ObjectMapper.class, DmsMetadataHelper.class, PatternHelper.class })
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
@@ -57,7 +58,7 @@ class ProcessFileUseCaseTest {
     private DmsMeter dmsMeter;
     @MockitoSpyBean
     @Autowired
-    private MetadataHelper metadataHelper;
+    private DmsMetadataHelper dmsMetadataHelper;
     @MockitoSpyBean
     @Autowired
     private ProcessFileUseCase processFileUseCase;
@@ -86,11 +87,11 @@ class ProcessFileUseCaseTest {
         // setup
         when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL))).thenReturn(getClass().getResourceAsStream("/files/example-metadata-user.json"));
         // call
-        processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, METADATA_PRESIGNED_URL);
+        processFileUseCase.processFile(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL), FILE);
         // test
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(processFileUseCase, times(1)).resolveTargetCoo(any(), eq(useCase), eq(FILE));
-        verify(metadataHelper, times(1)).resolveDmsTarget(any());
+        verify(dmsMetadataHelper, times(1)).resolveInboxDmsTarget(any());
         verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(METADATA_DMS_TARGET_USER), eq(FILE_NAME), eq(null));
         verify(dmsMeter, times(1)).incrementProcessed(eq(useCaseName), eq("INBOX"));
     }
@@ -100,7 +101,7 @@ class ProcessFileUseCaseTest {
         final String useCaseName = "static-incoming";
         final String overwrittenContentObjectName = "test-asd.pdf";
         // call
-        processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
+        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
         testDefaults(useCaseName, STATIC_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, overwrittenContentObjectName);
         verify(dmsOutPort, times(0)).getProcedureName(any());
@@ -111,7 +112,7 @@ class ProcessFileUseCaseTest {
     void testProcessFile_FilenameIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "filename-incoming";
         // call
-        processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
+        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
         testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
     }
@@ -120,7 +121,7 @@ class ProcessFileUseCaseTest {
     void testProcessFile_FilenameMapIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "map-incoming";
         // call
-        processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
+        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
         testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
         // call catch all
@@ -129,7 +130,7 @@ class ProcessFileUseCaseTest {
         final File file = new File(BUCKET, filePath);
         final String presignedUrl = String.format("http://localhost:9001/%s/%s", BUCKET, filePath);
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
-        processFileUseCase.processFile(useCaseName, file, presignedUrl, null);
+        processFileUseCase.processFile(new FileEvent(useCaseName, presignedUrl, null), file);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         // test catche all
         verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(fileName), eq(null));
@@ -141,14 +142,14 @@ class ProcessFileUseCaseTest {
         // setup
         when(dmsOutPort.getProcedureName(eq(FILENAME_DMS_TARGET))).thenReturn(OVERWRITTEN_INCOMING_NAME);
         // call
-        processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
+        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
         testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
         verify(dmsOutPort, times(1)).getProcedureName(eq(FILENAME_DMS_TARGET));
         // setup failure
         when(dmsOutPort.getProcedureName(eq(FILENAME_DMS_TARGET))).thenReturn("asd");
         // call
-        final DmsException exception = assertThrows(DmsException.class, () -> processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null));
+        final DmsException exception = assertThrows(DmsException.class, () -> processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE));
         assertEquals("Procedure name asd doesn't contain resolved pattern test", exception.getMessage());
     }
 
@@ -158,14 +159,14 @@ class ProcessFileUseCaseTest {
         // setup
         when(dmsOutPort.getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME))).thenReturn(Optional.empty());
         // call
-        processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
+        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
         testDefaults(useCaseName, FILENAME_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, FILE_NAME);
         verify(dmsOutPort, times(1)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME));
         // setup reuse
         when(dmsOutPort.getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME))).thenReturn(Optional.of("COO.321.321.321"));
         // call
-        processFileUseCase.processFile(useCaseName, FILE, FILE_PRESIGNED_URL, null);
+        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
         verify(dmsOutPort, times(2)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME));
         verify(dmsOutPort, times(1)).createIncoming(any(), any(), any(), any());
@@ -174,13 +175,18 @@ class ProcessFileUseCaseTest {
         verify(dmsOutPort, times(1)).createContentObject(eq(dmsTarget), eq(FILE_NAME), eq(null));
     }
 
-    private void testDefaults(final String useCaseName, final DmsTarget dmsTarget, final String fileName, final String contentObjectName)
+    private void testDefaults(final String useCaseName, final DmsTarget dmsTarget, final String fileName,
+            final String contentObjectName)
             throws UnknownUseCaseException, MetadataException {
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(processFileUseCase, times(1)).resolveTargetCoo(isNull(), eq(useCase), eq(FILE));
-        verify(metadataHelper, times(0)).resolveDmsTarget(any());
+        verify(dmsMetadataHelper, times(0)).resolveInboxDmsTarget(any());
         verify(dmsOutPort, times(0)).createContentObjectInInbox(any(), any(), any());
         verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(contentObjectName), eq(null));
+    }
+
+    private FileEvent buildFileEvent(final String useCaseName, final String metadataPresignedUrl) {
+        return new FileEvent(useCaseName, FILE_PRESIGNED_URL, metadataPresignedUrl);
     }
 }

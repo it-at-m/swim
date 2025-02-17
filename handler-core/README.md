@@ -1,6 +1,6 @@
 # handler-core
 
-Library with base componentes for building a new service for handling events from the `dispatch-service`
+Library with base components for building a new service for handling events from the `dispatch-service`
 
 ## Usage
 
@@ -16,7 +16,7 @@ Add this package as dependency:
 
 Create a custom implementation of the [`ProcessFileInPort`](./src/main/java/de/muenchen/oss/swim/libs/handlercore/application/port/in/ProcessFileInPort.java) interface. 
 
-This package also provide following out ports with default functionality:
+This package also provides following out ports with default functionality:
 - [`FileSystemOutPort`](./src/main/java/de/muenchen/oss/swim/libs/handlercore/application/port/out/FileSystemOutPort.java):
   - Download a file from S3 via presigned URL
 - [`FileEventOutPort`](./src/main/java/de/muenchen/oss/swim/libs/handlercore/application/port/out/FileEventOutPort.java):
@@ -35,14 +35,14 @@ spring:
             security:
               protocol: PLAINTEXT
         bindings:
-          # use dispatch-service error handling for event in (optional)
-          <name>-in-0:
+          # use dispatch-service error handling for incoming events (optional)
+          event-in-0:
             consumer:
               enable-dlq: true
               dlq-name:
       bindings:
-        # event in
-        <name>-in-0:
+        # incoming events
+        event-in-0:
           group:
           destination:
         # finished event out

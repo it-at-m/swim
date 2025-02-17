@@ -25,20 +25,20 @@ public class StreamingInAdapter {
      * @return The consumer.
      */
     @Bean
-    public Consumer<Message<FileEventDTO>> dms() {
+    public Consumer<Message<FileEventDTO>> event() {
         return message -> {
-            final FileEventDTO dmsEventDTO = message.getPayload();
+            final FileEventDTO fileEventDTO = message.getPayload();
             final File file;
             try {
-                file = File.fromPresignedUrl(dmsEventDTO.presignedUrl());
+                file = File.fromPresignedUrl(fileEventDTO.presignedUrl());
             } catch (final PresignedUrlException e) {
-                log.warn("Error while parsing presinged url {} in use case {}", dmsEventDTO.presignedUrl(), dmsEventDTO.useCase(), e);
+                log.warn("Error while parsing presinged url {} in use case {}", fileEventDTO.presignedUrl(), fileEventDTO.useCase(), e);
                 throw new FileProcessingException(e);
             }
             try {
-                processFileInPort.processFile(dmsEventDTO.useCase(), file, dmsEventDTO.presignedUrl(), dmsEventDTO.metadataPresignedUrl());
+                processFileInPort.processFile(fileEventDTO.useCase(), file, fileEventDTO.presignedUrl(), fileEventDTO.metadataPresignedUrl());
             } catch (final PresignedUrlException | UnknownUseCaseException | MetadataException e) {
-                log.warn("Error while processing file {} in use case {}", file.path(), dmsEventDTO.useCase(), e);
+                log.warn("Error while processing file {} in use case {}", file.path(), fileEventDTO.useCase(), e);
                 throw new FileProcessingException(e);
             }
         };

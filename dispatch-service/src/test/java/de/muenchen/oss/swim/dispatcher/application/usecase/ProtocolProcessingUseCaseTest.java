@@ -3,6 +3,7 @@ package de.muenchen.oss.swim.dispatcher.application.usecase;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.BUCKET;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE1;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE2;
+import static de.muenchen.oss.swim.dispatcher.TestConstants.TAGS;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE_DISPATCH_PATH;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE_RECIPIENTS;
@@ -43,6 +44,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
+@SuppressWarnings("CPD-START")
 class ProtocolProcessingUseCaseTest {
     @MockitoBean
     private FileSystemOutPort fileSystemOutPort;
@@ -69,14 +71,14 @@ class ProtocolProcessingUseCaseTest {
     @Test
     void testTriggerProtocolProcessing_Successful() {
         // setup
-        when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH), eq(true), eq("csv"), anyMap(), anyMap())).thenReturn(List.of(
-                PROTOCOL_FILE,
-                NO_PROTOCOL_FILE));
+        when(fileSystemOutPort.getMatchingFilesWithTags(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH), eq(true), eq("csv"), anyMap(), anyMap())).thenReturn(Map.of(
+                PROTOCOL_FILE, TAGS,
+                NO_PROTOCOL_FILE, TAGS));
         doNothing().when(protocolProcessingUseCase).processProtocolFile(any(), any());
         // call
         protocolProcessingUseCase.triggerProtocolProcessing();
         // test
-        verify(fileSystemOutPort, times(1)).getMatchingFiles(any(), any(), anyBoolean(), any(), any(), anyMap());
+        verify(fileSystemOutPort, times(1)).getMatchingFilesWithTags(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH), anyBoolean(), any(), any(), anyMap());
         verify(protocolProcessingUseCase, times(1)).processProtocolFile(any(), any());
         verify(protocolProcessingUseCase, times(1)).processProtocolFile(any(), eq(PROTOCOL_FILE));
         verify(notificationOutPort, times(1)).sendProtocolError(any(), eq(USE_CASE), eq(NO_PROTOCOL_FILE.path()), any());
@@ -89,9 +91,10 @@ class ProtocolProcessingUseCaseTest {
         // setup
         when(readProtocolOutPort.loadProtocol(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(List.of(PROTOCOL_ENTRY1, PROTOCOL_ENTRY2));
         final String protocolDir = PROTOCOL_FILE.getParentPath();
-        when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(protocolDir), eq(false), any(), any(), anyMap())).thenReturn(List.of(FILE1));
+        when(fileSystemOutPort.getMatchingFilesWithTags(eq(BUCKET), eq(protocolDir), eq(false), any(), any(), anyMap())).thenReturn(Map.of(FILE1, TAGS));
         final String protocolDirFinished = useCase.getFinishedPath(swimDispatcherProperties, protocolDir);
-        when(fileSystemOutPort.getMatchingFiles(eq(BUCKET), eq(protocolDirFinished), eq(false), any(), any(), anyMap())).thenReturn(List.of(FILE1, FILE2));
+        when(fileSystemOutPort.getMatchingFilesWithTags(eq(BUCKET), eq(protocolDirFinished), eq(false), any(), any(), anyMap()))
+                .thenReturn(Map.of(FILE1, TAGS, FILE2, TAGS));
         final InputStream protocolStream = getClass().getResourceAsStream("file/protocol.csv");
         when(fileSystemOutPort.readFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(protocolStream);
         // call
@@ -117,10 +120,10 @@ class ProtocolProcessingUseCaseTest {
                 PROTOCOL_ENTRY1,
                 PROTOCOL_ENTRY2,
                 new ProtocolEntry("test4.pdf", 1, null, null, null, Map.of())));
-        when(fileSystemOutPort.getMatchingFiles(any(), any(), anyBoolean(), any(), any(), anyMap())).thenReturn(List.of(
-                FILE1,
-                FILE2,
-                new File(BUCKET, "test/inProcess/path/test3.pdf", 0L)));
+        when(fileSystemOutPort.getMatchingFilesWithTags(any(), any(), anyBoolean(), any(), any(), anyMap())).thenReturn(Map.of(
+                FILE1, TAGS,
+                FILE2, TAGS,
+                new File(BUCKET, "test/inProcess/path/test3.pdf", 0L), TAGS));
         final InputStream protocolStream = getClass().getResourceAsStream("file/protocol.csv");
         when(fileSystemOutPort.readFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(protocolStream);
         // call

@@ -2,13 +2,12 @@ package de.muenchen.oss.swim.dispatcher.application.usecase;
 
 import de.muenchen.oss.swim.dispatcher.application.port.in.MarkFileFinishedInPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
-import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
+import de.muenchen.oss.swim.dispatcher.application.usecase.helper.FileHandlingHelper;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Service;
 public class MarkFileFinishedUseCase implements MarkFileFinishedInPort {
     private final SwimDispatcherProperties swimDispatcherProperties;
     private final FileSystemOutPort fileSystemOutPort;
-    private final DispatchMeter dispatchMeter;
+    private final FileHandlingHelper fileHandlingHelper;
 
     @Override
     public void markFileFinished(final String useCaseName, final String presignedUrl) throws PresignedUrlException, UseCaseException {
@@ -31,14 +30,7 @@ public class MarkFileFinishedUseCase implements MarkFileFinishedInPort {
         }
         // extract bucket and file path from presigned url
         final File file = File.fromPresignedUrl(presignedUrl);
-        // tag file as finished
-        fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
-                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchFileFinishedTagValue()));
-        // move file
-        final String destPath = useCase.getFinishedPath(swimDispatcherProperties, file.path());
-        fileSystemOutPort.moveFile(file.bucket(), file.path(), destPath);
-        log.info("Finished file {} in use case {}", file.path(), useCaseName);
-        // update metric
-        dispatchMeter.incrementFinished(useCaseName);
+        // finish file
+        fileHandlingHelper.finishFile(useCase, file.bucket(), file.path());
     }
 }

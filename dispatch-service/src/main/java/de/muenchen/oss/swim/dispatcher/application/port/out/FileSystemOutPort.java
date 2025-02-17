@@ -12,7 +12,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public interface FileSystemOutPort {
     /**
-     * Get files matching required and exclude tags from specified bucket and path.
+     * Get files (with all tags) matching required and exclude tags from specified bucket and path.
      *
      * @param bucket The bucket to look in.
      * @param pathPrefix The path to look under.
@@ -20,9 +20,9 @@ public interface FileSystemOutPort {
      * @param extension The extension the files should have.
      * @param requiredTags Tag entries which are required to be on each file.
      * @param excludeTags Tag entries where none should be on the file.
-     * @return List of files having required and not having any exclude tags.
+     * @return Map of files (with all tags) having required and not having any exclude tags.
      */
-    List<File> getMatchingFiles(
+    Map<File, Map<String, String>> getMatchingFilesWithTags(
             @NotBlank String bucket,
             @NotNull String pathPrefix,
             @NotNull boolean recursive,
@@ -92,4 +92,16 @@ public interface FileSystemOutPort {
      * @param destPath The destination path of the file.
      */
     void moveFile(@NotBlank String bucket, @NotBlank String srcPath, @NotBlank String destPath);
+
+    /**
+     * Copy a file from one place to another.
+     *
+     * @param srcBucket The bucket the file is in.
+     * @param srcPath The source path of the file.
+     * @param destBucket The destination bucket of the file.
+     * @param destPath The destination path of the file.
+     * @param clearTags If the existing tags should be removed.
+     */
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
+    void copyFile(@NotBlank String srcBucket, @NotBlank String srcPath, @NotBlank String destBucket, @NotBlank String destPath, boolean clearTags);
 }

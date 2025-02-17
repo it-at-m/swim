@@ -56,7 +56,9 @@ public class MetadataHelper {
         for (final JsonNode indexField : indexFieldsNode) {
             final String key = indexField.path(METADATA_KEY_KEY).asText();
             final String value = indexField.path(METADATA_VALUE_KEY).asText();
-            indexFields.put(key, value);
+            if (!key.isEmpty()) {
+                indexFields.put(key, value);
+            }
         }
         return indexFields;
     }

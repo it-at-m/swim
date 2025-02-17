@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.dispatcher;
 
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import java.util.List;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -18,6 +19,7 @@ public final class TestConstants {
     public static final String FOLDER_PATH = "test/inProcess/path/";
     public static final File FILE1 = new File(BUCKET, "test/inProcess/path/test.pdf", 0L);
     public static final File FILE2 = new File(BUCKET, "test/inProcess/path/test2.pdf", 0L);
+    public static final Map<String, String> TAGS = Map.of("SWIM_State", "processed");
     public static final String USE_CASE_PATH = "test";
     public static final String USE_CASE_DISPATCH_PATH = USE_CASE_PATH + "/inProcess";
     public static final String TEST_PRESIGNED_URL = "https://s3.muenchen.de/test-bucket/test/inProcess/path/example.pdf";

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.ReadProtocolOutPort;
+import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileNotFoundException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSystemAccessException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
@@ -15,6 +16,7 @@ import de.muenchen.oss.swim.dispatcher.domain.model.protocol.ProtocolEntry;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
+import io.minio.Directive;
 import io.minio.GetObjectArgs;
 import io.minio.GetObjectTagsArgs;
 import io.minio.GetPresignedObjectUrlArgs;
@@ -38,11 +40,13 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IteratorUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,18 +67,21 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     private final MinioClient minioClient;
     private final ProtocolMapper protocolMapper;
     private final S3Properties s3Properties;
+    private final SwimDispatcherProperties swimDispatcherProperties;
 
-    /* default */ S3Adapter(@Autowired final S3Properties s3Properties, @Autowired final ProtocolMapper protocolMapper) {
+    /* default */ S3Adapter(@Autowired final S3Properties s3Properties, @Autowired final ProtocolMapper protocolMapper,
+            @Autowired final SwimDispatcherProperties swimDispatcherProperties) {
         this.protocolMapper = protocolMapper;
         this.s3Properties = s3Properties;
         this.minioClient = MinioClient.builder()
                 .endpoint(s3Properties.getUrl())
                 .credentials(s3Properties.getAccessKey(), s3Properties.getSecretKey())
                 .build();
+        this.swimDispatcherProperties = swimDispatcherProperties;
     }
 
     @Override
-    public List<File> getMatchingFiles(
+    public Map<File, Map<String, String>> getMatchingFilesWithTags(
             final String bucket,
             final String pathPrefix,
             final boolean recursive,
@@ -89,19 +96,22 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .map(i -> new File(bucket, i.objectName(), i.size()))
                 // filter extension
                 .filter(i -> i.path().toLowerCase(Locale.ROOT).endsWith(suffix))
-                // filter tags
-                .filter(i -> {
-                    // get file tags
-                    final Map<String, String> tags;
+                // map tags to each file
+                .map(i -> {
+                    Map<String, String> tags = null;
                     try {
                         tags = getTagsOfFile(bucket, i.path());
-                    } catch (final FileNotFoundException e) {
-                        return false;
+                    } catch (final FileNotFoundException ignored) {
+                        // could occur if file was moved between getObjectsInPath and this tag load
+                        log.trace("File not found while getting tags for file list: {} in {}", i.path(), i.bucket());
                     }
-                    // check if matching required and exclude
-                    return matchesMap(tags, requiredTags, excludeTags);
+                    return new AbstractMap.SimpleEntry<>(i, tags);
                 })
-                .toList();
+                // filter tags
+                .filter((entry) -> {
+                    // check if tags could be loaded and matching required and exclude
+                    return entry.getValue() != null && matchesMap(entry.getValue(), requiredTags, excludeTags);
+                }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override
@@ -119,6 +129,9 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         try {
             // get current tags
             final Map<String, String> currentTags = getTagsOfFile(bucket, path);
+            // clear errors
+            currentTags.remove(swimDispatcherProperties.getErrorClassTagKey());
+            currentTags.remove(swimDispatcherProperties.getErrorMessageTagKey());
             // build new tags
             final Map<String, String> newTags = new HashMap<>(currentTags);
             newTags.putAll(tags);
@@ -237,6 +250,31 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         }
     }
 
+    @Override
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
+    public void copyFile(final String srcBucket, final String srcPath, final String destBucket, final String destPath, final boolean clearTags) {
+        try {
+            final CopySource copySource = CopySource.builder()
+                    .bucket(srcBucket)
+                    .object(srcPath)
+                    .build();
+            final CopyObjectArgs.Builder copyObjectArgs = CopyObjectArgs.builder()
+                    .bucket(destBucket)
+                    .source(copySource)
+                    .object(destPath);
+            if (clearTags) {
+                copyObjectArgs.taggingDirective(Directive.REPLACE).tags(Map.of());
+            }
+            this.minioClient.copyObject(copyObjectArgs.build());
+            log.info("Copied file {} from bucket {} to {} in bucket {}", srcPath, srcBucket, destPath, destBucket);
+        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+            final String message = String.format("Error while copying s3 object %s from bucket %s to %s in bucket %s", srcPath, srcBucket, destPath,
+                    destBucket);
+            log.error(message, e);
+            throw new FileSystemAccessException(message, e);
+        }
+    }
+
     /**
      * Get objects (dirs/files) in a specific bucket and path.
      *
@@ -282,7 +320,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .object(objectName)
                 .build();
         try {
-            return minioClient.getObjectTags(getObjectTagsArgs).get();
+            return new HashMap<>(minioClient.getObjectTags(getObjectTagsArgs).get());
         } catch (final ErrorResponseException e) {
             // handle exception which indicates file doesn't exist
             if (ERROR_CODE_NO_SUCH_KEY.equals(e.errorResponse().code())) {

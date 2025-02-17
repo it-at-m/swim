@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import de.muenchen.oss.swim.dispatcher.TestConstants;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
+import de.muenchen.oss.swim.dispatcher.application.usecase.helper.FileHandlingHelper;
 import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
@@ -26,7 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-@SpringBootTest(classes = { SwimDispatcherProperties.class, MarkFileFinishedUseCase.class })
+@SpringBootTest(classes = { SwimDispatcherProperties.class, MarkFileFinishedUseCase.class, FileHandlingHelper.class })
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)

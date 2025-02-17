@@ -25,6 +25,10 @@ public record File(@NotBlank String bucket, @NotBlank String path, Long size) {
         return parentPath.substring(parentPath.lastIndexOf('/') + 1);
     }
 
+    public String getMetadataFilePath() {
+        return String.format("%s/%s.json", this.getParentPath(), this.getFileNameWithoutExtension());
+    }
+
     public static File fromPresignedUrl(final String presignedUrl) throws PresignedUrlException {
         // check input has content
         if (Strings.isBlank(presignedUrl)) {

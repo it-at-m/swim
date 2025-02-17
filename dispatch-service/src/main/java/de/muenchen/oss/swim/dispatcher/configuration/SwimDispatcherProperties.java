@@ -13,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 @Data
 @ConfigurationProperties(prefix = "swim")
 @Validated
+@SuppressWarnings("PMD.TooManyFields")
 public class SwimDispatcherProperties {
     // ########### tag keys ###########
     /**
@@ -20,6 +21,11 @@ public class SwimDispatcherProperties {
      */
     @NotBlank
     private String dispatchStateTagKey;
+    /**
+     * Tag key used for custom dispatching actions.
+     */
+    @NotBlank
+    private String dispatchActionTagKey;
     /**
      * Tag key used for protocol state.
      */
@@ -118,7 +124,7 @@ public class SwimDispatcherProperties {
     }
 
     /**
-     * Finde UseCase via name.
+     * Find UseCase via name.
      *
      * @param useCaseName Name of the UseCase to find.
      * @return The first UseCase with the given name.

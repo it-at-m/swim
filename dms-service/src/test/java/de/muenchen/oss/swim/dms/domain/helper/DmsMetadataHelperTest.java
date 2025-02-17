@@ -19,35 +19,35 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest(classes = { SwimDmsProperties.class, MetadataHelper.class, ObjectMapper.class })
+@SpringBootTest(classes = { SwimDmsProperties.class, DmsMetadataHelper.class, ObjectMapper.class })
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
-class MetadataHelperTest {
+class DmsMetadataHelperTest {
     @Autowired
-    private MetadataHelper metadataHelper;
+    private DmsMetadataHelper dmsMetadataHelper;
 
     @Test
     void testResolveInboxDmsTarget() throws MetadataException {
         // test user
-        final JsonNode metadataUserNode = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-user.json"));
-        final DmsTarget dmsTargetUser = metadataHelper.resolveInboxDmsTarget(metadataUserNode);
+        final JsonNode metadataUserNode = dmsMetadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-user.json"));
+        final DmsTarget dmsTargetUser = dmsMetadataHelper.resolveInboxDmsTarget(metadataUserNode);
         assertEquals(METADATA_DMS_TARGET_USER, dmsTargetUser);
         // test group
-        final JsonNode metadataGroupNode = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-group.json"));
-        final DmsTarget dmsTargetGroup = metadataHelper.resolveInboxDmsTarget(metadataGroupNode);
+        final JsonNode metadataGroupNode = dmsMetadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-group.json"));
+        final DmsTarget dmsTargetGroup = dmsMetadataHelper.resolveInboxDmsTarget(metadataGroupNode);
         assertEquals(METADATA_DMS_TARGET_GROUP, dmsTargetGroup);
         // test invalid both
-        final JsonNode metadataInvalidBoth = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-invalid-both.json"));
+        final JsonNode metadataInvalidBoth = dmsMetadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-invalid-both.json"));
         assertThrows(MetadataException.class,
-                () -> metadataHelper.resolveInboxDmsTarget(metadataInvalidBoth));
+                () -> dmsMetadataHelper.resolveInboxDmsTarget(metadataInvalidBoth));
         // test invalid none
-        final JsonNode metadataInvalidNone = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-invalid-none.json"));
+        final JsonNode metadataInvalidNone = dmsMetadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-invalid-none.json"));
         assertThrows(MetadataException.class,
-                () -> metadataHelper.resolveInboxDmsTarget(metadataInvalidNone));
+                () -> dmsMetadataHelper.resolveInboxDmsTarget(metadataInvalidNone));
         // test invalid empty
-        final JsonNode metadataInvalidEmpty = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-invalid-empty.json"));
+        final JsonNode metadataInvalidEmpty = dmsMetadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-invalid-empty.json"));
         assertThrows(MetadataException.class,
-                () -> metadataHelper.resolveInboxDmsTarget(metadataInvalidEmpty));
+                () -> dmsMetadataHelper.resolveInboxDmsTarget(metadataInvalidEmpty));
     }
 }

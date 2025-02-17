@@ -20,7 +20,7 @@ public class PatternHelper {
     public static final Pattern PATTERN = Pattern.compile(RAW_PATTERN);
     public static final String OPTION_METADATA = "m";
 
-    private final MetadataHelper metadataHelper;
+    private final DmsMetadataHelper dmsMetadataHelper;
 
     /**
      * Apply substitution pattern.
@@ -95,7 +95,7 @@ public class PatternHelper {
         if (metadataJson == null) {
             throw new IllegalArgumentException("Metadata json is null but option defined");
         }
-        return metadataHelper.getIndexFields(metadataJson).entrySet().stream()
+        return dmsMetadataHelper.getIndexFields(metadataJson).entrySet().stream()
                 .collect(Collectors.toMap(e -> "if." + e.getKey(), Map.Entry::getValue));
     }
 }

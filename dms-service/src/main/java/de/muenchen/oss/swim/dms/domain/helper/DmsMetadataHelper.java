@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
+import de.muenchen.oss.swim.libs.handlercore.domain.helper.MetadataHelper;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import org.apache.logging.log4j.util.Strings;
@@ -12,10 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MetadataHelper extends de.muenchen.oss.swim.libs.handlercore.domain.helper.MetadataHelper {
+public class DmsMetadataHelper extends MetadataHelper {
     private final SwimDmsProperties swimDmsProperties;
 
-    public MetadataHelper(@Autowired final SwimDmsProperties swimDmsProperties, @Autowired final ObjectMapper objectMapper) {
+    public DmsMetadataHelper(@Autowired final SwimDmsProperties swimDmsProperties, @Autowired final ObjectMapper objectMapper) {
         super(objectMapper);
         this.swimDmsProperties = swimDmsProperties;
     }

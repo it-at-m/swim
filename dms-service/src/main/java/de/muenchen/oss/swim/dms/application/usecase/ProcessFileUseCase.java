@@ -5,7 +5,7 @@ import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.configuration.DmsMeter;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
-import de.muenchen.oss.swim.dms.domain.helper.MetadataHelper;
+import de.muenchen.oss.swim.dms.domain.helper.DmsMetadataHelper;
 import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
@@ -36,7 +36,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     private final FileSystemOutPort fileSystemOutPort;
     private final DmsOutPort dmsOutPort;
     private final FileEventOutPort fileEventOutPort;
-    private final MetadataHelper metadataHelper;
+    private final DmsMetadataHelper dmsMetadataHelper;
     private final PatternHelper patternHelper;
     private final DmsMeter dmsMeter;
 
@@ -52,7 +52,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             JsonNode metadataJson = null;
             if (Strings.isNotBlank(event.metadataPresignedUrl())) {
                 try (InputStream metadataFileStream = fileSystemOutPort.getPresignedUrlFile(event.metadataPresignedUrl())) {
-                    metadataJson = metadataHelper.parseMetadataFile(metadataFileStream);
+                    metadataJson = dmsMetadataHelper.parseMetadataFile(metadataFileStream);
                 }
             }
             // get target coo
@@ -168,7 +168,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             throw new MetadataException("Metadata JSON is required");
         }
         // extract coo and username from metadata
-        final DmsTarget metadataTarget = metadataHelper.resolveInboxDmsTarget(metadataJson);
+        final DmsTarget metadataTarget = dmsMetadataHelper.resolveInboxDmsTarget(metadataJson);
         // combine with use case joboe and jobposition
         return new DmsTarget(metadataTarget.coo(), metadataTarget.userName(), useCase.getJoboe(), useCase.getJobposition());
     }

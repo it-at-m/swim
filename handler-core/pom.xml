@@ -6,12 +6,12 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.4.0</version>
-        <relativePath/>
+        <relativePath />
     </parent>
 
     <groupId>de.muenchen.oss.swim</groupId>
     <artifactId>handler-core</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <name>handler-core</name>
     <description>SWIM library with base componentes for building a new service for handling notifications from the dispatch-service</description>
     <url>https://github.com/it-at-m/swim</url>
@@ -347,7 +347,7 @@
         <url>https://github.com/it-at-m/swim.git</url>
         <connection>scm:git:https://github.com/it-at-m/swim.git</connection>
         <developerConnection>scm:git:https://github.com/it-at-m/swim.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>handler-core-0.1.0</tag>
     </scm>
     <licenses>
         <license>

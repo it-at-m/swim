@@ -24,6 +24,7 @@ This package also provides following out ports with default functionality:
 - [`FileEventOutPort`](./src/main/java/de/muenchen/oss/swim/libs/handlercore/application/port/out/FileEventOutPort.java):
   - Send a file finished event to the dispatch-service, which tags and moved the file for later cleanup in the S3
   - Needs to be called after successfully processing in the custom `ProcessFileInPort` implementation
+  - For sending the according event, call the `fileFinished` method with the incoming event as argument
 
 ## Configuration
 

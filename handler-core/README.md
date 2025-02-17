@@ -16,6 +16,8 @@ Add this package as dependency:
 
 Create a custom implementation of the [`ProcessFileInPort`](./src/main/java/de/muenchen/oss/swim/libs/handlercore/application/port/in/ProcessFileInPort.java) interface. 
 
+### Provided Out Ports
+
 This package also provides following out ports with default functionality:
 - [`FileSystemOutPort`](./src/main/java/de/muenchen/oss/swim/libs/handlercore/application/port/out/FileSystemOutPort.java):
   - Download a file from S3 via presigned URL

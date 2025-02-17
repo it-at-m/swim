@@ -22,7 +22,8 @@ This package also provides following out ports with default functionality:
 - [`FileSystemOutPort`](./src/main/java/de/muenchen/oss/swim/libs/handlercore/application/port/out/FileSystemOutPort.java):
   - Download a file from S3 via presigned URL
 - [`FileEventOutPort`](./src/main/java/de/muenchen/oss/swim/libs/handlercore/application/port/out/FileEventOutPort.java):
-  - Send a file finished event to the dispatch-service
+  - Send a file finished event to the dispatch-service, which tags and moved the file for later cleanup in the S3
+  - Needs to be called after successfully processing in the custom `ProcessFileInPort` implementation
 
 ## Configuration
 

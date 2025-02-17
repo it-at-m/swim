@@ -20,8 +20,7 @@ class MetadataHelperTest {
         final JsonNode metadataUserNode = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata.json"));
         final Map<String, String> expected = Map.of(
                 "Key1", "Value1",
-                "Key2", "Value2"
-        );
+                "Key2", "Value2");
         assertEquals(expected, metadataHelper.getIndexFields(metadataUserNode));
     }
 }

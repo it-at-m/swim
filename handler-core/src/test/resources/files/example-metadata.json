@@ -1,0 +1,14 @@
+{
+  "Document": {
+    "IndexFields": [
+      {
+        "Name": "Key1",
+        "Value": "Value1"
+      },
+      {
+        "Name": "Key2",
+        "Value": "Value2"
+      }
+    ]
+  }
+}

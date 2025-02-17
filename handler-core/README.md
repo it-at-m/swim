@@ -26,6 +26,13 @@ This package also provides following out ports with default functionality:
   - Needs to be called after successfully processing in the custom `ProcessFileInPort` implementation
   - For sending the according event, call the `fileFinished` method with the incoming event as argument
 
+### Error handling
+
+The dispatch-service provides an inbound topic for handling errors which occur during processing.
+To use this functionality the Dead-Letter-Queue (dlq) needs to be configured for the incoming Consumer binding (See [Configuration](#configuration)).
+
+After accordingly configured, all thrown exceptions are forwarded to the dispatch service, which handles them by sending a notification to the contact person of the corresponding use case and logging the error message.
+
 ## Configuration
 
 ```yaml

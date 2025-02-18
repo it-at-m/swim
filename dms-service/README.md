@@ -1,6 +1,7 @@
 # SWIM DMS-Service
 
-SWIM service for transferring files into the "eAkte" (internal German name for a record and document management system, in this repository further referred to as DMS) when notified by [dispatch-service](../dispatch-service) via Apache Kafka
+SWIM service for transferring files into the "eAkte" (internal German name for a record and document management system, in this repository further referred to as DMS) when notified by [dispatch-service](../dispatch-service) via Apache Kafka.
+Based on [handler-core](../handler-core).
 
 ## Architecture
 

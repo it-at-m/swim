@@ -21,3 +21,6 @@
 "Component: DMS":
   - changed-files:
     - any-glob-to-any-file: [ 'dms-service/**' ]
+"Component: Handler-Core":
+  - changed-files:
+      - any-glob-to-any-file: [ 'handler-core/**' ]

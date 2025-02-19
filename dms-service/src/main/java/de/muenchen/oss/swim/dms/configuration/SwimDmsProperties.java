@@ -1,7 +1,7 @@
 package de.muenchen.oss.swim.dms.configuration;
 
-import de.muenchen.oss.swim.dms.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
+import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

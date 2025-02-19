@@ -1,10 +1,11 @@
 package de.muenchen.oss.swim.dms.configuration;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import de.muenchen.oss.swim.dms.TestConstants;
-import de.muenchen.oss.swim.dms.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
+import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

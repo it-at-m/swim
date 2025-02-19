@@ -1,7 +1,7 @@
 package de.muenchen.oss.swim.dms.domain.helper;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
+import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import jakarta.validation.constraints.NotBlank;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +20,7 @@ public class PatternHelper {
     public static final Pattern PATTERN = Pattern.compile(RAW_PATTERN);
     public static final String OPTION_METADATA = "m";
 
-    private final MetadataHelper metadataHelper;
+    private final DmsMetadataHelper dmsMetadataHelper;
 
     /**
      * Apply substitution pattern.
@@ -95,7 +95,7 @@ public class PatternHelper {
         if (metadataJson == null) {
             throw new IllegalArgumentException("Metadata json is null but option defined");
         }
-        return metadataHelper.getIndexFields(metadataJson).entrySet().stream()
+        return dmsMetadataHelper.getIndexFields(metadataJson).entrySet().stream()
                 .collect(Collectors.toMap(e -> "if." + e.getKey(), Map.Entry::getValue));
     }
 }

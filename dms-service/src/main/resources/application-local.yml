@@ -10,12 +10,12 @@ spring:
             security:
               protocol: PLAINTEXT
         bindings:
-          dms-in-0:
+          event-in-0:
             consumer:
               enable-dlq: true
               dlq-name: swim-dispatch-dlq-local
       bindings:
-        dms-in-0:
+        event-in-0:
           group: swim-dms
           destination: swim-dms-local
         finished-out:

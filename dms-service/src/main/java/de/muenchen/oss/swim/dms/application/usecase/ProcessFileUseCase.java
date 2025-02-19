@@ -1,21 +1,22 @@
 package de.muenchen.oss.swim.dms.application.usecase;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import de.muenchen.oss.swim.dms.application.port.in.ProcessFileInPort;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
-import de.muenchen.oss.swim.dms.application.port.out.FileEventOutPort;
-import de.muenchen.oss.swim.dms.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dms.configuration.DmsMeter;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
-import de.muenchen.oss.swim.dms.domain.exception.MetadataException;
-import de.muenchen.oss.swim.dms.domain.exception.PresignedUrlException;
-import de.muenchen.oss.swim.dms.domain.exception.UnknownUseCaseException;
-import de.muenchen.oss.swim.dms.domain.helper.MetadataHelper;
+import de.muenchen.oss.swim.dms.domain.helper.DmsMetadataHelper;
 import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
-import de.muenchen.oss.swim.dms.domain.model.File;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
+import de.muenchen.oss.swim.libs.handlercore.application.port.in.ProcessFileInPort;
+import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileEventOutPort;
+import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileSystemOutPort;
+import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
+import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
+import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
@@ -35,23 +36,23 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     private final FileSystemOutPort fileSystemOutPort;
     private final DmsOutPort dmsOutPort;
     private final FileEventOutPort fileEventOutPort;
-    private final MetadataHelper metadataHelper;
+    private final DmsMetadataHelper dmsMetadataHelper;
     private final PatternHelper patternHelper;
     private final DmsMeter dmsMeter;
 
     @Override
-    public void processFile(final String useCaseName, final File file, final String presignedUrl, final String metadataPresignedUrl)
+    public void processFile(final FileEvent event, final File file)
             throws PresignedUrlException, UnknownUseCaseException, MetadataException {
-        log.info("Processing file {} for use case {}", file, useCaseName);
-        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
+        log.info("Processing file {} for use case {}", file, event.useCase());
+        final UseCase useCase = swimDmsProperties.findUseCase(event.useCase());
         log.debug("Resolved use case: {}", useCase);
         // load file
-        try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(presignedUrl)) {
+        try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(event.presignedUrl())) {
             // parse metadata file if present
             JsonNode metadataJson = null;
-            if (Strings.isNotBlank(metadataPresignedUrl)) {
-                try (InputStream metadataFileStream = fileSystemOutPort.getPresignedUrlFile(metadataPresignedUrl)) {
-                    metadataJson = metadataHelper.parseMetadataFile(metadataFileStream);
+            if (Strings.isNotBlank(event.metadataPresignedUrl())) {
+                try (InputStream metadataFileStream = fileSystemOutPort.getPresignedUrlFile(event.metadataPresignedUrl())) {
+                    metadataJson = dmsMetadataHelper.parseMetadataFile(metadataFileStream);
                 }
             }
             // get target coo
@@ -70,10 +71,10 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             throw new PresignedUrlException("Error while handling file InputStream", e);
         }
         // mark file as finished
-        fileEventOutPort.fileFinished(useCaseName, presignedUrl, metadataPresignedUrl);
-        log.info("File {} in use case {} finished", file, useCaseName);
+        fileEventOutPort.fileFinished(event);
+        log.info("File {} in use case {} finished", file, useCase.getName());
         // update metric
-        dmsMeter.incrementProcessed(useCaseName, useCase.getType().name());
+        dmsMeter.incrementProcessed(useCase.getName(), useCase.getType().name());
     }
 
     /**
@@ -167,7 +168,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             throw new MetadataException("Metadata JSON is required");
         }
         // extract coo and username from metadata
-        final DmsTarget metadataTarget = metadataHelper.resolveDmsTarget(metadataJson);
+        final DmsTarget metadataTarget = dmsMetadataHelper.resolveInboxDmsTarget(metadataJson);
         // combine with use case joboe and jobposition
         return new DmsTarget(metadataTarget.coo(), metadataTarget.userName(), useCase.getJoboe(), useCase.getJobposition());
     }

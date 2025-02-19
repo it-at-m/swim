@@ -90,7 +90,7 @@ class ProcessFileUseCaseTest {
         processFileUseCase.processFile(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL), FILE);
         // test
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
-        verify(processFileUseCase, times(1)).resolveTargetCoo(any(), eq(useCase), eq(FILE));
+        verify(processFileUseCase, times(1)).resolveTargetCoo(eq(UseCase.Type.INBOX), any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(1)).resolveInboxDmsTarget(any());
         verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(METADATA_DMS_TARGET_USER), eq(FILE_NAME), eq(null));
         verify(dmsMeter, times(1)).incrementProcessed(eq(useCaseName), eq("INBOX"));
@@ -103,7 +103,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, STATIC_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, overwrittenContentObjectName);
+        testDefaults(useCaseName, UseCase.Type.INCOMING_OBJECT, STATIC_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, overwrittenContentObjectName);
         verify(dmsOutPort, times(0)).getProcedureName(any());
         verify(dmsOutPort, times(0)).getIncomingCooByName(any(), any());
     }
@@ -114,7 +114,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
+        testDefaults(useCaseName, UseCase.Type.INCOMING_OBJECT, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
     }
 
     @Test
@@ -123,7 +123,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
+        testDefaults(useCaseName, UseCase.Type.INCOMING_OBJECT, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
         // call catch all
         final String fileName = "asd.pdf";
         final String filePath = "test/asd.pdf";
@@ -144,7 +144,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
+        testDefaults(useCaseName, UseCase.Type.INCOMING_OBJECT, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
         verify(dmsOutPort, times(1)).getProcedureName(eq(FILENAME_DMS_TARGET));
         // setup failure
         when(dmsOutPort.getProcedureName(eq(FILENAME_DMS_TARGET))).thenReturn("asd");
@@ -161,7 +161,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, FILENAME_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, FILE_NAME);
+        testDefaults(useCaseName, UseCase.Type.INCOMING_OBJECT, FILENAME_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, FILE_NAME);
         verify(dmsOutPort, times(1)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME));
         // setup reuse
         when(dmsOutPort.getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME))).thenReturn(Optional.of("COO.321.321.321"));
@@ -175,12 +175,12 @@ class ProcessFileUseCaseTest {
         verify(dmsOutPort, times(1)).createContentObject(eq(dmsTarget), eq(FILE_NAME), eq(null));
     }
 
-    private void testDefaults(final String useCaseName, final DmsTarget dmsTarget, final String fileName,
+    private void testDefaults(final String useCaseName, final UseCase.Type targetType, final DmsTarget dmsTarget, final String fileName,
             final String contentObjectName)
             throws UnknownUseCaseException, MetadataException {
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
-        verify(processFileUseCase, times(1)).resolveTargetCoo(isNull(), eq(useCase), eq(FILE));
+        verify(processFileUseCase, times(1)).resolveTargetCoo(eq(targetType), isNull(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(0)).resolveInboxDmsTarget(any());
         verify(dmsOutPort, times(0)).createContentObjectInInbox(any(), any(), any());
         verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(contentObjectName), eq(null));

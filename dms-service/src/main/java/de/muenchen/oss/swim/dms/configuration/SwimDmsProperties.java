@@ -39,6 +39,21 @@ public class SwimDmsProperties {
      */
     @NotBlank
     private String metadataGroupInboxUserKey;
+    /**
+     * Var name in metadata file to get target incoming coo from.
+     */
+    @NotBlank
+    private String metadataIncomingCooKey;
+    /**
+     * Var name in metadata file to get target incoming owner from.
+     */
+    @NotBlank
+    private String metadataIncomingUserKey;
+    /**
+     * Var name in metadata file to get dms target ressource type from.
+     */
+    @NotBlank
+    private String metadataDmsTargetKey;
 
     /**
      * Resolve use case via name.

@@ -39,6 +39,20 @@ public class DmsMetadataHelper extends MetadataHelper {
     }
 
     /**
+     * Extract incoming or ou work queue dms target from metadata file.
+     *
+     * @param rootNode Parsed JsonNode of metadata file.
+     * @return The incoming or ou work queue target.
+     * @throws MetadataException If required values are missing.
+     */
+    public DmsTarget resolveIncomingDmsTarget(@NotNull final JsonNode rootNode) throws MetadataException {
+        final Map<String, String> indexFields = this.getIndexFields(rootNode);
+        final String incomingCoo = indexFields.get(swimDmsProperties.getMetadataIncomingCooKey());
+        final String incomingOwner = indexFields.get(swimDmsProperties.getMetadataIncomingUserKey());
+        return new DmsTarget(incomingCoo, incomingOwner, null, null);
+    }
+
+    /**
      * Resolve correct DmsTarget from user and group inbox values.
      *
      * @param userInboxCoo The value for the user inbox coo.

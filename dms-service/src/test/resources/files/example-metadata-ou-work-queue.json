@@ -1,0 +1,14 @@
+{
+  "Document": {
+    "IndexFields": [
+      {
+        "Name": "VG_COO",
+        "Value": ""
+      },
+      {
+        "Name": "VG_Username",
+        "Value": "metadata.user"
+      }
+    ]
+  }
+}

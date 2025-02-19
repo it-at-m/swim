@@ -1,6 +1,8 @@
 package de.muenchen.oss.swim.dms.domain.helper;
 
 import static de.muenchen.oss.swim.dms.TestConstants.METADATA_DMS_TARGET_GROUP;
+import static de.muenchen.oss.swim.dms.TestConstants.METADATA_DMS_TARGET_INCOMING;
+import static de.muenchen.oss.swim.dms.TestConstants.METADATA_DMS_TARGET_OU_WORK_QUEUE;
 import static de.muenchen.oss.swim.dms.TestConstants.METADATA_DMS_TARGET_USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -49,5 +51,23 @@ class DmsMetadataHelperTest {
         final JsonNode metadataInvalidEmpty = dmsMetadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-invalid-empty.json"));
         assertThrows(MetadataException.class,
                 () -> dmsMetadataHelper.resolveInboxDmsTarget(metadataInvalidEmpty));
+    }
+
+    @Test
+    void testResolveIncomingDmsTarget() throws MetadataException {
+        // test inbox
+        final JsonNode metadataNode = dmsMetadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-incoming.json"));
+        final DmsTarget dmsTarget = dmsMetadataHelper.resolveIncomingDmsTarget(metadataNode);
+        assertEquals(METADATA_DMS_TARGET_INCOMING, dmsTarget);
+        // test ou work queue
+        final JsonNode metadataNodeWorkQueue = dmsMetadataHelper
+                .parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-ou-work-queue.json"));
+        final DmsTarget dmsTargetWorkQueue = dmsMetadataHelper.resolveIncomingDmsTarget(metadataNodeWorkQueue);
+        assertEquals(METADATA_DMS_TARGET_OU_WORK_QUEUE, dmsTargetWorkQueue);
+        // empty
+        final JsonNode metadataNodeEmpty = dmsMetadataHelper
+                .parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-invalid-empty.json"));
+        assertThrows(MetadataException.class, () -> dmsMetadataHelper.resolveIncomingDmsTarget(metadataNodeEmpty));
+
     }
 }

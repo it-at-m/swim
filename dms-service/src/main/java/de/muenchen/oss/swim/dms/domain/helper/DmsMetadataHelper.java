@@ -49,7 +49,10 @@ public class DmsMetadataHelper extends MetadataHelper {
         final Map<String, String> indexFields = this.getIndexFields(rootNode);
         final String incomingCoo = indexFields.get(swimDmsProperties.getMetadataIncomingCooKey());
         final String incomingOwner = indexFields.get(swimDmsProperties.getMetadataIncomingUserKey());
-        return new DmsTarget(incomingCoo, incomingOwner, null, null);
+        if (Strings.isBlank(incomingOwner)) {
+            throw new MetadataException("Error while resolving incoming target from metadata: username is required");
+        }
+        return new DmsTarget(Strings.isNotBlank(incomingCoo) ? incomingCoo : null, incomingOwner, null, null);
     }
 
     /**

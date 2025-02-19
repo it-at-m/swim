@@ -6,8 +6,10 @@ spring:
       default:
         consumer:
           max-attempts: 3
-          ack-mode: record
       kafka:
+        default:
+          consumer:
+            ack-mode: record
         binder:
           auto-create-topics: false
           producerProperties:

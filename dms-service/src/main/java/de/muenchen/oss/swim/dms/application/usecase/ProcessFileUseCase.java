@@ -198,7 +198,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     protected UseCase.Type resolveTypeFromMetadataFile(final JsonNode metadataJson) throws MetadataException {
         // validate metadata json provided
         if (metadataJson == null) {
-            throw new MetadataException("Metadata JSON is required");
+            throw new MetadataException("DMS target type via metadata file: Metadata JSON is required");
         }
         // load value from metadata file
         final Map<String, String> indexFields = this.dmsMetadataHelper.getIndexFields(metadataJson);
@@ -207,7 +207,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         return switch (metadataDmsTarget) {
         case "inbox" -> UseCase.Type.INBOX;
         case "incoming" -> UseCase.Type.INCOMING_OBJECT;
-        default -> throw new MetadataException(String.format("Unexpected %s value: %s", swimDmsProperties.getMetadataDmsTargetKey(), metadataDmsTarget));
+        case null, default ->
+                throw new MetadataException(String.format("DMS target type via metadata file: Unexpected %s value: %s", swimDmsProperties.getMetadataDmsTargetKey(), metadataDmsTarget));
         };
     }
 }

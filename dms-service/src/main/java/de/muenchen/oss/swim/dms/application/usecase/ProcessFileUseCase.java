@@ -55,20 +55,20 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                     metadataJson = dmsMetadataHelper.parseMetadataFile(metadataFileStream);
                 }
             }
-            // resolve target ressource type
-            final UseCase.Type targetRessource;
+            // resolve target resource type
+            final UseCase.Type targetResource;
             if (useCase.getType() == UseCase.Type.METADATA_FILE) {
-                targetRessource = this.resolveTypeFromMetadataFile(metadataJson);
+                targetResource = this.resolveTypeFromMetadataFile(metadataJson);
             } else {
-                targetRessource = useCase.getType();
+                targetResource = useCase.getType();
             }
             // get target coo
-            final DmsTarget dmsTarget = this.resolveTargetCoo(targetRessource, metadataJson, useCase, file);
+            final DmsTarget dmsTarget = this.resolveTargetCoo(targetResource, metadataJson, useCase, file);
             log.debug("Resolved dms target: {}", dmsTarget);
             // get ContentObject name
             final String contentObjectName = this.patternHelper.applyPattern(useCase.getFilenameOverwritePattern(), file.getFileName(), metadataJson);
             // transfer to dms
-            switch (targetRessource) {
+            switch (targetResource) {
             // to dms inbox
             case INBOX -> dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectName, fileStream);
             // create dms incoming
@@ -134,16 +134,16 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * Resolve target coo for useCase.
      * {@link UseCase.Type}
      *
-     * @param ressourceType Target type the coo is resolved for.
+     * @param resourceType Target type the coo is resolved for.
      * @param metadataJson Parsed JsonNode of metadata file.
      * @param useCase The use case.
      * @param file The file to resolve the coo for.
      * @return The resolved coo.
      */
-    protected DmsTarget resolveTargetCoo(final UseCase.Type ressourceType, final JsonNode metadataJson, final UseCase useCase, final File file)
+    protected DmsTarget resolveTargetCoo(final UseCase.Type resourceType, final JsonNode metadataJson, final UseCase useCase, final File file)
             throws MetadataException {
         return switch (useCase.getCooSource()) {
-        case METADATA_FILE -> this.resolveMetadataTargetCoo(ressourceType, metadataJson, useCase);
+        case METADATA_FILE -> this.resolveMetadataTargetCoo(resourceType, metadataJson, useCase);
         case FILENAME -> {
             if (Strings.isBlank(useCase.getFilenameCooPattern())) {
                 throw new IllegalArgumentException("Filename coo pattern is required");
@@ -172,14 +172,14 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param useCase UseCase of the file.
      * @return Resolved DmsTarget.
      */
-    protected DmsTarget resolveMetadataTargetCoo(final UseCase.Type ressourceType, final JsonNode metadataJson, final UseCase useCase)
+    protected DmsTarget resolveMetadataTargetCoo(final UseCase.Type resourceType, final JsonNode metadataJson, final UseCase useCase)
             throws MetadataException {
         // validate metadata json provided
         if (metadataJson == null) {
             throw new MetadataException("Metadata JSON is required");
         }
         // extract coo and username from metadata
-        final DmsTarget metadataTarget = switch (ressourceType) {
+        final DmsTarget metadataTarget = switch (resourceType) {
         case INBOX -> dmsMetadataHelper.resolveInboxDmsTarget(metadataJson);
         case INCOMING_OBJECT -> dmsMetadataHelper.resolveIncomingDmsTarget(metadataJson);
         case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
@@ -189,7 +189,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     }
 
     /**
-     * Resolve dms target ressource type from metadata file.
+     * Resolve dms target resource type from metadata file.
      *
      * @param metadataJson Parsed metadata json node.
      * @return The resolved type.

@@ -92,7 +92,7 @@ public class UseCase {
          */
         INCOMING_OBJECT,
         /**
-         * Resolve target ressource type from metadata file.
+         * Resolve target resource type from metadata file.
          */
         METADATA_FILE
     }

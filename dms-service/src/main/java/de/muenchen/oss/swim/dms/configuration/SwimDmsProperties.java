@@ -50,7 +50,7 @@ public class SwimDmsProperties {
     @NotBlank
     private String metadataIncomingUserKey;
     /**
-     * Var name in metadata file to get dms target ressource type from.
+     * Var name in metadata file to get dms target resource type from.
      */
     @NotBlank
     private String metadataDmsTargetKey;

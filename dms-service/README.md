@@ -89,14 +89,14 @@ Example:
 
 ### Type
 
-The `type` attribute of a use case defines what type of ressource is created in the DMS.
+The `type` attribute of a use case defines what type of resource is created in the DMS.
 
 - `inbox`: Creates an ContentObject inside a given Inbox.
 - `incoming_object`: Creates an Incoming (with a ContentObject) inside a given Procedure or the OU work queue of the user.
 
 ### Coo source
 
-The `coo-source` attribute of a use case defines how the target ressource, under which the new ressource is created, is resolved.
+The `coo-source` attribute of a use case defines how the target resource, under which the new ressource is created, is resolved.
 
 - `metadata_file`: The target coo and username are resolved via a separate metadata file, which is placed beside the original file in the S3. See [Metadata file](#metadata-file).
 - `static`: The target coo is defined statically via the `target-coo` use case attribute.

@@ -17,7 +17,7 @@ public class DmsMeter {
      * Increment counter metric of successfully processed files.
      *
      * @param useCase The use case of the file.
-     * @param type The type of DMS ressource created.
+     * @param type The type of DMS resource created.
      */
     public void incrementProcessed(final String useCase, final String type) {
         final String key = useCase + "_" + type;

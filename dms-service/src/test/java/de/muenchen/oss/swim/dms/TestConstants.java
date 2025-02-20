@@ -14,5 +14,7 @@ public final class TestConstants {
 
     public final static DmsTarget METADATA_DMS_TARGET_USER = new DmsTarget("userMetadataCoo", "metadata.user", null, null);
     public final static DmsTarget METADATA_DMS_TARGET_GROUP = new DmsTarget("groupMetadataCoo", "metadata.group", null, null);
+    public final static DmsTarget METADATA_DMS_TARGET_INCOMING = new DmsTarget("incomingMetadataCoo", "metadata.user", null, null);
+    public final static DmsTarget METADATA_DMS_TARGET_OU_WORK_QUEUE = new DmsTarget(null, "metadata.user", null, null);
 
 }

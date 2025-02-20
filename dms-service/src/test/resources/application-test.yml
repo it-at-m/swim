@@ -49,3 +49,4 @@ swim:
   metadata-user-inbox-user-key: "PPK_Username"
   metadata-group-inbox-coo-key: "GPK_COO"
   metadata-group-inbox-user-key: "GPK_Username"
+  metadata-subject-prefix: "FdE_"

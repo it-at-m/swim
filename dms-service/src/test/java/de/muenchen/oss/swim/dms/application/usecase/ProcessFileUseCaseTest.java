@@ -133,7 +133,7 @@ class ProcessFileUseCaseTest {
         processFileUseCase.processFile(new FileEvent(useCaseName, presignedUrl, null), file);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         // test catche all
-        verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(fileName), eq(null));
+        verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(fileName), eq(fileName), eq(null));
     }
 
     @Test
@@ -169,7 +169,7 @@ class ProcessFileUseCaseTest {
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
         verify(dmsOutPort, times(2)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME));
-        verify(dmsOutPort, times(1)).createIncoming(any(), any(), any(), any());
+        verify(dmsOutPort, times(1)).createIncoming(any(), any(), any(), any(), any());
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         verify(dmsOutPort, times(1)).createContentObject(eq(dmsTarget), eq(FILE_NAME), eq(null));
@@ -183,7 +183,7 @@ class ProcessFileUseCaseTest {
         verify(processFileUseCase, times(1)).resolveTargetCoo(isNull(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(0)).resolveInboxDmsTarget(any());
         verify(dmsOutPort, times(0)).createContentObjectInInbox(any(), any(), any());
-        verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(contentObjectName), eq(null));
+        verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(fileName), eq(contentObjectName), eq(null));
     }
 
     private FileEvent buildFileEvent(final String useCaseName, final String metadataPresignedUrl) {

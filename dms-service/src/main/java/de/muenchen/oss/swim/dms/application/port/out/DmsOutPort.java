@@ -27,11 +27,12 @@ public interface DmsOutPort {
      * @param dmsTarget The target. If {@link DmsTarget#coo()} is defined: Procedure, if not: OU work
      *            queue.
      * @param incomingName The name of the new Incoming.
+     * @param incomingSubject The subject of the new Incoming.
      * @param contentObjectName The name of the ContentObject inside the Incoming.
      * @param inputStream The content of the new ContentObject.
      * @return The coo of the new Incoming.
      */
-    String createIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotBlank String incomingName, @NotBlank String contentObjectName,
+    String createIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotBlank String incomingName, String incomingSubject, @NotBlank String contentObjectName,
             @NotNull InputStream inputStream);
 
     /**

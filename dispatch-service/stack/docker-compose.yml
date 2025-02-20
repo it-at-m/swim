@@ -1,6 +1,9 @@
 name: swim-stack
 
 services:
+  #
+  # ============= DB =============
+  #
   postgres:
     image: postgres:16.4-alpine3.20@sha256:5660c2cbfea50c7a9127d17dc4e48543eedd3d7a41a595a2dfa572471e37e64c
     environment:
@@ -43,7 +46,9 @@ services:
     user: root # see https://github.com/pgadmin-org/pgadmin4/issues/6257
     entrypoint: /bin/sh -c "chmod 600 /pgadmin4/pgpass; /entrypoint.sh;" # see https://www.postgresql.org/docs/current/libpq-pgpass.html#LIBPQ-PGPASS (last paragraph)
 
-  # === Kafka ===
+  #
+  # ============= Kafka =============
+  #
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:
@@ -125,7 +130,9 @@ services:
       "
     security_opt: *security_settings
 
-  # === S3/Minio ===
+  #
+  # ============= S3 =============
+  #
   minio:
     image: quay.io/minio/minio:latest
     command: server /data --console-address ":9001"
@@ -158,7 +165,9 @@ services:
       - internal
     security_opt: *security_settings
 
-  # === Mail ===
+  #
+  # ============= Mail =============
+  #
   mailpit:
     image: axllent/mailpit:v1.20.6@sha256:777080b355ef30e99b23007e4d043b452cf84fd4dcb378ef30da5a0aa316c33d
     ports:

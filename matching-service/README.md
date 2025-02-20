@@ -30,5 +30,7 @@ flowchart LR
   - Can be started with `docker compose up -d`
 - The Spring profile `local` is preconfigured for using the stack
   - Activate it either manually or by using the provided run configuration
-- After starting the application the import can be triggered via the [Swagger-UI](http://localhost:39146/swagger-ui/index.html)
+- After starting the application, the import can be triggered via the [Swagger-UI](http://localhost:39146/swagger-ui/index.html)
   - The default login is `user` with password `user`
+- Also following tools are available:
+  - [pgAdmin](http://localhost:5050/)

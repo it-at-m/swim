@@ -32,6 +32,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class ProcessFileUseCase implements ProcessFileInPort {
+    protected static final String METADATA_TARGET_TYPE_INBOX = "inbox";
+    protected static final String METADATA_TARGET_TYPE_INCOMING = "incoming";
+
     private final SwimDmsProperties swimDmsProperties;
     private final FileSystemOutPort fileSystemOutPort;
     private final DmsOutPort dmsOutPort;
@@ -205,8 +208,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         final String metadataDmsTarget = indexFields.get(swimDmsProperties.getMetadataDmsTargetKey());
         // resolve type from value
         return switch (metadataDmsTarget) {
-        case "inbox" -> UseCase.Type.INBOX;
-        case "incoming" -> UseCase.Type.INCOMING_OBJECT;
+        case METADATA_TARGET_TYPE_INBOX -> UseCase.Type.INBOX;
+        case METADATA_TARGET_TYPE_INCOMING -> UseCase.Type.INCOMING_OBJECT;
         case null, default ->
                 throw new MetadataException(String.format("DMS target type via metadata file: Unexpected %s value: %s", swimDmsProperties.getMetadataDmsTargetKey(), metadataDmsTarget));
         };

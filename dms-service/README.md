@@ -62,6 +62,7 @@ swim:
       filename-to-coo: # for coo-source filename_map
       filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
       incoming-name-pattern: # overwrite Incoming name via Regex pattern, only applies to type incoming_object
+      metadata-subject: # enables incoming subject be built from metadata file
       verify-procedure-name-pattern: # verifies target procedure name matches this pattern, only applies to type incoming_object
 ```
 

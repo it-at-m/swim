@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="SI_InvoiceDocument_SY_OB" targetNamespace="http://lhm.de/pi/erechnung/swm" xmlns:p1="http://lhm.de/pi/erechnung/swm" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+	<wsdl:documentation/>
+	<wsp:UsingPolicy wsdl:required="true"/>
+	<wsp:Policy wsu:Id="OP_SI_InvoiceDocument_SY_OB"/>
+	<wsdl:types>
+		<xsd:schema targetNamespace="http://lhm.de/pi/erechnung/swm" xmlns="http://lhm.de/pi/erechnung/swm" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+			<xsd:element name="InvoiceDocumentResponse" type="InvoiceDocumentResponse"/>
+			<xsd:element name="InvoiceDocumentRequest" type="InvoiceDocumentRequest"/>
+			<xsd:complexType name="InvoiceDocumentRequest">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="DE">Scanned Invoice</xsd:documentation>
+					<xsd:appinfo source="http://sap.com/xi/VersionID">f7386ff9c7f211ed9de1000007abeab2</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element name="DocumentHeader" type="DocumentHeader" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">c65ef247c7e311ed918200059a3c7a00</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Document" type="xsd:base64Binary">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">c65ef248c7e311edaa8800059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Document</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="AdditionalInformation" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">f72e3f5ec7f211edc54700059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Additional Information</xsd:documentation>
+						</xsd:annotation>
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:element name="AdditionalInformation" type="AdditionalInformation" minOccurs="0" maxOccurs="unbounded">
+									<xsd:annotation>
+										<xsd:appinfo source="http://sap.com/xi/TextID">c65ef249c7e311edba8a00059a3c7a00</xsd:appinfo>
+										<xsd:documentation>Additional Information</xsd:documentation>
+									</xsd:annotation>
+								</xsd:element>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="DocumentHeader">
+				<xsd:annotation>
+					<xsd:appinfo source="http://sap.com/xi/VersionID">600cd9f0c7d611edc599000007abeab2</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element name="ScanDate" type="xsd:date" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">60076e0bc7d611edc0cc00059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Scan Date</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="ScanTime" type="xsd:time" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">60076e0cc7d611edc96c00059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Scan Time</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="ScanUser" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">60076e0dc7d611edabc200059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Scan User</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="128"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="DocumentClass" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">60076e0ec7d611edacaf00059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Document Class</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="ZVIMINVSKA"/>
+								<xsd:maxLength value="10"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="DocumentType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">60076e0fc7d611ed8d1f00059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Document Type</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="PDF"/>
+								<xsd:maxLength value="20"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="DocumentName" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">60076e10c7d611ed87cc00059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Document Name</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="255"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="Version" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">60076e11c7d611ed906c00059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Version</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="10"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="Note" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">60076e12c7d611edb32600059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Note</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="50"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="InvoiceDocumentResponse">
+				<xsd:annotation>
+					<xsd:appinfo source="http://sap.com/xi/VersionID">8b80aa0bc7e511edb4c2000007abeab2</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element name="RegistrationID" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">8b787721c7e511edb45d00059a3c7a00</xsd:appinfo>
+							<xsd:documentation>RegistrationID</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="12"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="Information" type="ResponseInformation" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">9ae75fbdc7e511edcf1600059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Message</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="AdditionalInformation">
+				<xsd:annotation>
+					<xsd:appinfo source="http://sap.com/xi/VersionID">1410d88ac7d811ed9a40000007abeab2</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element name="Type">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">140bd73ac7d811edb58700059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Information Type</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="80"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="TypeAddOn" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">140bd73bc7d811edb4ac00059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Type Add On</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="80"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="Value">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">140bd73cc7d811edade200059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Value</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="255"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="ResponseInformation">
+				<xsd:annotation>
+					<xsd:appinfo source="http://sap.com/xi/VersionID">5fbd31fec7e511edc349000007abeab2</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element name="Type" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">5fae91a0c7e511edce0f00059a3c7a00</xsd:appinfo>
+							<xsd:documentation>S Success, E Error, W Warning etc.</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="1"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+					<xsd:element name="Description" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo source="http://sap.com/xi/TextID">5fae91a1c7e511ed976100059a3c7a00</xsd:appinfo>
+							<xsd:documentation>Description</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:maxLength value="220"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="InvoiceDocumentRequest">
+		<wsdl:documentation/>
+		<wsdl:part name="InvoiceDocumentRequest" element="p1:InvoiceDocumentRequest"/>
+	</wsdl:message>
+	<wsdl:message name="InvoiceDocumentResponse">
+		<wsdl:documentation/>
+		<wsdl:part name="InvoiceDocumentResponse" element="p1:InvoiceDocumentResponse"/>
+	</wsdl:message>
+	<wsdl:portType name="SI_InvoiceDocument_SY_OB">
+		<wsdl:documentation/>
+		<wsdl:operation name="SI_InvoiceDocument_SY_OB">
+			<wsdl:documentation/>
+			<wsp:Policy>
+				<wsp:PolicyReference URI="#OP_SI_InvoiceDocument_SY_OB"/>
+			</wsp:Policy>
+			<wsdl:input message="p1:InvoiceDocumentRequest"/>
+			<wsdl:output message="p1:InvoiceDocumentResponse"/>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="SI_InvoiceDocument_SY_OBBinding" type="p1:SI_InvoiceDocument_SY_OB">
+		<wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+		<wsdl:operation name="SI_InvoiceDocument_SY_OB">
+			<wsdlsoap:operation soapAction="http://sap.com/xi/WebService/soap1.1" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+			<wsdl:input>
+				<wsdlsoap:body use="literal" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+			</wsdl:input>
+			<wsdl:output>
+				<wsdlsoap:body use="literal" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="SI_InvoiceDocument_SY_OBService">
+		<wsdl:port name="HTTP_Port" binding="p1:SI_InvoiceDocument_SY_OBBinding">
+			<wsdlsoap:address location="http://j12cpo.muenchen.de:51200/XISOAPAdapter/MessageServlet?senderParty=&amp;senderService=E_RECHNUNG_C&amp;receiverParty=&amp;receiverService=&amp;interface=SI_InvoiceDocument_SY_OB&amp;interfaceNamespace=http%3A%2F%2Flhm.de%2Fpi%2Ferechnung%2Fswm" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+		</wsdl:port>
+		<wsdl:port name="HTTPS_Port" binding="p1:SI_InvoiceDocument_SY_OBBinding">
+			<wsdlsoap:address location="https://j12cpo.muenchen.de:51201/XISOAPAdapter/MessageServlet?senderParty=&amp;senderService=E_RECHNUNG_C&amp;receiverParty=&amp;receiverService=&amp;interface=SI_InvoiceDocument_SY_OB&amp;interfaceNamespace=http%3A%2F%2Flhm.de%2Fpi%2Ferechnung%2Fswm" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

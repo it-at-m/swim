@@ -49,6 +49,3 @@ swim:
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition
-  metadata-dms-target-key: "SWIM_DMS_Target"
-  metadata-incoming-coo-key: "VG_COO"
-  metadata-incoming-user-key: "VG_Username"

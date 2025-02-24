@@ -109,7 +109,7 @@ class ProcessFileUseCaseTest {
         verify(processFileUseCase, times(1)).resolveTypeFromMetadataFile(any());
         verify(processFileUseCase, times(1)).resolveTargetCoo(eq(UseCase.Type.INCOMING_OBJECT), any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(1)).resolveIncomingDmsTarget(any());
-        verify(dmsOutPort, times(1)).createIncoming(eq(METADATA_DMS_TARGET_INCOMING), eq(FILE_NAME), eq(FILE_NAME), eq(null));
+        verify(dmsOutPort, times(1)).createIncoming(eq(METADATA_DMS_TARGET_INCOMING), eq(FILE_NAME), eq(FILE_NAME), eq(FILE_NAME), eq(null));
     }
 
     @Test
@@ -195,7 +195,8 @@ class ProcessFileUseCaseTest {
         verify(dmsOutPort, times(1)).createContentObject(eq(dmsTarget), eq(FILE_NAME), eq(null));
     }
 
-    private void testDefaults(final String useCaseName, final UseCase.Type targetType, final DmsTarget dmsTarget, final String incomingName, final String incomingSubject,
+    private void testDefaults(final String useCaseName, final UseCase.Type targetType, final DmsTarget dmsTarget, final String incomingName,
+            final String incomingSubject,
             final String contentObjectName)
             throws UnknownUseCaseException, MetadataException {
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);

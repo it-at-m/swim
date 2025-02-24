@@ -9,6 +9,7 @@ swim:
       target-coo: staticCoo
       filename-overwrite-pattern: "s/^(.+)(?:-COO.[^-]+-)(.+)$/\\${1}-\\${2}/"
       incoming-name-pattern: "s/^(.+)(?:-COO.[^-]+-).+$/\\${1}/"
+      metadata-subject: true
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition
@@ -45,7 +46,3 @@ swim:
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition
-  metadata-user-inbox-coo-key: "PPK_COO"
-  metadata-user-inbox-user-key: "PPK_Username"
-  metadata-group-inbox-coo-key: "GPK_COO"
-  metadata-group-inbox-user-key: "GPK_Username"

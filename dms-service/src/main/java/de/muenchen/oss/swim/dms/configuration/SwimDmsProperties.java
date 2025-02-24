@@ -39,6 +39,12 @@ public class SwimDmsProperties {
      */
     @NotBlank
     private String metadataGroupInboxUserKey;
+    /**
+     * Prefix of metadata index fields which should be put into subject.
+     * See {@link UseCase#isMetadataSubject()}.
+     */
+    @NotBlank
+    private String metadataSubjectPrefix;
 
     /**
      * Resolve use case via name.

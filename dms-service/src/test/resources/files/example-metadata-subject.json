@@ -1,0 +1,14 @@
+{
+  "Document": {
+    "IndexFields": [
+      {
+        "Name": "FdE_TestKey_1",
+        "Value": "Test_Value_1"
+      },
+      {
+        "Name": "FdE_TestKey_2",
+        "Value": "Test_Value_2"
+      }
+    ]
+  }
+}

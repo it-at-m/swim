@@ -1,5 +1,8 @@
 package de.muenchen.oss.swim.dms.adapter.out.dms;
 
+import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
+import de.muenchen.oss.swim.dms.domain.exception.DmsException;
+import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.refarch.integration.dms.api.ContentObjectsApi;
 import de.muenchen.refarch.integration.dms.api.IncomingsApi;
 import de.muenchen.refarch.integration.dms.api.ObjectAndImportToInboxApi;
@@ -10,9 +13,6 @@ import de.muenchen.refarch.integration.dms.model.CreateContentObjectAntwortDTO;
 import de.muenchen.refarch.integration.dms.model.CreateIncomingAntwortDTO;
 import de.muenchen.refarch.integration.dms.model.CreateIncomingBasisAnfrageDTO;
 import de.muenchen.refarch.integration.dms.model.CreateObjectAndImportToInboxDTO;
-import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
-import de.muenchen.oss.swim.dms.domain.exception.DmsException;
-import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.refarch.integration.dms.model.Objektreferenz;
 import de.muenchen.refarch.integration.dms.model.ReadProcedureObjectsAntwortDTO;
 import de.muenchen.refarch.integration.dms.model.ReadProcedureResponseDTO;
@@ -59,12 +59,13 @@ public class DmsAdapter implements DmsOutPort {
     }
 
     @Override
-    public String createIncoming(final DmsTarget dmsTarget, final String incomingName, final String contentObjectName, final InputStream inputStream) {
+    public String createIncoming(final DmsTarget dmsTarget, final String incomingName, final String incomingSubject, final String contentObjectName,
+            final InputStream inputStream) {
         log.debug("Putting file {} in procedure {}", contentObjectName, dmsTarget);
         final CreateIncomingBasisAnfrageDTO request = new CreateIncomingBasisAnfrageDTO();
         request.referrednumber(dmsTarget.coo());
         request.shortname(incomingName);
-        request.filesubj(incomingName);
+        request.filesubj(incomingSubject);
         request.useou(true);
         try {
             final AbstractResource file = new NamedInputStreamResource(contentObjectName, inputStream);

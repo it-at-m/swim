@@ -67,6 +67,11 @@ public class UseCase {
      */
     private boolean reuseIncoming = false;
     /**
+     * Fill subject with metadata. See {@link de.muenchen.oss.swim.dms.configuration.SwimDmsProperties}.
+     * Currently only works for {@link Type#INCOMING_OBJECT}.
+     */
+    private boolean metadataSubject = false;
+    /**
      * Username used for accessing dms.
      * Used except {@link UseCase.CooSource#METADATA_FILE}
      */

@@ -54,6 +54,12 @@ public class SwimDmsProperties {
      */
     @NotBlank
     private String metadataDmsTargetKey;
+    /**
+     * Prefix of metadata index fields which should be put into subject.
+     * See {@link UseCase#isMetadataSubject()}.
+     */
+    @NotBlank
+    private String metadataSubjectPrefix;
 
     /**
      * Resolve use case via name.

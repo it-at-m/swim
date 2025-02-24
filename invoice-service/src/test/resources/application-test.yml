@@ -1,0 +1,3 @@
+swim:
+  use-cases:
+    - name: test

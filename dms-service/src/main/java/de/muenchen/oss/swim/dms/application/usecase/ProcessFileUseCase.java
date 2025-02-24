@@ -195,8 +195,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         case INCOMING_OBJECT -> dmsMetadataHelper.resolveIncomingDmsTarget(metadataJson);
         case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
         };
-        // combine with use case joboe and jobposition
-        return new DmsTarget(metadataTarget.coo(), metadataTarget.userName(), useCase.getJoboe(), useCase.getJobposition());
+        // combine resolves target with use case
+        return this.combineDmsTargetWithUseCase(metadataTarget, useCase);
     }
 
     /**
@@ -247,5 +247,26 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                         i.getKey().replaceFirst("^" + swimDmsProperties.getMetadataSubjectPrefix(), ""),
                         i.getValue()))
                 .collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Combine resolved DmsTarget with UseCase values.
+     * Checks that only one of both defines job oe and position values.
+     *
+     * @param dmsTarget Resolved target.
+     * @param useCase UseCase the target was resolved for.
+     * @return Combined DmsTarget.
+     * @throws IllegalStateException If both inputs define job oe or position.
+     */
+    protected DmsTarget combineDmsTargetWithUseCase(final DmsTarget dmsTarget, final UseCase useCase) {
+        final boolean dmsTargetHasJob = Strings.isNotBlank(dmsTarget.joboe()) || Strings.isNotBlank(dmsTarget.jobposition());
+        final boolean useCaseHasJob = Strings.isNotBlank(useCase.getJoboe()) || Strings.isNotBlank(useCase.getJobposition());
+        if (dmsTargetHasJob && useCaseHasJob) {
+            throw new IllegalStateException("Resolve dms target: Job oe and position defined via resolve and via use case not allowed");
+        }
+        if (dmsTargetHasJob) {
+            return dmsTarget;
+        }
+        return new DmsTarget(dmsTarget.coo(), dmsTarget.userName(), useCase.getJoboe(), useCase.getJobposition());
     }
 }

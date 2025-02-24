@@ -50,6 +50,16 @@ public class SwimDmsProperties {
     @NotBlank
     private String metadataIncomingUserKey;
     /**
+     * Var name in metadata file to get target incoming joboe from.
+     */
+    @NotBlank
+    private String metadataIncomingJoboeKey;
+    /**
+     * Var name in metadata file to get target incoming jobposition from.
+     */
+    @NotBlank
+    private String metadataIncomingJobpositionKey;
+    /**
      * Var name in metadata file to get dms target resource type from.
      */
     @NotBlank

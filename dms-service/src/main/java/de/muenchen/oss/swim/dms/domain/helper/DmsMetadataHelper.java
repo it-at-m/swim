@@ -40,6 +40,7 @@ public class DmsMetadataHelper extends MetadataHelper {
 
     /**
      * Extract incoming or ou work queue dms target from metadata file.
+     * For incoming {@link DmsTarget#coo()} is set and for ou work queue empty.
      *
      * @param rootNode Parsed JsonNode of metadata file.
      * @return The incoming or ou work queue target.
@@ -49,10 +50,12 @@ public class DmsMetadataHelper extends MetadataHelper {
         final Map<String, String> indexFields = this.getIndexFields(rootNode);
         final String incomingCoo = indexFields.get(swimDmsProperties.getMetadataIncomingCooKey());
         final String incomingOwner = indexFields.get(swimDmsProperties.getMetadataIncomingUserKey());
+        final String incomingJoboe = indexFields.get(swimDmsProperties.getMetadataIncomingJoboeKey());
+        final String incomingJobposition = indexFields.get(swimDmsProperties.getMetadataIncomingJobpositionKey());
         if (Strings.isBlank(incomingOwner)) {
             throw new MetadataException("Error while resolving incoming target from metadata: username is required");
         }
-        return new DmsTarget(Strings.isNotBlank(incomingCoo) ? incomingCoo : null, incomingOwner, null, null);
+        return new DmsTarget(Strings.isNotBlank(incomingCoo) ? incomingCoo : null, incomingOwner, incomingJoboe, incomingJobposition);
     }
 
     /**

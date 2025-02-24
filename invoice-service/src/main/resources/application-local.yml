@@ -22,6 +22,4 @@ spring:
           destination: swim-finished-local
 
 swim:
-
-  use-cases:
-    - name: test
+  sap:

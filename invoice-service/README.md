@@ -32,8 +32,25 @@ Errors which occur during processing a file are transmitted via Kafka to the [di
 ```yaml
 swim:
   # sap-po connection configuration
-  
-  # use cases
-  use-cases:
-    - name: # required
+  sap:
+    endpoint:
+    username:
+    password:
 ```
+
+## Filename syntax
+
+The invoice-service processes file by extracting required information from the input filename.
+The syntax of the filename must therefore follow following:
+
+```
+Regex: ([^-]+)-([^-]+)-([^-]+)-?(.*).pdf
+<document type>-<pagination nr>-<box nr>-<barcode>.pdf
+```
+
+- Document type: type of the input document
+  - Allowed values: `REC` and `RBU`
+- Pagination number (German "Paginiernummer")
+- Box number (German "Kistennummer")
+- Barcode
+  - Only required for document type `RBU`

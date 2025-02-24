@@ -101,10 +101,13 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      */
     protected void processIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget, final String contentObjectName,
             final InputStream fileStream, final JsonNode metadataJson) throws MetadataException {
+        final String contentObjectNameWithoutExtension = contentObjectName.substring(0, contentObjectName.lastIndexOf('.'));
+        final String filename = file.getFileName();
+        final String filenameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
         // check target procedure name
         if (Strings.isNotBlank(useCase.getVerifyProcedureNamePattern())) {
             final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);
-            final String resolvedPattern = this.patternHelper.applyPattern(useCase.getVerifyProcedureNamePattern(), file.getFileName(), metadataJson);
+            final String resolvedPattern = this.patternHelper.applyPattern(useCase.getVerifyProcedureNamePattern(), filenameWithoutExtension, metadataJson);
             if (!procedureName.toLowerCase(Locale.ROOT).contains(resolvedPattern.toLowerCase(Locale.ROOT))) {
                 final String message = String.format("Procedure name %s doesn't contain resolved pattern %s", procedureName, resolvedPattern);
                 throw new DmsException(message);
@@ -115,10 +118,10 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         if (Strings.isBlank(useCase.getIncomingNamePattern())) {
             // use resolved ContentObject name (filename) if no pattern for Incoming name is defined
             // resolved in this case means the UseCase#filenameOverwritePattern is applied first
-            incomingName = contentObjectName;
+            incomingName = contentObjectNameWithoutExtension;
         } else {
             // else apply pattern to original filename
-            incomingName = this.patternHelper.applyPattern(useCase.getIncomingNamePattern(), file.getFileName(), metadataJson);
+            incomingName = this.patternHelper.applyPattern(useCase.getIncomingNamePattern(), filenameWithoutExtension, metadataJson);
         }
         // resolve subject for Incoming;
         final String incomingSubject;

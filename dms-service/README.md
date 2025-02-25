@@ -49,6 +49,17 @@ swim:
     base-url:
     username:
     password:
+  # metadata keys (default values)
+  metadata-subject-prefix: "FdE_" # prefix to build subject from metadata file, see Metadata
+  metadata-dms-target-key: "SWIM_DMS_Target" # key to use for resolving dms target type, see Type metadata_file
+  metadata-user-inbox-coo-key: "PPK_COO" # key to use for resolving target user inbox, see Coo source metadata_file and Metadata
+  metadata-user-inbox-user-key: "PPK_Username"
+  metadata-group-inbox-coo-key: "GPK_COO" # key to use for resolving target group inbox, see Coo source metadata_file and Metadata
+  metadata-group-inbox-user-key: "GPK_Username"
+  metadata-incoming-coo-key: "VG_COO" # key to use for resolving target incoming, see Coo source metadata_file and Metadata
+  metadata-incoming-user-key: "VG_Username"
+  metadata-incoming-joboe-key: "VG_Joboe"
+  metadata-incoming-jobposition-key: "VG_Jobposition"
   # use cases
   use-cases:
     - name: # required
@@ -90,14 +101,15 @@ Example:
 
 ### Type
 
-The `type` attribute of a use case defines what type of ressource is created in the DMS.
+The `type` attribute of a use case defines what type of resource is created in the DMS.
 
 - `inbox`: Creates an ContentObject inside a given Inbox.
 - `incoming_object`: Creates an Incoming (with a ContentObject) inside a given Procedure or the OU work queue of the user.
+- `metadata_file`: Resolve target type via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Metadata file](#metadata-file).
 
 ### Coo source
 
-The `coo-source` attribute of a use case defines how the target ressource, under which the new ressource is created, is resolved.
+The `coo-source` attribute of a use case defines how the target resource, under which the new ressource is created, is resolved.
 
 - `metadata_file`: The target coo and username are resolved via a separate metadata file, which is placed beside the original file in the S3. See [Metadata file](#metadata-file).
 - `static`: The target coo is defined statically via the `target-coo` use case attribute.
@@ -107,17 +119,28 @@ The `coo-source` attribute of a use case defines how the target ressource, under
 
 #### Metadata file
 
-The metadata file needs to have the following syntax.
-A valid metadata file either has personal `PPK_` or group `GPK_` inbox values defined (empty values are ignored).
-If a metadata file is required but missing or is invalid (syntax, value combination, ...) an Exception is thrown, which is handled by the [error-handling](#error-handling).
+The metadata file is used for following different functions:
 
-Beside the usage of the metadata file as coo source (`coo-source: metadata_file`), values starting with `PdE_` (default) could be set as subject (see [Configuration](#configuration) `metadata-subject: true`).
-The below example would lead to a subject `ExampleKey1: Example Value 1\nExampleKey2: Example Value 2`.
+- Resolution of coo source
+    - The dms target can be resolved via metadata file, see [Coo source](#coo-source) `metadata_file`
+    - A valid metadata file in this case requires either personal `PPK_` or group `GPK_` inbox values defined (empty values are ignored) for `type: inbox` or `VG_` values for incoming or coo work queue. See [Configuration](#configuration).
+- Subject
+  - Values starting with `PdE_` (default) could be set as subject (see [Configuration](#configuration) `metadata-subject: true` and `metadata-subject-prefix`).
+  - The below example would lead to a subject `ExampleKey1: Example Value 1\nExampleKey2: Example Value 2`.
+- Target type
+  - The target resource type is resolved via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Type](#type) `metadata_file`.
+  - Allowed values in metadata file are `inbox` and `incoming`.
+
+If a metadata file is required but missing or is invalid (syntax, value combination, ...) an Exception is thrown, which is handled by the [error-handling](#error-handling).
 
 ```json
 {
   "Document": {
     "IndexFields": [
+      {
+        "Name": "SWIM_DMS_Target",
+        "Value": "<inbox/incoming>"
+      },
       {
         "Name": "PPK_COO",
         "Value": ""
@@ -132,6 +155,22 @@ The below example would lead to a subject `ExampleKey1: Example Value 1\nExample
       },
       {
         "Name": "GPK_Username",
+        "Value": ""
+      },
+      {
+        "Name": "VG_COO",
+        "Value": ""
+      },
+      {
+        "Name": "VG_Username",
+        "Value": ""
+      },
+      {
+        "Name": "VG_Joboe",
+        "Value": ""
+      },
+      {
+        "Name": "VG_Jobposition",
         "Value": ""
       },
       {

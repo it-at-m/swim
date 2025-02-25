@@ -84,8 +84,13 @@ info:
     spring-cloud.version: @spring-cloud-dependencies.version@
 
 swim:
+  metadata-dms-target-key: "SWIM_DMS_Target"
+  metadata-subject-prefix: "FdE_"
   metadata-user-inbox-coo-key: "PPK_COO"
   metadata-user-inbox-user-key: "PPK_Username"
   metadata-group-inbox-coo-key: "GPK_COO"
   metadata-group-inbox-user-key: "GPK_Username"
-  metadata-subject-prefix: "FdE_"
+  metadata-incoming-coo-key: "VG_COO"
+  metadata-incoming-user-key: "VG_Username"
+  metadata-incoming-joboe-key: "VG_Joboe"
+  metadata-incoming-jobposition-key: "VG_Jobposition"

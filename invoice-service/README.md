@@ -40,8 +40,8 @@ swim:
 
 ## Filename syntax
 
-The invoice-service processes file by extracting required information from the input filename.
-The syntax of the filename must therefore follow following:
+The invoice-service processes the file by extracting required information from the input filename.
+The syntax of the filename must therefore follow following pattern:
 
 ```
 Regex: ([^-]+)-([^-]+)-([^-]+)-?(.*).pdf

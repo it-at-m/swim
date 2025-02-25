@@ -32,7 +32,7 @@ class SapConfiguration {
         return soapClient;
     }
 
-    static class InvoiceResponseSOAPHandler implements SOAPHandler<SOAPMessageContext> {
+    /* default */ static class InvoiceResponseSOAPHandler implements SOAPHandler<SOAPMessageContext> {
         public static final String NS_URI = "http://sap.com/xi/XI/Message/30";
         public static final String NAME_RELIABLE_MESSAGING = "ReliableMessaging";
         public static final String NAME_SYSTEM = "System";

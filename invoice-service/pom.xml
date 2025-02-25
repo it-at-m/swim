@@ -261,10 +261,10 @@
                             <sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
                             <wsdlOptions>
                                 <wsdlOption>
-                                    <wsdl>${basedir}/src/main/resources/wsdl/InvoiceDocument_mtom.wsdl</wsdl>
-                                    <wsdlLocation>classpath:wsdl/InvoiceDocument_mtom.wsdl</wsdlLocation>
+                                    <wsdl>${basedir}/src/main/resources/InvoiceDocument_mtom.wsdl</wsdl>
+                                    <wsdlLocation>classpath:InvoiceDocument_mtom.wsdl</wsdlLocation>
                                     <bindingFiles>
-                                        <bindingFile>${basedir}/src/main/resources/wsdl/binding.xml</bindingFile>
+                                        <bindingFile>${basedir}/src/main/resources/binding.xml</bindingFile>
                                     </bindingFiles>
                                 </wsdlOption>
                             </wsdlOptions>

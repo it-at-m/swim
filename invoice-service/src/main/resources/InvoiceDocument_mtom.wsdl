@@ -18,7 +18,7 @@
 							<xsd:appinfo source="http://sap.com/xi/TextID">c65ef247c7e311ed918200059a3c7a00</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="Document" type="xsd:base64Binary" xmime:expectedContentTypes="application/octet-stream">
+					<xsd:element name="Document" type="xsd:base64Binary" xmime:expectedContentTypes="application/pdf">
 						<xsd:annotation>
 							<xsd:appinfo source="http://sap.com/xi/TextID">c65ef248c7e311edaa8800059a3c7a00</xsd:appinfo>
 							<xsd:documentation>Document</xsd:documentation>

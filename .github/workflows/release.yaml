@@ -12,6 +12,7 @@ on:
           - dispatch-service
           - handler-core
           - dms-service
+          - invoice-service
       release-version:
         description: 'Release version'
         type: string

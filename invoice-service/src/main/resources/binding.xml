@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<jaxws:bindings
+        xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+        xmlns:jaxws="https://jakarta.ee/xml/ns/jaxws">
+    <jaxws:bindings node="wsdl:definitions">
+        <jaxws:enableWrapperStyle>false</jaxws:enableWrapperStyle>
+    </jaxws:bindings>
+</jaxws:bindings>

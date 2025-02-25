@@ -8,6 +8,7 @@ import org.mapstruct.Mapping;
 @Mapper
 interface DbProtocolMapper {
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     DbProtocolEntry toDb(String useCase, String protocolName, ProtocolEntry entry);
 
     default List<DbProtocolEntry> toDb(final String useCase, final String protocolName, final List<ProtocolEntry> entries) {

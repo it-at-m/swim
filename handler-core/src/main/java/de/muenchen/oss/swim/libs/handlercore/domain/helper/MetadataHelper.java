@@ -3,6 +3,7 @@ package de.muenchen.oss.swim.libs.handlercore.domain.helper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,15 +23,16 @@ public class MetadataHelper {
     private final ObjectMapper objectMapper;
 
     /**
-     * Parse metadata file to JsonNode.
+     * Parse metadata file.
      *
      * @param inputStream The content of the metadata file.
      * @return The parsed metadata.
      * @throws MetadataException If the file can't be parsed.
      */
-    public JsonNode parseMetadataFile(@NotNull final InputStream inputStream) throws MetadataException {
+    public Metadata parseMetadataFile(@NotNull final InputStream inputStream) throws MetadataException {
         try {
-            return objectMapper.readTree(inputStream);
+            final JsonNode jsonNode = objectMapper.readTree(inputStream);
+            return new Metadata(jsonNode, this.getIndexFields(jsonNode));
         } catch (final IOException e) {
             throw new MetadataException("Error while parsing metadata json", e);
         }
@@ -43,7 +45,7 @@ public class MetadataHelper {
      * @return The IndexFields as Map.
      * @throws MetadataException If fields are missing.
      */
-    public Map<String, String> getIndexFields(@NotNull final JsonNode rootNode) throws MetadataException {
+    protected Map<String, String> getIndexFields(@NotNull final JsonNode rootNode) throws MetadataException {
         final JsonNode documentNode = rootNode.get(METADATA_DOCUMENT_KEY);
         if (documentNode == null) {
             throw new MetadataException("Missing '" + METADATA_DOCUMENT_KEY + "' in metadata JSON");

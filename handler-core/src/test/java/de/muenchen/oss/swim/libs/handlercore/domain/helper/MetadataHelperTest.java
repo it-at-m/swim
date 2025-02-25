@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +22,11 @@ class MetadataHelperTest {
 
     @Test
     void testGetIndexFields() throws MetadataException {
-        final JsonNode metadataUserNode = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata.json"));
+        final Metadata metadata = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata.json"));
         final Map<String, String> expected = Map.of(
                 "Key1", "Value1",
                 "Key2", "Value2");
-        assertEquals(expected, metadataHelper.getIndexFields(metadataUserNode));
+        assertEquals(expected, metadata.indexFields());
     }
 
     @Test

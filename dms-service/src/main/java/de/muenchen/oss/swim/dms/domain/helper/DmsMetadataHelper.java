@@ -1,11 +1,11 @@
 package de.muenchen.oss.swim.dms.domain.helper;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.helper.MetadataHelper;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import org.apache.logging.log4j.util.Strings;
@@ -24,12 +24,12 @@ public class DmsMetadataHelper extends MetadataHelper {
     /**
      * Extract inbox dms target from metadata file.
      *
-     * @param rootNode Parsed JsonNode of metadata file.
+     * @param metadata Parsed metadata file.
      * @return The dms target.
      * @throws MetadataException If required values are missing.
      */
-    public DmsTarget resolveInboxDmsTarget(@NotNull final JsonNode rootNode) throws MetadataException {
-        final Map<String, String> indexFields = this.getIndexFields(rootNode);
+    public DmsTarget resolveInboxDmsTarget(@NotNull final Metadata metadata) throws MetadataException {
+        final Map<String, String> indexFields = metadata.indexFields();
         final String userInboxCoo = indexFields.get(swimDmsProperties.getMetadataUserInboxCooKey());
         final String userInboxOwner = indexFields.get(swimDmsProperties.getMetadataUserInboxUserKey());
         final String groupInboxCoo = indexFields.get(swimDmsProperties.getMetadataGroupInboxCooKey());
@@ -42,12 +42,12 @@ public class DmsMetadataHelper extends MetadataHelper {
      * Extract incoming or ou work queue dms target from metadata file.
      * For incoming {@link DmsTarget#coo()} is set and for ou work queue empty.
      *
-     * @param rootNode Parsed JsonNode of metadata file.
+     * @param metadata Parsed metadata file.
      * @return The incoming or ou work queue target.
      * @throws MetadataException If required values are missing.
      */
-    public DmsTarget resolveIncomingDmsTarget(@NotNull final JsonNode rootNode) throws MetadataException {
-        final Map<String, String> indexFields = this.getIndexFields(rootNode);
+    public DmsTarget resolveIncomingDmsTarget(@NotNull final Metadata metadata) throws MetadataException {
+        final Map<String, String> indexFields = metadata.indexFields();
         final String incomingCoo = indexFields.get(swimDmsProperties.getMetadataIncomingCooKey());
         final String incomingOwner = indexFields.get(swimDmsProperties.getMetadataIncomingUserKey());
         final String incomingJoboe = indexFields.get(swimDmsProperties.getMetadataIncomingJoboeKey());

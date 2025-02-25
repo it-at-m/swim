@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -100,10 +99,14 @@ class ProcessFileUseCaseTest {
     void testProcessFile_StaticIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "static-incoming";
         final String overwrittenContentObjectName = "test-asd.pdf";
+        // setup
+        when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL)))
+                .thenReturn(getClass().getResourceAsStream("/files/example-metadata-subject.json"));
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
+        processFileUseCase.processFile(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL), FILE);
         // test
-        testDefaults(useCaseName, STATIC_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, overwrittenContentObjectName);
+        final String incomingSubject = "TestKey_1: Test_Value_1\nTestKey_2: Test_Value_2";
+        testDefaults(useCaseName, STATIC_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, incomingSubject, overwrittenContentObjectName);
         verify(dmsOutPort, times(0)).getProcedureName(any());
         verify(dmsOutPort, times(0)).getIncomingCooByName(any(), any());
     }
@@ -114,7 +117,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
+        testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME, FILE_NAME);
     }
 
     @Test
@@ -123,7 +126,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
+        testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME, FILE_NAME);
         // call catch all
         final String fileName = "asd.pdf";
         final String filePath = "test/asd.pdf";
@@ -133,7 +136,7 @@ class ProcessFileUseCaseTest {
         processFileUseCase.processFile(new FileEvent(useCaseName, presignedUrl, null), file);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         // test catche all
-        verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(fileName), eq(null));
+        verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(fileName), eq(fileName), eq(null));
     }
 
     @Test
@@ -144,7 +147,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME);
+        testDefaults(useCaseName, FILENAME_DMS_TARGET, FILE_NAME, FILE_NAME, FILE_NAME);
         verify(dmsOutPort, times(1)).getProcedureName(eq(FILENAME_DMS_TARGET));
         // setup failure
         when(dmsOutPort.getProcedureName(eq(FILENAME_DMS_TARGET))).thenReturn("asd");
@@ -161,7 +164,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, FILENAME_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, FILE_NAME);
+        testDefaults(useCaseName, FILENAME_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, OVERWRITTEN_INCOMING_NAME, FILE_NAME);
         verify(dmsOutPort, times(1)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME));
         // setup reuse
         when(dmsOutPort.getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME))).thenReturn(Optional.of("COO.321.321.321"));
@@ -169,21 +172,21 @@ class ProcessFileUseCaseTest {
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
         verify(dmsOutPort, times(2)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME));
-        verify(dmsOutPort, times(1)).createIncoming(any(), any(), any(), any());
+        verify(dmsOutPort, times(1)).createIncoming(any(), any(), any(), any(), any());
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         verify(dmsOutPort, times(1)).createContentObject(eq(dmsTarget), eq(FILE_NAME), eq(null));
     }
 
-    private void testDefaults(final String useCaseName, final DmsTarget dmsTarget, final String fileName,
+    private void testDefaults(final String useCaseName, final DmsTarget dmsTarget, final String incomingName, final String incomingSubject,
             final String contentObjectName)
             throws UnknownUseCaseException, MetadataException {
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
-        verify(processFileUseCase, times(1)).resolveTargetCoo(isNull(), eq(useCase), eq(FILE));
+        verify(processFileUseCase, times(1)).resolveTargetCoo(any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(0)).resolveInboxDmsTarget(any());
         verify(dmsOutPort, times(0)).createContentObjectInInbox(any(), any(), any());
-        verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileName), eq(contentObjectName), eq(null));
+        verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(incomingName), eq(incomingSubject), eq(contentObjectName), eq(null));
     }
 
     private FileEvent buildFileEvent(final String useCaseName, final String metadataPresignedUrl) {

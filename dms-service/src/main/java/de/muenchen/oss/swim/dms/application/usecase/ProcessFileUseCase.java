@@ -23,6 +23,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
@@ -108,6 +109,13 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             // else apply pattern to original filename
             incomingName = this.patternHelper.applyPattern(useCase.getIncomingNamePattern(), file.getFileName(), metadataJson);
         }
+        // resolve subject for Incoming;
+        final String incomingSubject;
+        if (useCase.isMetadataSubject()) {
+            incomingSubject = this.subjectFromMetadata(metadataJson);
+        } else {
+            incomingSubject = incomingName;
+        }
         // check if incoming already exists
         if (useCase.isReuseIncoming()) {
             final Optional<String> incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, incomingName);
@@ -119,7 +127,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             }
         }
         // create Incoming
-        dmsOutPort.createIncoming(dmsTarget, incomingName, contentObjectName, fileStream);
+        dmsOutPort.createIncoming(dmsTarget, incomingName, incomingSubject, contentObjectName, fileStream);
     }
 
     /**
@@ -171,5 +179,31 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         final DmsTarget metadataTarget = dmsMetadataHelper.resolveInboxDmsTarget(metadataJson);
         // combine with use case joboe and jobposition
         return new DmsTarget(metadataTarget.coo(), metadataTarget.userName(), useCase.getJoboe(), useCase.getJobposition());
+    }
+
+    /**
+     * Build subject from metadata file.
+     *
+     * @param metadataJson Parsed JsonNode of metadata file.
+     * @return Constructed subject.
+     */
+    protected String subjectFromMetadata(final JsonNode metadataJson) throws MetadataException {
+        // validate metadata json provided
+        if (metadataJson == null) {
+            throw new MetadataException("Metadata JSON is required");
+        }
+        // map index fields with prefix to subject
+        final Map<String, String> indexFields = this.dmsMetadataHelper.getIndexFields(metadataJson);
+        return indexFields.entrySet().stream()
+                // filter for prefix
+                .filter(i -> i.getKey().startsWith(swimDmsProperties.getMetadataSubjectPrefix()))
+                // sort
+                .sorted(Map.Entry.comparingByKey())
+                // build subject string
+                .map(i -> String.format(
+                        "%s: %s",
+                        i.getKey().replaceFirst("^" + swimDmsProperties.getMetadataSubjectPrefix(), ""),
+                        i.getValue()))
+                .collect(Collectors.joining("\n"));
     }
 }

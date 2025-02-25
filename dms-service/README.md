@@ -62,6 +62,7 @@ swim:
       filename-to-coo: # for coo-source filename_map
       filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
       incoming-name-pattern: # overwrite Incoming name via Regex pattern, only applies to type incoming_object
+      metadata-subject: # enables incoming subject be built from metadata file
       verify-procedure-name-pattern: # verifies target procedure name matches this pattern, only applies to type incoming_object
 ```
 
@@ -110,6 +111,9 @@ The metadata file needs to have the following syntax.
 A valid metadata file either has personal `PPK_` or group `GPK_` inbox values defined (empty values are ignored).
 If a metadata file is required but missing or is invalid (syntax, value combination, ...) an Exception is thrown, which is handled by the [error-handling](#error-handling).
 
+Beside the usage of the metadata file as coo source (`coo-source: metadata_file`), values starting with `PdE_` (default) could be set as subject (see [Configuration](#configuration) `metadata-subject: true`).
+The below example would lead to a subject `ExampleKey1: Example Value 1\nExampleKey2: Example Value 2`.
+
 ```json
 {
   "Document": {
@@ -129,6 +133,14 @@ If a metadata file is required but missing or is invalid (syntax, value combinat
       {
         "Name": "GPK_Username",
         "Value": ""
+      },
+      {
+        "Name": "PdE_ExampleKey1",
+        "Value": "Example Value 1"
+      },
+      {
+        "Name": "PdE_ExampleKey2",
+        "Value": "Example Value 2"
       }
     ]
   }

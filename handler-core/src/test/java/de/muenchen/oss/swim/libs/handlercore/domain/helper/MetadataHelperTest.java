@@ -3,11 +3,13 @@ package de.muenchen.oss.swim.libs.handlercore.domain.helper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,7 @@ class MetadataHelperTest {
     private MetadataHelper metadataHelper;
 
     @Test
-    void testGetIndexFields() throws MetadataException {
+    void testParseMetadataFile() throws MetadataException {
         final Metadata metadata = metadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata.json"));
         final Map<String, String> expected = Map.of(
                 "Key1", "Value1",
@@ -30,14 +32,15 @@ class MetadataHelperTest {
     }
 
     @Test
-    void testGetIndexFields_MissingKeys() {
+    void testParseMetadataFile_MissingKeys() {
         // no Document key
-        final JsonNode invalidNode = objectMapper.createObjectNode();
-        assertThrows(MetadataException.class, () -> metadataHelper.getIndexFields(invalidNode));
+        final InputStream invalidNode = new ByteArrayInputStream(objectMapper.createObjectNode().toPrettyString().getBytes(StandardCharsets.UTF_8));
+        assertThrows(MetadataException.class, () -> metadataHelper.parseMetadataFile(invalidNode));
         // no IndexFields key
         final ObjectNode documentNode = objectMapper.createObjectNode();
         final ObjectNode rootNode = objectMapper.createObjectNode();
         rootNode.set(MetadataHelper.METADATA_DOCUMENT_KEY, documentNode);
-        assertThrows(MetadataException.class, () -> metadataHelper.getIndexFields(rootNode));
+        final InputStream rootNodeStream = new ByteArrayInputStream(rootNode.toPrettyString().getBytes(StandardCharsets.UTF_8));
+        assertThrows(MetadataException.class, () -> metadataHelper.parseMetadataFile(rootNodeStream));
     }
 }

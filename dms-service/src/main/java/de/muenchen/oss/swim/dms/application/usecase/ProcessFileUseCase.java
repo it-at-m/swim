@@ -1,6 +1,5 @@
 package de.muenchen.oss.swim.dms.application.usecase;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.configuration.DmsMeter;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
@@ -17,6 +16,7 @@ import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlExcept
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
@@ -33,6 +33,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class ProcessFileUseCase implements ProcessFileInPort {
+    protected static final String METADATA_TARGET_TYPE_INBOX = "inbox";
+    protected static final String METADATA_TARGET_TYPE_INCOMING = "incoming";
+
     private final SwimDmsProperties swimDmsProperties;
     private final FileSystemOutPort fileSystemOutPort;
     private final DmsOutPort dmsOutPort;
@@ -50,23 +53,31 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         // load file
         try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(event.presignedUrl())) {
             // parse metadata file if present
-            JsonNode metadataJson = null;
+            Metadata metadata = null;
             if (Strings.isNotBlank(event.metadataPresignedUrl())) {
                 try (InputStream metadataFileStream = fileSystemOutPort.getPresignedUrlFile(event.metadataPresignedUrl())) {
-                    metadataJson = dmsMetadataHelper.parseMetadataFile(metadataFileStream);
+                    metadata = dmsMetadataHelper.parseMetadataFile(metadataFileStream);
                 }
             }
+            // resolve target resource type
+            final UseCase.Type targetResource;
+            if (useCase.getType() == UseCase.Type.METADATA_FILE) {
+                targetResource = this.resolveTypeFromMetadataFile(metadata);
+            } else {
+                targetResource = useCase.getType();
+            }
             // get target coo
-            final DmsTarget dmsTarget = resolveTargetCoo(metadataJson, useCase, file);
+            final DmsTarget dmsTarget = this.resolveTargetCoo(targetResource, metadata, useCase, file);
             log.debug("Resolved dms target: {}", dmsTarget);
             // get ContentObject name
-            final String contentObjectName = this.patternHelper.applyPattern(useCase.getFilenameOverwritePattern(), file.getFileName(), metadataJson);
+            final String contentObjectName = this.patternHelper.applyPattern(useCase.getFilenameOverwritePattern(), file.getFileName(), metadata);
             // transfer to dms
-            switch (useCase.getType()) {
+            switch (targetResource) {
             // to dms inbox
             case INBOX -> dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectName, fileStream);
             // create dms incoming
-            case INCOMING_OBJECT -> this.processIncoming(file, useCase, dmsTarget, contentObjectName, fileStream, metadataJson);
+            case INCOMING_OBJECT -> this.processIncoming(file, useCase, dmsTarget, contentObjectName, fileStream, metadata);
+            case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
             }
         } catch (final IOException e) {
             throw new PresignedUrlException("Error while handling file InputStream", e);
@@ -86,14 +97,17 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param dmsTarget The resolved dms target.
      * @param contentObjectName The resolved name of the new ContentObject.
      * @param fileStream The content of the file.
-     * @param metadataJson Parsed JsonNode of metadata file.
+     * @param metadata Parsed metadata file.
      */
     protected void processIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget, final String contentObjectName,
-            final InputStream fileStream, final JsonNode metadataJson) throws MetadataException {
+            final InputStream fileStream, final Metadata metadata) throws MetadataException {
+        final String contentObjectNameWithoutExtension = contentObjectName.substring(0, contentObjectName.lastIndexOf('.'));
+        final String filename = file.getFileName();
+        final String filenameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
         // check target procedure name
         if (Strings.isNotBlank(useCase.getVerifyProcedureNamePattern())) {
             final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);
-            final String resolvedPattern = this.patternHelper.applyPattern(useCase.getVerifyProcedureNamePattern(), file.getFileName(), metadataJson);
+            final String resolvedPattern = this.patternHelper.applyPattern(useCase.getVerifyProcedureNamePattern(), filenameWithoutExtension, metadata);
             if (!procedureName.toLowerCase(Locale.ROOT).contains(resolvedPattern.toLowerCase(Locale.ROOT))) {
                 final String message = String.format("Procedure name %s doesn't contain resolved pattern %s", procedureName, resolvedPattern);
                 throw new DmsException(message);
@@ -104,15 +118,15 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         if (Strings.isBlank(useCase.getIncomingNamePattern())) {
             // use resolved ContentObject name (filename) if no pattern for Incoming name is defined
             // resolved in this case means the UseCase#filenameOverwritePattern is applied first
-            incomingName = contentObjectName;
+            incomingName = contentObjectNameWithoutExtension;
         } else {
             // else apply pattern to original filename
-            incomingName = this.patternHelper.applyPattern(useCase.getIncomingNamePattern(), file.getFileName(), metadataJson);
+            incomingName = this.patternHelper.applyPattern(useCase.getIncomingNamePattern(), filenameWithoutExtension, metadata);
         }
         // resolve subject for Incoming;
         final String incomingSubject;
         if (useCase.isMetadataSubject()) {
-            incomingSubject = this.subjectFromMetadata(metadataJson);
+            incomingSubject = this.subjectFromMetadata(metadata);
         } else {
             incomingSubject = incomingName;
         }
@@ -134,19 +148,21 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * Resolve target coo for useCase.
      * {@link UseCase.Type}
      *
-     * @param metadataJson Parsed JsonNode of metadata file.
+     * @param resourceType Target type the coo is resolved for.
+     * @param metadata Parsed metadata file.
      * @param useCase The use case.
+     * @param file The file to resolve the coo for.
      * @return The resolved coo.
      */
-    protected DmsTarget resolveTargetCoo(final JsonNode metadataJson, final UseCase useCase, final File file)
+    protected DmsTarget resolveTargetCoo(final UseCase.Type resourceType, final Metadata metadata, final UseCase useCase, final File file)
             throws MetadataException {
         return switch (useCase.getCooSource()) {
-        case METADATA_FILE -> this.resolveMetadataTargetCoo(metadataJson, useCase);
+        case METADATA_FILE -> this.resolveMetadataTargetCoo(resourceType, metadata, useCase);
         case FILENAME -> {
             if (Strings.isBlank(useCase.getFilenameCooPattern())) {
                 throw new IllegalArgumentException("Filename coo pattern is required");
             }
-            final String targetCoo = this.patternHelper.applyPattern(useCase.getFilenameCooPattern(), file.getFileName(), metadataJson);
+            final String targetCoo = this.patternHelper.applyPattern(useCase.getFilenameCooPattern(), file.getFileName(), metadata);
             yield new DmsTarget(targetCoo, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         }
         case FILENAME_MAP -> {
@@ -166,34 +182,62 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     /**
      * Resolve DmsTarget via metadata file.
      *
-     * @param metadataJson Parsed JsonNode of metadata file.
+     * @param metadata Parsed metadata file.
      * @param useCase UseCase of the file.
      * @return Resolved DmsTarget.
      */
-    protected DmsTarget resolveMetadataTargetCoo(final JsonNode metadataJson, final UseCase useCase) throws MetadataException {
-        // validate metadata json provided
-        if (metadataJson == null) {
-            throw new MetadataException("Metadata JSON is required");
+    protected DmsTarget resolveMetadataTargetCoo(final UseCase.Type resourceType, final Metadata metadata, final UseCase useCase) throws MetadataException {
+        // validate metadata provided
+        if (metadata == null) {
+            throw new MetadataException("Target coo via metadata file: Metadata is required");
         }
         // extract coo and username from metadata
-        final DmsTarget metadataTarget = dmsMetadataHelper.resolveInboxDmsTarget(metadataJson);
-        // combine with use case joboe and jobposition
-        return new DmsTarget(metadataTarget.coo(), metadataTarget.userName(), useCase.getJoboe(), useCase.getJobposition());
+        final DmsTarget metadataTarget = switch (resourceType) {
+        case INBOX -> dmsMetadataHelper.resolveInboxDmsTarget(metadata);
+        case INCOMING_OBJECT -> dmsMetadataHelper.resolveIncomingDmsTarget(metadata);
+        case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
+        };
+        // combine resolves target with use case
+        return this.combineDmsTargetWithUseCase(metadataTarget, useCase);
+    }
+
+    /**
+     * Resolve dms target resource type from metadata file.
+     *
+     * @param metadata Parsed metadata file.
+     * @return The resolved type.
+     * @throws MetadataException If metadata can't be parsed or has illegal values.
+     */
+    protected UseCase.Type resolveTypeFromMetadataFile(final Metadata metadata) throws MetadataException {
+        // validate metadata provided
+        if (metadata == null) {
+            throw new MetadataException("DMS target type via metadata file: Metadata is required");
+        }
+        // load value from metadata file
+        final Map<String, String> indexFields = metadata.indexFields();
+        final String metadataDmsTarget = indexFields.get(swimDmsProperties.getMetadataDmsTargetKey());
+        // resolve type from value
+        return switch (metadataDmsTarget) {
+        case METADATA_TARGET_TYPE_INBOX -> UseCase.Type.INBOX;
+        case METADATA_TARGET_TYPE_INCOMING -> UseCase.Type.INCOMING_OBJECT;
+        case null, default ->
+                throw new MetadataException(String.format("DMS target type via metadata file: Unexpected %s value: %s", swimDmsProperties.getMetadataDmsTargetKey(), metadataDmsTarget));
+        };
     }
 
     /**
      * Build subject from metadata file.
      *
-     * @param metadataJson Parsed JsonNode of metadata file.
+     * @param metadata Parsed metadata file.
      * @return Constructed subject.
      */
-    protected String subjectFromMetadata(final JsonNode metadataJson) throws MetadataException {
-        // validate metadata json provided
-        if (metadataJson == null) {
-            throw new MetadataException("Metadata JSON is required");
+    protected String subjectFromMetadata(final Metadata metadata) throws MetadataException {
+        // validate metadata provided
+        if (metadata == null) {
+            throw new MetadataException("Metadata is required");
         }
         // map index fields with prefix to subject
-        final Map<String, String> indexFields = this.dmsMetadataHelper.getIndexFields(metadataJson);
+        final Map<String, String> indexFields = metadata.indexFields();
         return indexFields.entrySet().stream()
                 // filter for prefix
                 .filter(i -> i.getKey().startsWith(swimDmsProperties.getMetadataSubjectPrefix()))
@@ -205,5 +249,26 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                         i.getKey().replaceFirst("^" + swimDmsProperties.getMetadataSubjectPrefix(), ""),
                         i.getValue()))
                 .collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Combine resolved DmsTarget with UseCase values.
+     * Checks that only one of both defines job oe and position values.
+     *
+     * @param dmsTarget Resolved target.
+     * @param useCase UseCase the target was resolved for.
+     * @return Combined DmsTarget.
+     * @throws IllegalStateException If both inputs define job oe or position.
+     */
+    protected DmsTarget combineDmsTargetWithUseCase(final DmsTarget dmsTarget, final UseCase useCase) {
+        final boolean dmsTargetHasJob = Strings.isNotBlank(dmsTarget.joboe()) || Strings.isNotBlank(dmsTarget.jobposition());
+        final boolean useCaseHasJob = Strings.isNotBlank(useCase.getJoboe()) || Strings.isNotBlank(useCase.getJobposition());
+        if (dmsTargetHasJob && useCaseHasJob) {
+            throw new IllegalStateException("Resolve dms target: Job oe and position defined via resolve and via use case not allowed");
+        }
+        if (dmsTargetHasJob) {
+            return dmsTarget;
+        }
+        return new DmsTarget(dmsTarget.coo(), dmsTarget.userName(), useCase.getJoboe(), useCase.getJobposition());
     }
 }

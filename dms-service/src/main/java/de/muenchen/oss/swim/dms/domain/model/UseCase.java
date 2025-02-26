@@ -95,7 +95,11 @@ public class UseCase {
          * Either inside given Procedure {@link DmsTarget#coo()} or OU work queue of
          * {@link DmsTarget#userName()}.
          */
-        INCOMING_OBJECT
+        INCOMING_OBJECT,
+        /**
+         * Resolve target resource type from metadata file.
+         */
+        METADATA_FILE
     }
 
     public enum CooSource {

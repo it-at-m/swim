@@ -3,7 +3,6 @@ package de.muenchen.oss.swim.dispatcher.application.usecase;
 import static de.muenchen.oss.swim.dispatcher.application.usecase.helper.FileHandlingHelper.FILE_EXTENSION_PDF;
 import static de.muenchen.oss.swim.dispatcher.domain.model.DispatchActions.DISPATCH;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dispatcher.application.port.in.DispatcherInPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileDispatchingOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
@@ -37,9 +36,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DispatcherUseCase implements DispatcherInPort {
     protected static final String ACTION_REROUTE_DESTINATION_TAG_KEY = "SWIM_Reroute_Destination";
-    protected static final String METADATA_INDEX_FIELDS_POINTER = "/Document/IndexFields";
-    public static final String METADATA_INDEX_FIELDS_KEY_KEY = "Name";
-    public static final String METADATA_INDEX_FIELDS_VALUE_KEY = "Value";
 
     private final SwimDispatcherProperties swimDispatcherProperties;
     private final FileSystemOutPort fileSystemOutPort;
@@ -47,7 +43,6 @@ public class DispatcherUseCase implements DispatcherInPort {
     private final NotificationOutPort notificationOutPort;
     private final FileHandlingHelper fileHandlingHelper;
     private final DispatchMeter dispatchMeter;
-    private final ObjectMapper objectMapper;
     private final MetadataHelper metadataHelper;
 
     @Override

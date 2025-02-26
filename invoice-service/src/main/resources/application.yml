@@ -85,5 +85,6 @@ info:
 
 swim:
   sap:
+    filename-pattern: "([^-]+)-([^-]+)-([^-]+)-?(.*).pdf"
     info-pagination-key: "Paginier_Nummer"
     info-barcode-key: "Barcode"

@@ -15,7 +15,7 @@ class SapProperties {
      * URL of SAP-PO instance to send request to.
      */
     @NotBlank
-    private String endpoint;
+    private String endpointUrl;
     /**
      * Username to authenticated against SAP-PO.
      */
@@ -27,12 +27,20 @@ class SapProperties {
     @NotBlank
     private String password;
     /**
-     * Key to put {@link ParsedFilename#paginationNr()} in additional information of created invoices.
+     * Regex pattern for parsing filename to different parts.
+     * Needs to lead to four matching groups, which are mapped to: document type, pagination nr, box nr
+     * and barcode.
+     */
+    @NotBlank
+    private String filenamePattern;
+    /**
+     * Key to put {@link ParsedFilename#getPaginationNr()} in additional information of created
+     * invoices.
      */
     @NotBlank
     private String infoPaginationKey;
     /**
-     * Key to put {@link ParsedFilename#barcode()} in additional information of created invoices.
+     * Key to put {@link ParsedFilename#getBarcode()} in additional information of created invoices.
      * Only applied for {@link ParsedFilename.DocumentType#RBU}.
      */
     @NotBlank

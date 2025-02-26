@@ -33,18 +33,22 @@ Errors which occur during processing a file are transmitted via Kafka to the [di
 swim:
   # sap-po connection configuration
   sap:
-    endpoint:
+    endpoint-url:
     username:
     password:
+    filename-pattern: "([^-]+)-([^-]+)-([^-]+)-?(.*).pdf" # See Filename syntax (default)
+    info-pagination-key: "Paginier_Nummer" # key for pagination nr in additional invoice information (default)
+    info-barcode-key: "Barcode" # key for barcode in additional invoice information (default)
 ```
 
 ## Filename syntax
 
 The invoice-service processes the file by extracting required information from the input filename.
-The syntax of the filename must therefore follow following pattern:
+The pattern to extract the information can be configured. See [Configuration](#configuration) `filename-pattern`.
+It needs to contain four matching groups which are resolved as shown in following example:
 
 ```
-Regex: ([^-]+)-([^-]+)-([^-]+)-?(.*).pdf
+Default Regex: ([^-]+)-([^-]+)-([^-]+)-?(.*).pdf
 <document type>-<pagination nr>-<box nr>-<barcode>.pdf
 ```
 

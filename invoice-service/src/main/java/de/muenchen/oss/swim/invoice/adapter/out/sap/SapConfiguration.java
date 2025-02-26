@@ -27,7 +27,7 @@ class SapConfiguration {
     public SIInvoiceDocumentSYOB invoiceSoapClient() {
         final SIInvoiceDocumentSYOBService service = new SIInvoiceDocumentSYOBService();
         final SIInvoiceDocumentSYOB soapClient = service.getHTTPPort();
-        ((BindingProvider) soapClient).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, sapProperties.getEndpoint());
+        ((BindingProvider) soapClient).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, sapProperties.getEndpointUrl());
         ((BindingProvider) soapClient).getRequestContext().put(BindingProvider.USERNAME_PROPERTY, sapProperties.getUsername());
         ((BindingProvider) soapClient).getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, sapProperties.getPassword());
         final SOAPBinding binding = (SOAPBinding) ((BindingProvider) soapClient).getBinding();

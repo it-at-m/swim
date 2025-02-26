@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class SapAdapter implements InvoiceServiceOutPort {
-    private static final String INVOICE_FILENAME_PATTERN = "([^-]+)-([^-]+)-([^-]+)-?(.*).pdf";
     private static final String DOCUMENT_TYPE_PDF = "PDF";
 
     private final SapProperties sapProperties;
@@ -95,7 +94,7 @@ public class SapAdapter implements InvoiceServiceOutPort {
      * @return The parsed filename.
      */
     /* default */ ParsedFilename parseFilename(final String filename) {
-        final Pattern pattern = Pattern.compile(INVOICE_FILENAME_PATTERN, Pattern.CASE_INSENSITIVE);
+        final Pattern pattern = Pattern.compile(this.sapProperties.getFilenamePattern(), Pattern.CASE_INSENSITIVE);
         final Matcher matcher = pattern.matcher(filename);
         if (!matcher.find()) {
             throw new InvoiceException("Filename did not match the expected format. Expected: <document type>-<pagination nr>-<box nr>-<barcode>.pdf, found: " +

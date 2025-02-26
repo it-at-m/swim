@@ -14,7 +14,7 @@ class ParsedFilename {
     private final String boxNr;
     private final String barcode;
 
-    ParsedFilename(final String documentType, final String paginationNr, final String boxNr, final String barcode) {
+    public ParsedFilename(final String documentType, final String paginationNr, final String boxNr, final String barcode) {
         this.documentType = ParsedFilename.DocumentType.valueOf(documentType);
         this.paginationNr = paginationNr;
         this.boxNr = boxNr;

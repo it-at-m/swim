@@ -49,7 +49,7 @@ Regex: ([^-]+)-([^-]+)-([^-]+)-?(.*).pdf
 ```
 
 - Document type: type of the input document
-  - Allowed values: `REC` and `RBU`
+  - Allowed values: `REC` (short for german "Rechnung") and `RBU` (short for german "rechnungsbegleitende Unterlage")
 - Pagination number (German "Paginiernummer")
 - Box number (German "Kistennummer")
 - Barcode

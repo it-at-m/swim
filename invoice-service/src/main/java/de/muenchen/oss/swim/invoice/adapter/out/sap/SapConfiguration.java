@@ -14,6 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configuration for creating SOAP client.
+ * Includes custom response handler.
+ */
 @Configuration
 @RequiredArgsConstructor
 class SapConfiguration {

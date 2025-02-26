@@ -82,3 +82,8 @@ info:
   build:
     java.version: @java.version@
     spring-cloud.version: @spring-cloud-dependencies.version@
+
+swim:
+  sap:
+    info-pagination-key: "Paginier_Nummer"
+    info-barcode-key: "Barcode"

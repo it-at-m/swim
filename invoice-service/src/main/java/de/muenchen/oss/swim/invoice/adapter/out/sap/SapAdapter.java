@@ -28,6 +28,7 @@ public class SapAdapter implements InvoiceServiceOutPort {
     private static final String INVOICE_FILENAME_PATTERN = "([^-]+)-([^-]+)-([^-]+)-?(.*).pdf";
     private static final String DOCUMENT_TYPE_PDF = "PDF";
 
+    private final SapProperties sapProperties;
     private final SIInvoiceDocumentSYOB invoiceClient;
 
     @Override
@@ -47,9 +48,9 @@ public class SapAdapter implements InvoiceServiceOutPort {
         request.setDocument(new DataHandler(new InputStreamDataSource(inputStream)));
         request.setDocumentHeader(header);
         // add document type additional information
-        this.addAdditionalInformation(request, "Paginier_Nummer", parsedFilename.paginationNr());
+        this.addAdditionalInformation(request, sapProperties.getInfoPaginationKey(), parsedFilename.paginationNr());
         if (parsedFilename.documentType() == ParsedFilename.DocumentType.RBU) {
-            this.addAdditionalInformation(request, "Barcode", parsedFilename.barcode());
+            this.addAdditionalInformation(request, sapProperties.getInfoBarcodeKey(), parsedFilename.barcode());
         }
         // make request
         try {

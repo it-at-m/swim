@@ -1,0 +1,18 @@
+{
+  "Document": {
+    "IndexFields": [
+      {
+        "Name": "SWIM_DMS_Target",
+        "Value": "incoming"
+      },
+      {
+        "Name": "VG_COO",
+        "Value": "incomingMetadataCoo"
+      },
+      {
+        "Name": "VG_Username",
+        "Value": "metadata.user"
+      }
+    ]
+  }
+}

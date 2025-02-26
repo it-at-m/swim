@@ -40,6 +40,31 @@ public class SwimDmsProperties {
     @NotBlank
     private String metadataGroupInboxUserKey;
     /**
+     * Var name in metadata file to get target incoming coo from.
+     */
+    @NotBlank
+    private String metadataIncomingCooKey;
+    /**
+     * Var name in metadata file to get target incoming owner from.
+     */
+    @NotBlank
+    private String metadataIncomingUserKey;
+    /**
+     * Var name in metadata file to get target incoming joboe from.
+     */
+    @NotBlank
+    private String metadataIncomingJoboeKey;
+    /**
+     * Var name in metadata file to get target incoming jobposition from.
+     */
+    @NotBlank
+    private String metadataIncomingJobpositionKey;
+    /**
+     * Var name in metadata file to get dms target resource type from.
+     */
+    @NotBlank
+    private String metadataDmsTargetKey;
+    /**
      * Prefix of metadata index fields which should be put into subject.
      * See {@link UseCase#isMetadataSubject()}.
      */

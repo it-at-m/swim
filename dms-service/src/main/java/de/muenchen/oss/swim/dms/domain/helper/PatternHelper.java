@@ -1,26 +1,21 @@
 package de.muenchen.oss.swim.dms.domain.helper;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import jakarta.validation.constraints.NotBlank;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class PatternHelper {
     public static final String RAW_PATTERN = "^s/(.+)/(.+)/(m?)$";
     public static final Pattern PATTERN = Pattern.compile(RAW_PATTERN);
     public static final String OPTION_METADATA = "m";
-
-    private final DmsMetadataHelper dmsMetadataHelper;
 
     /**
      * Apply substitution pattern.
@@ -28,11 +23,10 @@ public class PatternHelper {
      *
      * @param fullPattern The pattern.
      * @param input The input to apply the first pattern to.
-     * @param metadataJson The parsed metadata file.
+     * @param metadata Parsed metadata file.
      * @return The result of the applied pattern.
-     * @throws MetadataException If map can't be extracted from metadata json.
      */
-    public String applyPattern(@NotBlank final String fullPattern, @NotBlank final String input, final JsonNode metadataJson) throws MetadataException {
+    public String applyPattern(@NotBlank final String fullPattern, @NotBlank final String input, final Metadata metadata) {
         if (Strings.isBlank(fullPattern)) {
             return input;
         }
@@ -46,7 +40,7 @@ public class PatternHelper {
             final Map<String, String> substitutionMap = new HashMap<>(this.resolveSubstitutionMapFromInput(regex, input));
             // load metadata if enabled
             if (options.contains(OPTION_METADATA)) {
-                substitutionMap.putAll(this.resolveSubstitutionMapFromMetadata(metadataJson));
+                substitutionMap.putAll(this.resolveSubstitutionMapFromMetadata(metadata));
             }
             // do substitution
             final StringSubstitutor substitutor = new StringSubstitutor(substitutionMap);
@@ -87,15 +81,14 @@ public class PatternHelper {
     /**
      * Resolve substitution map from metadata file.
      *
-     * @param metadataJson The parsed json of the metadata file.
+     * @param metadata Parsed metadata file.
      * @return Substitution map based on metadata file.
-     * @throws MetadataException If map can't be extracted from metadata json.
      */
-    protected Map<String, String> resolveSubstitutionMapFromMetadata(final JsonNode metadataJson) throws MetadataException {
-        if (metadataJson == null) {
+    protected Map<String, String> resolveSubstitutionMapFromMetadata(final Metadata metadata) {
+        if (metadata == null) {
             throw new IllegalArgumentException("Metadata json is null but option defined");
         }
-        return dmsMetadataHelper.getIndexFields(metadataJson).entrySet().stream()
+        return metadata.indexFields().entrySet().stream()
                 .collect(Collectors.toMap(e -> "if." + e.getKey(), Map.Entry::getValue));
     }
 }

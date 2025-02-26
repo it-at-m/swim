@@ -37,7 +37,7 @@ public class SapAdapter implements InvoiceServiceOutPort {
         final ParsedFilename parsedFilename = parseFilename(filename);
         // build document header
         final DocumentHeader header = new DocumentHeader();
-        header.setDocumentType(parsedFilename.documentType().getSapValue());
+        header.setDocumentType(parsedFilename.getDocumentType().getSapValue());
         final XMLGregorianCalendar xmlGregorianCalendar = DatatypeFactory.newDefaultInstance().newXMLGregorianCalendar(new GregorianCalendar());
         header.setScanDate(xmlGregorianCalendar);
         header.setScanTime(xmlGregorianCalendar);
@@ -48,9 +48,9 @@ public class SapAdapter implements InvoiceServiceOutPort {
         request.setDocument(new DataHandler(new InputStreamDataSource(inputStream)));
         request.setDocumentHeader(header);
         // add document type additional information
-        this.addAdditionalInformation(request, sapProperties.getInfoPaginationKey(), parsedFilename.paginationNr());
-        if (parsedFilename.documentType() == ParsedFilename.DocumentType.RBU) {
-            this.addAdditionalInformation(request, sapProperties.getInfoBarcodeKey(), parsedFilename.barcode());
+        this.addAdditionalInformation(request, sapProperties.getInfoPaginationKey(), parsedFilename.getPaginationNr());
+        if (parsedFilename.getDocumentType() == ParsedFilename.DocumentType.RBU) {
+            this.addAdditionalInformation(request, sapProperties.getInfoBarcodeKey(), parsedFilename.getBarcode());
         }
         // make request
         try {
@@ -101,14 +101,13 @@ public class SapAdapter implements InvoiceServiceOutPort {
             throw new InvoiceException("Filename did not match the expected format. Expected: <document type>-<pagination nr>-<box nr>-<barcode>.pdf, found: " +
                     filename);
         }
-        final ParsedFilename.DocumentType documentType = ParsedFilename.DocumentType.valueOf(matcher.group(1));
         final ParsedFilename parsedFilename = new ParsedFilename(
-                documentType,
+                matcher.group(1),
                 matcher.group(2),
                 matcher.group(3),
                 matcher.group(4));
         // document type RBU requires barcode
-        if (documentType == ParsedFilename.DocumentType.RBU && Strings.isBlank(parsedFilename.barcode())) {
+        if (parsedFilename.getDocumentType() == ParsedFilename.DocumentType.RBU && Strings.isBlank(parsedFilename.getBarcode())) {
             throw new InvoiceException("RBU but no barcode in filename: " + filename);
         }
         return parsedFilename;

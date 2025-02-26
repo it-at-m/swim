@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.invoice.adapter.out.sap;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
@@ -10,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 @Data
 @ConfigurationProperties("swim.sap")
 @Validated
+@ToString(exclude = "password")
 class SapProperties {
     /**
      * URL of SAP-PO instance to send request to.
@@ -17,12 +19,12 @@ class SapProperties {
     @NotBlank
     private String endpointUrl;
     /**
-     * Username to authenticated against SAP-PO.
+     * Username to authenticate against SAP-PO.
      */
     @NotBlank
     private String username;
     /**
-     * Password to authenticated against SAP-PO.
+     * Password to authenticate against SAP-PO.
      */
     @NotBlank
     private String password;

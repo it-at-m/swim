@@ -13,6 +13,15 @@ swim:
       destination-binding: dms-out
       mail-addresses:
         - test-meta@example.com
+    - name: test-meta-dest
+      bucket: test-bucket-3
+      path: test3
+      recursive: true
+      requires-metadata: true
+      destination-via-metadata: true
+      destination-binding: dms-out
+      mail-addresses:
+        - test-meta@example.com
     - name: test2
       bucket: test-bucket-2
       path: path/test2

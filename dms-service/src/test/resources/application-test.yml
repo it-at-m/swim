@@ -3,6 +3,9 @@ swim:
     - name: metadata-inbox
       type: inbox
       coo-source: metadata_file
+    - name: metadata-metadata
+      type: metadata_file
+      coo-source: metadata_file
     - name: static-incoming
       type: incoming_object
       coo-source: static

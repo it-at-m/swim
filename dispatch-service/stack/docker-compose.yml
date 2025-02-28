@@ -123,7 +123,7 @@ services:
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-finished-local --replication-factor 1 --partitions 1
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-dispatch-dlq-local --replication-factor 1 --partitions 1
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-dms-local --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-invoices-local --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-invoice-local --replication-factor 1 --partitions 1
 
       echo -e 'Resulting topics:'
       kafka-topics --bootstrap-server kafka:9092 --list

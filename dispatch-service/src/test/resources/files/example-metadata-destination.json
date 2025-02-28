@@ -1,0 +1,10 @@
+{
+  "Document": {
+    "IndexFields": [
+      {
+        "Name": "SWIM_Dispatch_Target",
+        "Value": "invoice-out"
+      }
+    ]
+  }
+}

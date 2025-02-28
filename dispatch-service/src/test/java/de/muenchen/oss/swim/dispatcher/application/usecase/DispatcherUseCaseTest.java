@@ -20,6 +20,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dispatcher.TestConstants;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileDispatchingOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
@@ -30,6 +31,7 @@ import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
+import de.muenchen.oss.swim.dispatcher.domain.helper.MetadataHelper;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.List;
@@ -44,11 +46,15 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-@SpringBootTest(classes = { SwimDispatcherProperties.class, DispatcherUseCase.class, FileHandlingHelper.class })
+@SpringBootTest(classes = { SwimDispatcherProperties.class, DispatcherUseCase.class, FileHandlingHelper.class, ObjectMapper.class, MetadataHelper.class })
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
 class DispatcherUseCaseTest {
+    public static final String PRESIGNED_URL_METADATA_FILE = "presignedMeta";
+    public static final String PRESIGNED_URL_FILE = "presignedFile";
+    public static final String METATA_PATH = "test/inProcess/path/test.json";
+
     @MockitoBean
     private DispatchMeter dispatchMeter;
     @MockitoBean
@@ -108,17 +114,38 @@ class DispatcherUseCaseTest {
     void testProcessFile_Success() throws FileSizeException, MetadataException, UseCaseException {
         // setup
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
-        when(fileSystemOutPort.fileExists(eq(BUCKET), eq("test/inProcess/path/test.json"))).thenReturn(true);
-        when(fileSystemOutPort.getPresignedUrl(eq(BUCKET), eq("test/inProcess/path/test.json"))).thenReturn("presignedMeta");
-        when(fileSystemOutPort.getPresignedUrl(eq(BUCKET), eq(FILE1.path()))).thenReturn("presignedFile");
+        when(fileSystemOutPort.fileExists(eq(BUCKET), eq(METATA_PATH))).thenReturn(true);
+        when(fileSystemOutPort.getPresignedUrl(eq(BUCKET), eq(METATA_PATH))).thenReturn(PRESIGNED_URL_METADATA_FILE);
+        when(fileSystemOutPort.getPresignedUrl(eq(BUCKET), eq(FILE1.path()))).thenReturn(PRESIGNED_URL_FILE);
         // call
         dispatcherUseCase.processFile(useCase, FILE1, TAGS);
         // test
-        verify(fileDispatchingOutPort, times(1)).dispatchFile(eq(useCase.getDestinationBinding()), eq(USE_CASE), eq("presignedFile"), eq("presignedMeta"));
+        verify(fileDispatchingOutPort, times(1)).dispatchFile(eq(useCase.getDestinationBinding()), eq(USE_CASE), eq(PRESIGNED_URL_FILE), eq(
+                PRESIGNED_URL_METADATA_FILE));
         verify(dispatcherUseCase, times(0)).rerouteFileToUseCase(any(), any(), any());
         verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
         verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(useCase.getDestinationBinding()));
+    }
+
+    @Test
+    void testProcessFile_MetadataDestination() throws FileSizeException, MetadataException, UseCaseException {
+        // setup
+        final String useCaseName = "test-meta-dest";
+        final UseCase useCase = swimDispatcherProperties.findUseCase(useCaseName);
+        when(fileSystemOutPort.fileExists(eq(BUCKET), eq(METATA_PATH))).thenReturn(true);
+        when(fileSystemOutPort.getPresignedUrl(eq(BUCKET), eq(METATA_PATH))).thenReturn(PRESIGNED_URL_METADATA_FILE);
+        when(fileSystemOutPort.getPresignedUrl(eq(BUCKET), eq(FILE1.path()))).thenReturn(PRESIGNED_URL_FILE);
+        when(fileSystemOutPort.readFile(eq(BUCKET), eq(METATA_PATH)))
+                .thenReturn(getClass().getResourceAsStream("/files/example-metadata-destination.json"));
+        // call
+        dispatcherUseCase.processFile(useCase, FILE1, TAGS);
+        // test
+        verify(fileDispatchingOutPort, times(1)).dispatchFile(eq("invoice-out"), eq(useCaseName), eq(PRESIGNED_URL_FILE), eq(PRESIGNED_URL_METADATA_FILE));
+        verify(dispatcherUseCase, times(0)).rerouteFileToUseCase(any(), any(), any());
+        verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
+                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
+        verify(dispatchMeter, times(1)).incrementDispatched(eq(useCaseName), eq("invoice-out"));
     }
 
     @Test
@@ -132,7 +159,7 @@ class DispatcherUseCaseTest {
     void testProcessFile_MetadataException() {
         // setup
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
-        when(fileSystemOutPort.fileExists(eq(BUCKET), eq("test/inProcess/path/test.json"))).thenReturn(false);
+        when(fileSystemOutPort.fileExists(eq(BUCKET), eq(METATA_PATH))).thenReturn(false);
         // call and test
         assertThrows(MetadataException.class, () -> dispatcherUseCase.processFile(useCase, FILE1, TAGS));
     }
@@ -148,7 +175,7 @@ class DispatcherUseCaseTest {
         dispatcherUseCase.processFile(useCase, FILE1, tags);
         // test
         verify(fileDispatchingOutPort, times(0)).dispatchFile(any(), any(), any(), any());
-        verify(dispatcherUseCase, times(0)).dispatchFile(any(), any());
+        verify(dispatcherUseCase, times(0)).dispatchFile(any(), any(), any());
         verify(dispatcherUseCase, times(0)).rerouteFileToUseCase(any(), any(), any());
         verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchFileFinishedTagValue())));

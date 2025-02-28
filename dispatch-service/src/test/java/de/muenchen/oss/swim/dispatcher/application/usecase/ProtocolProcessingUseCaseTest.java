@@ -95,7 +95,7 @@ class ProtocolProcessingUseCaseTest {
         final String protocolDirFinished = useCase.getFinishedPath(swimDispatcherProperties, protocolDir);
         when(fileSystemOutPort.getMatchingFilesWithTags(eq(BUCKET), eq(protocolDirFinished), eq(false), any(), any(), anyMap()))
                 .thenReturn(Map.of(FILE1, TAGS, FILE2, TAGS));
-        final InputStream protocolStream = getClass().getResourceAsStream("file/protocol.csv");
+        final InputStream protocolStream = getClass().getResourceAsStream("files/protocol.csv");
         when(fileSystemOutPort.readFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(protocolStream);
         // call
         protocolProcessingUseCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE);
@@ -124,7 +124,7 @@ class ProtocolProcessingUseCaseTest {
                 FILE1, TAGS,
                 FILE2, TAGS,
                 new File(BUCKET, "test/inProcess/path/test3.pdf", 0L), TAGS));
-        final InputStream protocolStream = getClass().getResourceAsStream("file/protocol.csv");
+        final InputStream protocolStream = getClass().getResourceAsStream("files/protocol.csv");
         when(fileSystemOutPort.readFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(protocolStream);
         // call
         protocolProcessingUseCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE);

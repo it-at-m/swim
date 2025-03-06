@@ -67,10 +67,10 @@ public interface DmsOutPort {
     /**
      * Find dms object via name and resource type.
      *
-     * @param ressourceType The type of the dms resource to search for.
+     * @param resourceType The type of the dms resource to search for.
      * @param objectName The name of the object to search for.
      * @param requestContext The context (username, joboe, jobposition) to make the search request with.
      * @return The COOs of all matching objects.
      */
-    List<String> findObjectsByName(@NotNull UseCase.Type ressourceType, @NotNull String objectName, @NotNull @Valid DmsTarget requestContext);
+    List<String> findObjectsByName(@NotNull UseCase.Type resourceType, @NotNull String objectName, @NotNull @Valid DmsTarget requestContext);
 }

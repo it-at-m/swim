@@ -167,12 +167,12 @@ public class DmsAdapter implements DmsOutPort {
     }
 
     @Override
-    public List<String> findObjectsByName(final UseCase.Type ressourceType, final String objectName, final DmsTarget requestContext) {
+    public List<String> findObjectsByName(final UseCase.Type resourceType, final String objectName, final DmsTarget requestContext) {
         final SearchObjNameAnfrageDTO request = new SearchObjNameAnfrageDTO();
         request.searchstring(objectName);
-        final String dmsObjectType = DMS_OBJECT_TYPE_MAPPING.get(ressourceType);
+        final String dmsObjectType = DMS_OBJECT_TYPE_MAPPING.get(resourceType);
         if (dmsObjectType == null) {
-            throw new IllegalArgumentException(String.format("Input resource type %s couldn't be mapped to DMS ressource type", ressourceType.name()));
+            throw new IllegalArgumentException(String.format("Input resource type %s couldn't be mapped to DMS resource type", resourceType.name()));
         }
         request.setObjclass(dmsObjectType);
 

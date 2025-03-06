@@ -109,7 +109,7 @@ The `type` attribute of a use case defines what type of resource is created in t
 
 ### Coo source
 
-The `coo-source` attribute of a use case defines how the target resource, under which the new ressource is created, is resolved.
+The `coo-source` attribute of a use case defines how the target resource, under which the new resource is created, is resolved.
 
 - `metadata_file`: The target coo and username are resolved via a separate metadata file, which is placed beside the original file in the S3. See [Metadata file](#metadata-file).
 - `static`: The target coo is defined statically via the `target-coo` use case attribute.

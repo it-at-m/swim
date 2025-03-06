@@ -43,7 +43,7 @@ public class UseCase {
     @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String filenameCooPattern;
     /**
-     * Regex pattern for extracting target dms ressource name from filename.
+     * Regex pattern for extracting target dms resource name from filename.
      * {@link UseCase.CooSource#FILENAME_NAME}
      */
     @Pattern(regexp = PatternHelper.RAW_PATTERN)

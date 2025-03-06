@@ -23,6 +23,13 @@ swim:
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition
+    - name: filename-name-incoming
+      type: incoming_object
+      coo-source: filename_name
+      filename-name-pattern: "s/^(.+)-(?:COO.[^-]+)-.+$/\\${1}/"
+      username: staticUsername
+      joboe: staticJobOe
+      jobposition: staticJobPosition
     - name: map-incoming
       type: incoming_object
       coo-source: filename_map

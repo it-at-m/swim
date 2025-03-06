@@ -27,6 +27,7 @@ import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlExcept
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -156,6 +157,17 @@ class ProcessFileUseCaseTest {
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         // test catche all
         verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(fileNameWithoutExtension), eq(fileNameWithoutExtension), eq(fileName), eq(null));
+    }
+
+    @Test
+    void testProcessFile_FilenameNameIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
+        final String useCaseName = "filename-name-incoming";
+        when(dmsOutPort.findObjectsByName(eq(UseCase.Type.INCOMING_OBJECT), eq("test"), any())).thenReturn(List.of("COO.123.123.123"));
+        // call
+        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
+        // test
+        testDefaults(useCaseName, UseCase.Type.INCOMING_OBJECT, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME);
+        verify(dmsOutPort, times(1)).findObjectsByName(eq(UseCase.Type.INCOMING_OBJECT), eq("test"), any());
     }
 
     @Test

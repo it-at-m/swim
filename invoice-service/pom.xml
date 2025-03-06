@@ -10,10 +10,10 @@
     </parent>
 
     <groupId>de.muenchen.oss.swim</groupId>
-    <artifactId>dispatch-service</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
-    <name>dispatch-service</name>
-    <description>SWIM service for notifying other services (i.e. DMS) that a file is ready for further processing via Kafka</description>
+    <artifactId>invoice-service</artifactId>
+    <version>0.2.0-SNAPSHOT</version>
+    <name>invoice-service</name>
+    <description>SWIM service for transferring files (invoices) into SAP when notified by dispatch-service via Apache Kafka</description>
     <url>https://github.com/it-at-m/swim</url>
 
     <properties>
@@ -25,9 +25,7 @@
 
         <!-- Core Frameworks -->
         <spring-cloud-dependencies.version>2024.0.0</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
-
-        <!-- Other -->
-        <minio.version>8.5.17</minio.version>
+        <swim-handler-core.version>0.2.0</swim-handler-core.version>
 
         <!-- Logging -->
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
@@ -48,10 +46,14 @@
         <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
 
         <!-- Utility -->
-        <commons-collections4.version>4.4</commons-collections4.version>
-        <commons-lang3.version>3.17.0</commons-lang3.version>
+        <commons-text.version>1.13.0</commons-text.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <refarch-tools.version>1.1.0</refarch-tools.version>
+
+        <!-- cxf/WSDL -->
+        <cxf.version>4.1.0</cxf.version>
+        <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
+        <jaxws-rt.version>4.0.3</jaxws-rt.version>
 
         <!-- Additional required dependencies -->
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version> <!-- Needed to make MapStruct and Lombok work together -->
@@ -87,13 +89,12 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-stream-kafka</artifactId>
         </dependency>
+
+        <!-- SWIM -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
+            <groupId>de.muenchen.oss.swim</groupId>
+            <artifactId>handler-core</artifactId>
+            <version>${swim-handler-core.version}</version>
         </dependency>
 
         <!-- json etc. -->
@@ -106,37 +107,31 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-csv</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
         </dependency>
 
-        <!-- Database -->
+        <!-- cxf/WSDL -->
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-core</artifactId>
+            <version>${cxf.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.hibernate.orm</groupId>
-            <artifactId>hibernate-core</artifactId>
-        </dependency>
-        <!-- Hibernate Model Gen for type safe criteria -->
-        <dependency>
-            <groupId>org.hibernate.orm</groupId>
-            <artifactId>hibernate-jpamodelgen</artifactId>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-bindings-soap</artifactId>
+            <version>${cxf.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>${jakarta.xml.bind-api.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-database-postgresql</artifactId>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>jaxws-rt</artifactId>
+            <version>${jaxws-rt.version}</version>
         </dependency>
-
 
         <!-- Other -->
         <dependency>
@@ -157,11 +152,6 @@
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
             <version>${spotbugs-annotations.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.minio</groupId>
-            <artifactId>minio</artifactId>
-            <version>${minio.version}</version>
         </dependency>
 
         <!-- Validation -->
@@ -184,16 +174,6 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -219,13 +199,8 @@
         <!-- apache commons -->
         <dependency>
             <groupId>org.apache.commons</groupId>
-            <artifactId>commons-collections4</artifactId>
-            <version>${commons-collections4.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${commons-lang3.version}</version>
+            <artifactId>commons-text</artifactId>
+            <version>${commons-text.version}</version>
         </dependency>
 
         <!-- Configuration Processor -->
@@ -271,6 +246,34 @@
                         </compilerArg>
                     </compilerArgs>
                 </configuration>
+            </plugin>
+
+            <!-- WSDL -->
+            <plugin>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-codegen-plugin</artifactId>
+                <version>${cxf.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-sources</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
+                            <wsdlOptions>
+                                <wsdlOption>
+                                    <wsdl>${basedir}/src/main/resources/InvoiceDocument_mtom.wsdl</wsdl>
+                                    <wsdlLocation>classpath:InvoiceDocument_mtom.wsdl</wsdlLocation>
+                                    <bindingFiles>
+                                        <bindingFile>${basedir}/src/main/resources/binding.xml</bindingFile>
+                                    </bindingFiles>
+                                </wsdlOption>
+                            </wsdlOptions>
+                        </configuration>
+                        <goals>
+                            <goal>wsdl2java</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- Testing -->

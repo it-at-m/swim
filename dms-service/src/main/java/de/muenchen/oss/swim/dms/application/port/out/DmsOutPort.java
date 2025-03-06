@@ -1,10 +1,12 @@
 package de.muenchen.oss.swim.dms.application.port.out;
 
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
+import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.validation.annotation.Validated;
 
@@ -61,4 +63,14 @@ public interface DmsOutPort {
      * @return The coo of the new ContentObject.
      */
     String createContentObject(@NotNull @Valid DmsTarget dmsTarget, @NotNull String contentObjectName, @NotNull InputStream inputStream);
+
+    /**
+     * Find dms object via name and resource type.
+     *
+     * @param ressourceType The type of the dms resource to search for.
+     * @param objectName The name of the object to search for.
+     * @param requestContext The context (username, joboe, jobposition) to make the search request with.
+     * @return The COOs of all matching objects.
+     */
+    List<String> findObjectsByName(@NotNull UseCase.Type ressourceType, @NotNull String objectName, @NotNull @Valid DmsTarget requestContext);
 }

@@ -43,6 +43,12 @@ public class UseCase {
     @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String filenameCooPattern;
     /**
+     * Regex pattern for extracting target dms ressource name from filename.
+     * {@link UseCase.CooSource#FILENAME_NAME}
+     */
+    @Pattern(regexp = PatternHelper.RAW_PATTERN)
+    private String filenameNamePattern;
+    /**
      * Map for resolving target coo via filename.
      * Key: Regex which is matched against filename (case-insensitive).
      * Value: Target coo.
@@ -118,6 +124,11 @@ public class UseCase {
          * {@link UseCase#filenameToCoo}
          */
         FILENAME_MAP,
+        /**
+         * Resolve target coo by search for name extracted from filename.
+         * See {@link UseCase#filenameNamePattern}.
+         */
+        FILENAME_NAME,
         /**
          * Target coo is statically configured.
          * {@link UseCase#targetCoo}

@@ -19,6 +19,7 @@ import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -174,6 +175,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                     .orElseThrow(() -> new IllegalStateException("No matching filename map entry configured."));
             yield new DmsTarget(targetCoo, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         }
+        case FILENAME_NAME -> this.resolveTargetCooViaName(resourceType, metadata, useCase, file);
         case STATIC -> new DmsTarget(useCase.getTargetCoo(), useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         case OU_WORK_QUEUE -> new DmsTarget(null, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         };
@@ -199,6 +201,34 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         };
         // combine resolves target with use case
         return this.combineDmsTargetWithUseCase(metadataTarget, useCase);
+    }
+
+    /**
+     * Resolve target coo via dms object name.
+     *
+     * @param resourceType The resource type to resolve the target of.
+     * @param metadata The metadata used for resolving the name pattern.
+     * @param useCase The use case to resolve the target for.
+     * @param file The file to resolve the target for.
+     * @return Dms target resolved via dms object name.
+     */
+    protected DmsTarget resolveTargetCooViaName(final UseCase.Type resourceType, final Metadata metadata, final UseCase useCase, final File file) {
+        // validate required use case properties
+        if (Strings.isBlank(useCase.getFilenameNamePattern())) {
+            throw new IllegalArgumentException("DMS target coo via object name: Filename name pattern is required");
+        }
+        if (Strings.isBlank(useCase.getUsername())) {
+            throw new IllegalStateException("DMS target coo via object name: Username is required");
+        }
+        // resolve lookup name
+        final String objectName = this.patternHelper.applyPattern(useCase.getFilenameNamePattern(), file.getFileName(), metadata);
+        // search for object name
+        final DmsTarget requestContext = new DmsTarget(null, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
+        final List<String> coos = this.dmsOutPort.findObjectsByName(resourceType, objectName, requestContext);
+        if (coos.size() != 1) {
+            throw new IllegalStateException(String.format("DMS target coo via object name: Found %d instead of exactly one object", coos.size()));
+        }
+        return new DmsTarget(coos.getFirst(), useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
     }
 
     /**

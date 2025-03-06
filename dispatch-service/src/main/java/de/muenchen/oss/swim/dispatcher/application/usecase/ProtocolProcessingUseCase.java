@@ -118,7 +118,7 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
                 matchState = "correct";
             }
             fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
-                    swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue(),
+                    swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTagValue(),
                     swimDispatcherProperties.getProtocolMatchTagKey(), matchState));
             // move protocol
             final String destPath = useCase.getFinishedProtocolPath(swimDispatcherProperties, file.path());

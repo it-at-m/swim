@@ -44,8 +44,8 @@ public class DmsAdapter implements DmsOutPort {
     private final SearchObjNamesApi searchObjNamesApi;
 
     private final static String DMS_APPLICATION = "SWIM";
-    private final static String DMS_OBJECT_TYPE_INBOX = "";
-    private final static String DMS_OBJECT_TYPE_PROCEDURE = "";
+    private final static String DMS_OBJECT_TYPE_INBOX = "FSCVGOV@1.1001:Inbox";
+    private final static String DMS_OBJECT_TYPE_PROCEDURE = "DEPRECONFIG@15.1001:Procedure";
     private final static Map<UseCase.Type, String> DMS_OBJECT_TYPE_MAPPING = Map.of(
             UseCase.Type.INCOMING_OBJECT, DMS_OBJECT_TYPE_PROCEDURE,
             UseCase.Type.INBOX, DMS_OBJECT_TYPE_INBOX);
@@ -175,7 +175,6 @@ public class DmsAdapter implements DmsOutPort {
             throw new IllegalArgumentException(String.format("Input resource type %s couldn't be mapped to DMS resource type", resourceType.name()));
         }
         request.setObjclass(dmsObjectType);
-
         try {
             final SearchObjNameAntwortDTO response = this.searchObjNamesApi.searchObjName(
                     request,

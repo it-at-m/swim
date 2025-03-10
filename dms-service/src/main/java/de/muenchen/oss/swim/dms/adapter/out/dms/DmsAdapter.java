@@ -69,7 +69,7 @@ public class DmsAdapter implements DmsOutPort {
         request.useou(true);
         try {
             final AbstractResource file = new NamedInputStreamResource(contentObjectName, inputStream);
-            final CreateIncomingAntwortDTO response = incomingsApi.eingangZuVorgangAnlegen(
+            final CreateIncomingAntwortDTO response = incomingsApi.createIncoming(
                     request,
                     DMS_APPLICATION,
                     dmsTarget.userName(),
@@ -91,7 +91,7 @@ public class DmsAdapter implements DmsOutPort {
     @Override
     public String getProcedureName(final DmsTarget dmsTarget) {
         try {
-            final ReadProcedureResponseDTO response = proceduresApi.vorgangLesen(
+            final ReadProcedureResponseDTO response = proceduresApi.readProcedure(
                     dmsTarget.coo(),
                     DMS_APPLICATION,
                     dmsTarget.userName(),
@@ -112,7 +112,7 @@ public class DmsAdapter implements DmsOutPort {
     @Override
     public Optional<String> getIncomingCooByName(final DmsTarget dmsTarget, final String incomingNamePrefix) {
         try {
-            final ReadProcedureObjectsAntwortDTO response = procedureObjectsApi.vorgangObjectLesen(
+            final ReadProcedureObjectsAntwortDTO response = procedureObjectsApi.readProcedureObject(
                     dmsTarget.coo(),
                     DMS_APPLICATION,
                     dmsTarget.userName(),
@@ -135,7 +135,7 @@ public class DmsAdapter implements DmsOutPort {
         createContentObjectAnfrageDTO.referrednumber(dmsTarget.coo());
         try {
             final AbstractResource file = new NamedInputStreamResource(contentObjectName, inputStream);
-            final CreateContentObjectAntwortDTO response = this.contentObjectsApi.schriftstueckAnlegen(
+            final CreateContentObjectAntwortDTO response = this.contentObjectsApi.createContentObject(
                     createContentObjectAnfrageDTO,
                     DMS_APPLICATION,
                     dmsTarget.userName(),

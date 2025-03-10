@@ -10,7 +10,7 @@ import org.springframework.validation.annotation.Validated;
 @Data
 @Validated
 @ConfigurationProperties(prefix = "swim.ldap")
-@SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
+@SuppressFBWarnings("EI_EXPOSE_REP")
 public class LdapProperties {
     /**
      * List of ous from which users are loaded for inbox enrichment.

@@ -1,6 +1,5 @@
 package de.muenchen.oss.swim.matching.adapter.out.db;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-@SuppressFBWarnings("EI_EXPOSE_REP2")
 class UserInboxRepository {
     private final JdbcTemplate jdbcTemplate;
     private static final int CHUNK_SIZE = 100;

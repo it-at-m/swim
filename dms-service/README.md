@@ -104,8 +104,8 @@ Example:
 
 The `type` attribute of a use case defines what type of resource is created in the DMS.
 
-- `inbox`: Creates an ContentObject inside a given Inbox.
-- `incoming_object`: Creates an Incoming (with a ContentObject) inside a given Procedure or the OU work queue of the user.
+- `inbox_content_object`: Creates an ContentObject inside a given Inbox.
+- `procedure_incoming`: Creates an Incoming (with a ContentObject) inside a given Procedure or the OU work queue of the user.
 - `metadata_file`: Resolve target type via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Metadata file](#metadata-file).
 
 ### Coo source
@@ -131,7 +131,7 @@ The metadata file is used for following different functions:
   - The below example would lead to a subject `ExampleKey1: Example Value 1\nExampleKey2: Example Value 2`.
 - Target type
   - The target resource type is resolved via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Type](#type) `metadata_file`.
-  - Allowed values in metadata file are `inbox` and `incoming`.
+  - Allowed values in metadata file are all use case [Types](#type) except `metadata_file` (e.g. `inbox_content_object`).
 
 If a metadata file is required but missing or is invalid (syntax, value combination, ...) an Exception is thrown, which is handled by the [error-handling](#error-handling).
 
@@ -141,7 +141,7 @@ If a metadata file is required but missing or is invalid (syntax, value combinat
     "IndexFields": [
       {
         "Name": "SWIM_DMS_Target",
-        "Value": "<inbox/incoming>"
+        "Value": ""
       },
       {
         "Name": "PPK_COO",

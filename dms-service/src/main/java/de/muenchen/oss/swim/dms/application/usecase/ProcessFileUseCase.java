@@ -136,7 +136,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             final Optional<String> incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, incomingName);
             if (incomingCoo.isPresent()) {
                 // add ContentObject to Incoming
-                final DmsTarget incomingDmsTarget = new DmsTarget(incomingCoo.get(), dmsTarget.userName(), dmsTarget.joboe(), dmsTarget.jobposition());
+                final DmsTarget incomingDmsTarget = new DmsTarget(incomingCoo.get(), dmsTarget.getUsername(), dmsTarget.getJoboe(), dmsTarget.getJobposition());
                 this.dmsOutPort.createContentObject(incomingDmsTarget, contentObjectName, fileStream);
                 return;
             }
@@ -291,7 +291,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @throws IllegalStateException If both inputs define job oe or position.
      */
     protected DmsTarget combineDmsTargetWithUseCase(final DmsTarget dmsTarget, final UseCase useCase) {
-        final boolean dmsTargetHasJob = Strings.isNotBlank(dmsTarget.joboe()) || Strings.isNotBlank(dmsTarget.jobposition());
+        final boolean dmsTargetHasJob = Strings.isNotBlank(dmsTarget.getJoboe()) || Strings.isNotBlank(dmsTarget.getJobposition());
         final boolean useCaseHasJob = Strings.isNotBlank(useCase.getJoboe()) || Strings.isNotBlank(useCase.getJobposition());
         if (dmsTargetHasJob && useCaseHasJob) {
             throw new IllegalStateException("Resolve dms target: Job oe and position defined via resolve and via use case not allowed");
@@ -299,6 +299,6 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         if (dmsTargetHasJob) {
             return dmsTarget;
         }
-        return new DmsTarget(dmsTarget.coo(), dmsTarget.userName(), useCase.getJoboe(), useCase.getJobposition());
+        return new DmsTarget(dmsTarget.getCoo(), dmsTarget.getUsername(), useCase.getJoboe(), useCase.getJobposition());
     }
 }

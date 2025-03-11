@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.dms.adapter.out.dms;
 
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
+import de.muenchen.oss.swim.dms.domain.model.DmsRequestContext;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.refarch.integration.dms.api.ContentObjectsApi;
@@ -54,13 +55,13 @@ public class DmsAdapter implements DmsOutPort {
     public void createContentObjectInInbox(final DmsTarget dmsTarget, final String contentObjectName, final InputStream inputStream) {
         log.debug("Putting ContentObject {} in inbox {}", contentObjectName, dmsTarget);
         final CreateObjectAndImportToInboxDTO request = new CreateObjectAndImportToInboxDTO();
-        request.setObjaddress(dmsTarget.coo());
+        request.setObjaddress(dmsTarget.getCoo());
         try {
             final AbstractResource file = new NamedInputStreamResource(contentObjectName, inputStream);
             objectAndImportToInboxApi.createObjectAndImportToInbox(
                     request,
                     DMS_APPLICATION,
-                    dmsTarget.userName(),
+                    dmsTarget.getUsername(),
                     null,
                     null,
                     List.of(file)).block();
@@ -75,7 +76,7 @@ public class DmsAdapter implements DmsOutPort {
             final InputStream inputStream) {
         log.debug("Putting file {} in procedure {}", contentObjectName, dmsTarget);
         final CreateIncomingBasisAnfrageDTO request = new CreateIncomingBasisAnfrageDTO();
-        request.referrednumber(dmsTarget.coo());
+        request.referrednumber(dmsTarget.getCoo());
         request.shortname(incomingName);
         request.filesubj(incomingSubject);
         request.useou(true);
@@ -84,9 +85,9 @@ public class DmsAdapter implements DmsOutPort {
             final CreateIncomingAntwortDTO response = incomingsApi.eingangZuVorgangAnlegen(
                     request,
                     DMS_APPLICATION,
-                    dmsTarget.userName(),
-                    dmsTarget.joboe(),
-                    dmsTarget.jobposition(),
+                    dmsTarget.getUsername(),
+                    dmsTarget.getJoboe(),
+                    dmsTarget.getJobposition(),
                     List.of(file)).block();
             if (response != null) {
                 final String coo = response.getObjid();
@@ -104,11 +105,11 @@ public class DmsAdapter implements DmsOutPort {
     public String getProcedureName(final DmsTarget dmsTarget) {
         try {
             final ReadProcedureResponseDTO response = proceduresApi.vorgangLesen(
-                    dmsTarget.coo(),
+                    dmsTarget.getCoo(),
                     DMS_APPLICATION,
-                    dmsTarget.userName(),
-                    dmsTarget.joboe(),
-                    dmsTarget.jobposition()).block();
+                    dmsTarget.getUsername(),
+                    dmsTarget.getJoboe(),
+                    dmsTarget.getJobposition()).block();
             if (response != null) {
                 final String name = response.getObjname();
                 log.info("Found Procedure {} for {}", name, dmsTarget);
@@ -125,11 +126,11 @@ public class DmsAdapter implements DmsOutPort {
     public Optional<String> getIncomingCooByName(final DmsTarget dmsTarget, final String incomingNamePrefix) {
         try {
             final ReadProcedureObjectsAntwortDTO response = procedureObjectsApi.vorgangObjectLesen(
-                    dmsTarget.coo(),
+                    dmsTarget.getCoo(),
                     DMS_APPLICATION,
-                    dmsTarget.userName(),
-                    dmsTarget.joboe(),
-                    dmsTarget.jobposition()).block();
+                    dmsTarget.getUsername(),
+                    dmsTarget.getJoboe(),
+                    dmsTarget.getJobposition()).block();
             if (response != null && response.getGiobjecttype() != null) {
                 return response.getGiobjecttype().stream().filter(
                         i -> i.getName() != null && i.getName().startsWith(incomingNamePrefix)).findFirst().map(Objektreferenz::getId);
@@ -144,15 +145,15 @@ public class DmsAdapter implements DmsOutPort {
     @Override
     public String createContentObject(final DmsTarget dmsTarget, final String contentObjectName, final InputStream inputStream) {
         final CreateContentObjectAnfrageDTO createContentObjectAnfrageDTO = new CreateContentObjectAnfrageDTO();
-        createContentObjectAnfrageDTO.referrednumber(dmsTarget.coo());
+        createContentObjectAnfrageDTO.referrednumber(dmsTarget.getCoo());
         try {
             final AbstractResource file = new NamedInputStreamResource(contentObjectName, inputStream);
             final CreateContentObjectAntwortDTO response = this.contentObjectsApi.schriftstueckAnlegen(
                     createContentObjectAnfrageDTO,
                     DMS_APPLICATION,
-                    dmsTarget.userName(),
-                    dmsTarget.joboe(),
-                    dmsTarget.jobposition(),
+                    dmsTarget.getUsername(),
+                    dmsTarget.getJoboe(),
+                    dmsTarget.getJobposition(),
                     List.of(file)).block();
             if (response != null) {
                 final String coo = response.getObjid();
@@ -167,7 +168,7 @@ public class DmsAdapter implements DmsOutPort {
     }
 
     @Override
-    public List<String> findObjectsByName(final UseCase.Type resourceType, final String objectName, final DmsTarget requestContext) {
+    public List<String> findObjectsByName(final UseCase.Type resourceType, final String objectName, final DmsRequestContext requestContext) {
         final SearchObjNameAnfrageDTO request = new SearchObjNameAnfrageDTO();
         request.searchstring(objectName);
         final String dmsObjectType = DMS_OBJECT_TYPE_MAPPING.get(resourceType);
@@ -179,9 +180,9 @@ public class DmsAdapter implements DmsOutPort {
             final SearchObjNameAntwortDTO response = this.searchObjNamesApi.searchObjName(
                     request,
                     DMS_APPLICATION,
-                    requestContext.userName(),
-                    requestContext.joboe(),
-                    requestContext.jobposition()).block();
+                    requestContext.getUsername(),
+                    requestContext.getJoboe(),
+                    requestContext.getJobposition()).block();
             if (response != null && response.getGiobjecttype() != null) {
                 final List<String> coos = response.getGiobjecttype().stream().map(Objektreferenz::getId).toList();
                 log.info("Found following coos for {}: {}", objectName, coos);

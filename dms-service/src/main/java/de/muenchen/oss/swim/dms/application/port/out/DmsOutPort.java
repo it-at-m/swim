@@ -1,5 +1,6 @@
 package de.muenchen.oss.swim.dms.application.port.out;
 
+import de.muenchen.oss.swim.dms.domain.model.DmsRequestContext;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import jakarta.validation.Valid;
@@ -23,10 +24,10 @@ public interface DmsOutPort {
 
     /**
      * Create Incoming.
-     * Either inside given Procedure {@link DmsTarget#coo()} or OU work queue of
-     * {@link DmsTarget#userName()}.
+     * Either inside given Procedure {@link DmsTarget#getCoo()} or OU work queue of
+     * {@link DmsTarget#getUsername()}.
      *
-     * @param dmsTarget The target. If {@link DmsTarget#coo()} is defined: Procedure, if not: OU work
+     * @param dmsTarget The target. If {@link DmsTarget#getCoo()} is defined: Procedure, if not: OU work
      *            queue.
      * @param incomingName The name of the new Incoming.
      * @param incomingSubject The subject of the new Incoming.
@@ -72,5 +73,5 @@ public interface DmsOutPort {
      * @param requestContext The context (username, joboe, jobposition) to make the search request with.
      * @return The COOs of all matching objects.
      */
-    List<String> findObjectsByName(@NotNull UseCase.Type resourceType, @NotNull String objectName, @NotNull @Valid DmsTarget requestContext);
+    List<String> findObjectsByName(@NotNull UseCase.Type resourceType, @NotNull String objectName, @NotNull @Valid DmsRequestContext requestContext);
 }

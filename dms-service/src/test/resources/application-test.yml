@@ -1,13 +1,13 @@
 swim:
   use-cases:
     - name: metadata-inbox
-      type: inbox
+      type: inbox_content_object
       coo-source: metadata_file
     - name: metadata-metadata
       type: metadata_file
       coo-source: metadata_file
     - name: static-incoming
-      type: incoming_object
+      type: procedure_incoming
       coo-source: static
       target-coo: staticCoo
       filename-overwrite-pattern: "s/^(.+)(?:-COO.[^-]+-)(.+)$/\\${1}-\\${2}/"
@@ -17,21 +17,21 @@ swim:
       joboe: staticJobOe
       jobposition: staticJobPosition
     - name: filename-incoming
-      type: incoming_object
+      type: procedure_incoming
       coo-source: filename
       filename-coo-pattern: "s/^.+-(COO.[^-]+)-.+$/\\${1}/"
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition
     - name: filename-name-incoming
-      type: incoming_object
+      type: procedure_incoming
       coo-source: filename_name
       filename-name-pattern: "s/^(.+)-(?:COO.[^-]+)-.+$/\\${1}/"
       username: staticUsername
       joboe: staticJobOe
       jobposition: staticJobPosition
     - name: map-incoming
-      type: incoming_object
+      type: procedure_incoming
       coo-source: filename_map
       filename-to-coo:
         "[^test.*]": "COO.123.123.123"
@@ -40,7 +40,7 @@ swim:
       joboe: staticJobOe
       jobposition: staticJobPosition
     - name: verifyProcedure-incoming
-      type: incoming_object
+      type: procedure_incoming
       coo-source: filename
       filename-coo-pattern: "s/^.+-(COO.[^-]+)-.+$/\\${1}/"
       verify-procedure-name-pattern: "s/^(.+)(?:-COO.[^-]+-).+$/\\${1}/"
@@ -48,7 +48,7 @@ swim:
       joboe: staticJobOe
       jobposition: staticJobPosition
     - name: reuseIncoming-incoming
-      type: incoming_object
+      type: procedure_incoming
       coo-source: filename
       filename-coo-pattern: "s/^.+-(COO.[^-]+)-.+$/\\${1}/"
       incoming-name-pattern: "s/^(.+)(?:-COO.[^-]+-).+$/\\${1}/"

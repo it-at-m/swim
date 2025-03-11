@@ -76,9 +76,9 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             // transfer to dms
             switch (targetResource) {
             // to dms inbox
-            case INBOX -> dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectName, fileStream);
+            case INBOX_CONTENT_OBJECT -> dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectName, fileStream);
             // create dms incoming
-            case INCOMING_OBJECT -> this.processIncoming(file, useCase, dmsTarget, contentObjectName, fileStream, metadata);
+            case PROCEDURE_INCOMING -> this.processIncoming(file, useCase, dmsTarget, contentObjectName, fileStream, metadata);
             case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
             }
         } catch (final IOException e) {
@@ -92,7 +92,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     }
 
     /**
-     * Process {@link UseCase.Type#INCOMING_OBJECT} files.
+     * Process {@link UseCase.Type#PROCEDURE_INCOMING} files.
      *
      * @param file The file to process.
      * @param useCase The use case of the file.
@@ -197,8 +197,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         }
         // extract coo and username from metadata
         final DmsTarget metadataTarget = switch (resourceType) {
-        case INBOX -> dmsMetadataHelper.resolveInboxDmsTarget(metadata);
-        case INCOMING_OBJECT -> dmsMetadataHelper.resolveIncomingDmsTarget(metadata);
+        case INBOX_CONTENT_OBJECT -> dmsMetadataHelper.resolveInboxDmsTarget(metadata);
+        case PROCEDURE_INCOMING -> dmsMetadataHelper.resolveIncomingDmsTarget(metadata);
         case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
         };
         // combine resolves target with use case

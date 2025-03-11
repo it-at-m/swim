@@ -33,7 +33,7 @@ public class UseCase {
     /**
      * Regex pattern for defining a custom Incoming name.
      * If not defined overwritten filename is used.
-     * Only applies to {@link Type#INCOMING_OBJECT}
+     * Only applies to {@link Type#PROCEDURE_INCOMING}
      */
     @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String incomingNamePattern;
@@ -64,18 +64,18 @@ public class UseCase {
     private String targetCoo;
     /**
      * Verify name of resolved Procedure against pattern, if defined.
-     * Only applies to {@link Type#INCOMING_OBJECT}
+     * Only applies to {@link Type#PROCEDURE_INCOMING}
      */
     @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String verifyProcedureNamePattern;
     /**
      * Reuse Incoming with same name if true.
-     * Only applies to {@link Type#INCOMING_OBJECT}
+     * Only applies to {@link Type#PROCEDURE_INCOMING}
      */
     private boolean reuseIncoming = false;
     /**
      * Fill subject with metadata. See {@link de.muenchen.oss.swim.dms.configuration.SwimDmsProperties}.
-     * Currently only works for {@link Type#INCOMING_OBJECT}.
+     * Currently only works for {@link Type#PROCEDURE_INCOMING}.
      */
     private boolean metadataSubject = false;
     /**
@@ -95,15 +95,14 @@ public class UseCase {
     @Getter
     public enum Type {
         /**
-         * Create an Object inside an Inbox.
+         * Create a Content Object inside an Inbox.
          */
-        INBOX(DmsResourceType.INBOX, DmsResourceType.CONTENT_OBJECT),
+        INBOX_CONTENT_OBJECT(DmsResourceType.INBOX, DmsResourceType.CONTENT_OBJECT),
         /**
-         * Create an Incoming
-         * Either inside given Procedure {@link DmsTarget#getCoo()} or OU work queue of
+         * Create an Incoming either inside given Procedure {@link DmsTarget#getCoo()} or OU work queue of
          * {@link DmsTarget#getUsername()}.
          */
-        INCOMING_OBJECT(DmsResourceType.PROCEDURE, DmsResourceType.INCOMING),
+        PROCEDURE_INCOMING(DmsResourceType.PROCEDURE, DmsResourceType.INCOMING),
         /**
          * Resolve target resource type from metadata file.
          */
@@ -152,7 +151,7 @@ public class UseCase {
         STATIC,
         /**
          * Target is OU work queue of {@link UseCase#username}.
-         * Can only be used with {@link Type#INCOMING_OBJECT}.
+         * Can only be used with {@link Type#PROCEDURE_INCOMING}.
          */
         OU_WORK_QUEUE
     }

@@ -35,9 +35,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class ProcessFileUseCase implements ProcessFileInPort {
-    protected static final String METADATA_TARGET_TYPE_INBOX = "inbox";
-    protected static final String METADATA_TARGET_TYPE_INCOMING = "incoming";
-
     private final SwimDmsProperties swimDmsProperties;
     private final FileSystemOutPort fileSystemOutPort;
     private final DmsOutPort dmsOutPort;
@@ -249,12 +246,15 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         final Map<String, String> indexFields = metadata.indexFields();
         final String metadataDmsTarget = indexFields.get(swimDmsProperties.getMetadataDmsTargetKey());
         // resolve type from value
-        return switch (metadataDmsTarget) {
-        case METADATA_TARGET_TYPE_INBOX -> UseCase.Type.INBOX;
-        case METADATA_TARGET_TYPE_INCOMING -> UseCase.Type.INCOMING_OBJECT;
-        case null, default ->
-                throw new MetadataException(String.format("DMS target type via metadata file: Unexpected %s value: %s", swimDmsProperties.getMetadataDmsTargetKey(), metadataDmsTarget));
-        };
+        try {
+            final UseCase.Type resolvedType = UseCase.Type.valueOf(metadataDmsTarget.toUpperCase());
+            if (resolvedType == UseCase.Type.METADATA_FILE) {
+                throw new MetadataException("DMS target type via metadata file: Target type can't be METADAT_FILE");
+            }
+            return resolvedType;
+        } catch (final IllegalArgumentException e) {
+            throw new MetadataException(String.format("DMS target type via metadata file: Unexpected %s value: %s", swimDmsProperties.getMetadataDmsTargetKey(), metadataDmsTarget), e);
+        }
     }
 
     /**

@@ -3,6 +3,7 @@ spring:
   banner.location: banner.txt
   messages:
     basename: lang/messages
+    fallback-to-system-locale: false
   cloud:
     stream:
       default:

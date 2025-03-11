@@ -6,6 +6,7 @@ import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.helper.DmsMetadataHelper;
 import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
+import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.oss.swim.libs.handlercore.application.port.in.ProcessFileInPort;
@@ -175,7 +176,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                     .orElseThrow(() -> new IllegalStateException("No matching filename map entry configured."));
             yield new DmsTarget(targetCoo, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         }
-        case FILENAME_NAME -> this.resolveTargetCooViaName(resourceType, metadata, useCase, file);
+        case FILENAME_NAME -> this.resolveTargetCooViaName(useCase.getType().getTarget(), metadata, useCase, file);
         case STATIC -> new DmsTarget(useCase.getTargetCoo(), useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         case OU_WORK_QUEUE -> new DmsTarget(null, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         };
@@ -184,6 +185,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     /**
      * Resolve DmsTarget via metadata file.
      *
+     * @param resourceType The type of the use case used for resolving.
      * @param metadata Parsed metadata file.
      * @param useCase UseCase of the file.
      * @return Resolved DmsTarget.
@@ -206,13 +208,13 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     /**
      * Resolve target coo via dms object name.
      *
-     * @param resourceType The resource type to resolve the target of.
+     * @param resourceType The resource type of the target.
      * @param metadata The metadata used for resolving the name pattern.
      * @param useCase The use case to resolve the target for.
      * @param file The file to resolve the target for.
      * @return Dms target resolved via dms object name.
      */
-    protected DmsTarget resolveTargetCooViaName(final UseCase.Type resourceType, final Metadata metadata, final UseCase useCase, final File file) {
+    protected DmsTarget resolveTargetCooViaName(final DmsResourceType resourceType, final Metadata metadata, final UseCase useCase, final File file) {
         // validate required use case properties
         if (Strings.isBlank(useCase.getFilenameNamePattern())) {
             throw new IllegalArgumentException("DMS target coo via object name: Filename name pattern is required");

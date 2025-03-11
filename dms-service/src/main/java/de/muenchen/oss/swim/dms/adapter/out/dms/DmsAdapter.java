@@ -3,8 +3,8 @@ package de.muenchen.oss.swim.dms.adapter.out.dms;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.model.DmsRequestContext;
+import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
-import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.refarch.integration.dms.api.ContentObjectsApi;
 import de.muenchen.refarch.integration.dms.api.IncomingsApi;
 import de.muenchen.refarch.integration.dms.api.ObjectAndImportToInboxApi;
@@ -47,9 +47,9 @@ public class DmsAdapter implements DmsOutPort {
     private final static String DMS_APPLICATION = "SWIM";
     private final static String DMS_OBJECT_TYPE_INBOX = "FSCVGOV@1.1001:Inbox";
     private final static String DMS_OBJECT_TYPE_PROCEDURE = "DEPRECONFIG@15.1001:Procedure";
-    private final static Map<UseCase.Type, String> DMS_OBJECT_TYPE_MAPPING = Map.of(
-            UseCase.Type.INCOMING_OBJECT, DMS_OBJECT_TYPE_PROCEDURE,
-            UseCase.Type.INBOX, DMS_OBJECT_TYPE_INBOX);
+    private final static Map<DmsResourceType, String> DMS_OBJECT_TYPE_MAPPING = Map.of(
+            DmsResourceType.PROCEDURE, DMS_OBJECT_TYPE_PROCEDURE,
+            DmsResourceType.INBOX, DMS_OBJECT_TYPE_INBOX);
 
     @Override
     public void createContentObjectInInbox(final DmsTarget dmsTarget, final String contentObjectName, final InputStream inputStream) {
@@ -168,7 +168,7 @@ public class DmsAdapter implements DmsOutPort {
     }
 
     @Override
-    public List<String> findObjectsByName(final UseCase.Type resourceType, final String objectName, final DmsRequestContext requestContext) {
+    public List<String> findObjectsByName(final DmsResourceType resourceType, final String objectName, final DmsRequestContext requestContext) {
         final SearchObjNameAnfrageDTO request = new SearchObjNameAnfrageDTO();
         request.searchstring(objectName);
         final String dmsObjectType = DMS_OBJECT_TYPE_MAPPING.get(resourceType);

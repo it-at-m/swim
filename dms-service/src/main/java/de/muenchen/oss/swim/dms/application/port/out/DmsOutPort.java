@@ -1,8 +1,8 @@
 package de.muenchen.oss.swim.dms.application.port.out;
 
 import de.muenchen.oss.swim.dms.domain.model.DmsRequestContext;
+import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
-import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -73,5 +73,5 @@ public interface DmsOutPort {
      * @param requestContext The context (username, joboe, jobposition) to make the search request with.
      * @return The COOs of all matching objects.
      */
-    List<String> findObjectsByName(@NotNull UseCase.Type resourceType, @NotNull String objectName, @NotNull @Valid DmsRequestContext requestContext);
+    List<String> findObjectsByName(@NotNull DmsResourceType resourceType, @NotNull String objectName, @NotNull @Valid DmsRequestContext requestContext);
 }

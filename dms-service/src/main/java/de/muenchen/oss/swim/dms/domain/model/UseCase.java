@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.util.Map;
 import lombok.Data;
+import lombok.Getter;
 
 @Data
 public class UseCase {
@@ -91,21 +92,36 @@ public class UseCase {
      */
     private String jobposition = null;
 
+    @Getter
     public enum Type {
         /**
          * Create an Object inside an Inbox.
          */
-        INBOX,
+        INBOX(DmsResourceType.INBOX, DmsResourceType.CONTENT_OBJECT),
         /**
          * Create an Incoming
          * Either inside given Procedure {@link DmsTarget#getCoo()} or OU work queue of
          * {@link DmsTarget#getUsername()}.
          */
-        INCOMING_OBJECT,
+        INCOMING_OBJECT(DmsResourceType.PROCEDURE, DmsResourceType.INCOMING),
         /**
          * Resolve target resource type from metadata file.
          */
-        METADATA_FILE
+        METADATA_FILE(null, null);
+
+        /**
+         * The type of the target to create the new resource under.
+         */
+        private final DmsResourceType target;
+        /**
+         * The type of resource to create.
+         */
+        private final DmsResourceType type;
+
+        Type(final DmsResourceType target, final DmsResourceType type) {
+            this.target = target;
+            this.type = type;
+        }
     }
 
     public enum CooSource {

@@ -1,7 +1,7 @@
 package de.muenchen.oss.swim.dispatcher.adapter.out.mail;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotNull;
 import java.util.Locale;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -21,7 +21,6 @@ public class MailProperties {
      * Available options are de and en.
      * Default is en.
      */
-    @NotBlank
-    @Pattern(regexp = "de|en")
+    @NotNull
     private Locale locale = Locale.ENGLISH;
 }

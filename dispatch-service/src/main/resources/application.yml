@@ -1,6 +1,8 @@
 spring:
   application.name: @project.artifactId@
   banner.location: banner.txt
+  messages:
+    basename: lang/messages
   cloud:
     stream:
       default:

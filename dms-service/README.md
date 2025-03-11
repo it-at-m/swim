@@ -71,6 +71,7 @@ swim:
       target-coo: # for coo-source static
       filename-coo-pattern: # for coo-source filename
       filename-to-coo: # for coo-source filename_map
+      filename-name-pattern: # for coo-source filename_name
       filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
       incoming-name-pattern: # overwrite Incoming name via Regex pattern, only applies to type incoming_object
       metadata-subject: # enables incoming subject be built from metadata file
@@ -115,6 +116,7 @@ The `coo-source` attribute of a use case defines how the target resource, under 
 - `static`: The target coo is defined statically via the `target-coo` use case attribute.
 - `filename`: The target coo is resolved via the Regex pattern under `filename-coo-pattern`.
 - `filename_map`: The target coo is resolved via the Map defined under `filename-to-coo`, which consist of pairs of Regex pattern and static coo. The coo of the first matching (case-insensitive) pattern is used.
+- `filename_name`: The target coo is resolved via DMS object name. The name extracted via `filename-name-pattern` is looked up in the DMS and if exactly one match is found that is used as parent. In most cases the pattern should end with `*` as wildcard (e.g. `/^([^.]+)/${1}*/`).
 - `ou_work_queue`: The Incoming is created inside the OU work queue of `username`. Can only be used with type `incoming_object`.
 
 #### Metadata file

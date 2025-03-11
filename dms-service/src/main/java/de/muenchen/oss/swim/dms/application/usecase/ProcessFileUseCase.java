@@ -247,7 +247,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         final String metadataDmsTarget = indexFields.get(swimDmsProperties.getMetadataDmsTargetKey());
         // resolve type from value
         try {
-            final UseCase.Type resolvedType = UseCase.Type.valueOf(metadataDmsTarget.toUpperCase());
+            final UseCase.Type resolvedType = UseCase.Type.valueOf(metadataDmsTarget.toUpperCase(Locale.ROOT));
             if (resolvedType == UseCase.Type.METADATA_FILE) {
                 throw new MetadataException("DMS target type via metadata file: Target type can't be METADAT_FILE");
             }

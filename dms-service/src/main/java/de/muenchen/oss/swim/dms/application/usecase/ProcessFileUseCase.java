@@ -253,7 +253,9 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             }
             return resolvedType;
         } catch (final IllegalArgumentException e) {
-            throw new MetadataException(String.format("DMS target type via metadata file: Unexpected %s value: %s", swimDmsProperties.getMetadataDmsTargetKey(), metadataDmsTarget), e);
+            throw new MetadataException(
+                    String.format("DMS target type via metadata file: Unexpected %s value: %s", swimDmsProperties.getMetadataDmsTargetKey(), metadataDmsTarget),
+                    e);
         }
     }
 

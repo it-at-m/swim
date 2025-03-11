@@ -98,8 +98,8 @@ public class UseCase {
         INBOX,
         /**
          * Create an Incoming
-         * Either inside given Procedure {@link DmsTarget#coo()} or OU work queue of
-         * {@link DmsTarget#userName()}.
+         * Either inside given Procedure {@link DmsTarget#getCoo()}  or OU work queue of
+         * {@link DmsTarget#getUsername()}.
          */
         INCOMING_OBJECT,
         /**

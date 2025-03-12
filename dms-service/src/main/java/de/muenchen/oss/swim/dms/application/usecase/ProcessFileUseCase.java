@@ -225,7 +225,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         final DmsTarget requestContext = new DmsTarget(null, useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
         final List<String> coos = this.dmsOutPort.findObjectsByName(resourceType, objectName, requestContext);
         if (coos.size() != 1) {
-            throw new IllegalStateException(String.format("DMS target coo via object name: Found %d instead of exactly one object", coos.size()));
+            throw new IllegalStateException(
+                    String.format("DMS target coo via object name: Found %d instead of exactly one object for pattern %s", coos.size(), objectName));
         }
         return new DmsTarget(coos.getFirst(), useCase.getUsername(), useCase.getJoboe(), useCase.getJobposition());
     }

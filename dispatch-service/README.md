@@ -34,7 +34,7 @@ These properties and example values can be found in the [`application-local.yml`
 ```yaml
 swim:
   dispatching-cron: # cron interval for triggering dispatching
-  protocol-processing-cron: # cron interval for triggering dispatching
+  protocol-processing-cron: # cron interval for triggering protocol processing
   fallback-mail: # fallback mail used for notification mails if use case can't be resolved
   mail:
     from-address: # mail address used for sending notifications

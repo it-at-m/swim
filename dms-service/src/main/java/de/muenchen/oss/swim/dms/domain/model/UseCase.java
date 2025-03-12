@@ -117,6 +117,13 @@ public class UseCase {
          */
         private final DmsResourceType type;
 
+        /**
+         * Type of the use case.
+         * Specifies where and what resource is created.
+         *
+         * @param target The type of the target to create the new resource under.
+         * @param type The type of resource to create.
+         */
         Type(final DmsResourceType target, final DmsResourceType type) {
             this.target = target;
             this.type = type;

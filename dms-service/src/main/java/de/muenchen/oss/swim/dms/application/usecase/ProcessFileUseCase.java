@@ -249,7 +249,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         try {
             final UseCase.Type resolvedType = UseCase.Type.valueOf(metadataDmsTarget.toUpperCase(Locale.ROOT));
             if (resolvedType == UseCase.Type.METADATA_FILE) {
-                throw new MetadataException("DMS target type via metadata file: Target type can't be METADAT_FILE");
+                throw new MetadataException("DMS target type via metadata file: Target type can't be METADATA_FILE");
             }
             return resolvedType;
         } catch (final IllegalArgumentException e) {

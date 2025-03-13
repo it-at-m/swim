@@ -41,7 +41,7 @@ public class UseCase {
      * See {@link SwimDispatcherProperties#getMetadataDispatchBindingKey()}.
      * Uses {@link #destinationBinding} as fallback.
      */
-    private boolean destinationViaMetadata = false;
+    private boolean overwriteDestinationViaMetadata = false;
     /**
      * Tags required to start processing file.
      */

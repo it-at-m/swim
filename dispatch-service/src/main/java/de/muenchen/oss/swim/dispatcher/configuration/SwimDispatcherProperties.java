@@ -76,7 +76,7 @@ public class SwimDispatcherProperties {
     // ########### metadata ###########
     /**
      * Metadata IndexFields key to use for destination binding.
-     * {@link UseCase#isDestinationViaMetadata()}
+     * {@link UseCase#isOverwriteDestinationViaMetadata()}
      */
     @NotBlank
     private String metadataDispatchBindingKey;

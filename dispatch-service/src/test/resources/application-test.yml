@@ -18,7 +18,7 @@ swim:
       path: test3
       recursive: true
       requires-metadata: true
-      destination-via-metadata: true
+      overwrite-destination-via-metadata: true
       destination-binding: dms-out
       mail-addresses:
         - test-meta@example.com

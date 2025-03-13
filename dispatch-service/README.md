@@ -54,6 +54,7 @@ swim:
       required-tags: # map of tags required on files to be dispatched (optional, default: {})
       requires-metadata: # if a metadata file is required (optional, default: false)
       destination-binding: # the target destination binding, see section "Adding additional target"
+      overwrite-destination-via-metadata: # if the destination binding should be resolved via the metadata file (optional, default: false, fallback to destination-binding)
       mail-addresses: # list of mail addresses used for sending notifications
       sensitive-filename: # if the filename is sensitive, if true it isn't logged (optional, default: false)
 ```

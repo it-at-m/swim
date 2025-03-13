@@ -208,7 +208,8 @@ public class DispatcherUseCase implements DispatcherInPort {
 
     /**
      * Resolve destination binding either via metadata file or use case.
-     * See {@link UseCase#isDestinationViaMetadata()} and {@link UseCase#getDestinationBinding()}.
+     * See {@link UseCase#isOverwriteDestinationViaMetadata()} and
+     * {@link UseCase#getDestinationBinding()}.
      *
      * @param useCase The use case to resolve the destination binding for.
      * @param file The file to resolve the destination binding for.
@@ -217,7 +218,7 @@ public class DispatcherUseCase implements DispatcherInPort {
      */
     protected String resolveDestinationBinding(final UseCase useCase, final File file) throws MetadataException {
         // resolve via metadata file if enabled
-        if (useCase.isDestinationViaMetadata()) {
+        if (useCase.isOverwriteDestinationViaMetadata()) {
             try (InputStream metadataFileStream = this.fileSystemOutPort.readFile(file.bucket(), file.getMetadataFilePath())) {
                 final Metadata metadata = metadataHelper.parseMetadataFile(metadataFileStream);
                 final String value = metadata.indexFields().get(swimDispatcherProperties.getMetadataDispatchBindingKey());

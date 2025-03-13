@@ -65,8 +65,8 @@ class ProtocolProcessingUseCaseTest {
     private static final File PROTOCOL_FILE = new File(BUCKET, "test/inProcess/path/path.csv", 0L);
     private static final File NO_PROTOCOL_FILE = new File(BUCKET, "test/inProcess/path/path2.csv", 0L);
     private static final String PROTOCOL_RAW_PATH = "path/path.csv";
-    private static final ProtocolEntry PROTOCOL_ENTRY1 = new ProtocolEntry("test.pdf", 1, null, null, null, Map.of());
-    private static final ProtocolEntry PROTOCOL_ENTRY2 = new ProtocolEntry("test2.pdf", 2, null, null, null, Map.of());
+    private static final ProtocolEntry PROTOCOL_ENTRY1 = new ProtocolEntry("test.pdf", 1, null, null, null, null, null, Map.of());
+    private static final ProtocolEntry PROTOCOL_ENTRY2 = new ProtocolEntry("test2.pdf", 2, null, null, null, null, null, Map.of());
 
     @Test
     void testTriggerProtocolProcessing_Successful() {
@@ -119,7 +119,7 @@ class ProtocolProcessingUseCaseTest {
         when(readProtocolOutPort.loadProtocol(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(List.of(
                 PROTOCOL_ENTRY1,
                 PROTOCOL_ENTRY2,
-                new ProtocolEntry("test4.pdf", 1, null, null, null, Map.of())));
+                new ProtocolEntry("test4.pdf", 1, null, null, null, null, null, Map.of())));
         when(fileSystemOutPort.getMatchingFilesWithTags(any(), any(), anyBoolean(), any(), any(), anyMap())).thenReturn(Map.of(
                 FILE1, TAGS,
                 FILE2, TAGS,

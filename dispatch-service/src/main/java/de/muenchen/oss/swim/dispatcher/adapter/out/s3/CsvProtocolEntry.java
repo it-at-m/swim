@@ -17,10 +17,14 @@ class CsvProtocolEntry {
     private String fileName;
     @JsonProperty(value = "Seiten", required = true)
     private int pageCount;
+    @JsonProperty("RefEB")
+    private String department;
+    @JsonProperty("KistenID")
+    private String boxId;
     @JsonProperty("Paginiernummer")
     private String paginationId;
     @JsonProperty("Belegart")
-    @JsonAlias({ "Dokumentart", "Dokumentenart" })
+    @JsonAlias({ "Dokumentart", "Dokumentenart", "Dokumenttyp" })
     private String documentType;
     @JsonProperty("COO-Adresse")
     private String cooAddress;

@@ -71,6 +71,7 @@ swim:
       target-coo: # for coo-source static
       filename-coo-pattern: # for coo-source filename
       filename-to-coo: # for coo-source filename_map
+      filename-name-pattern: # for coo-source filename_name
       filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
       incoming-name-pattern: # overwrite Incoming name via Regex pattern, only applies to type incoming_object
       metadata-subject: # enables incoming subject be built from metadata file
@@ -103,18 +104,19 @@ Example:
 
 The `type` attribute of a use case defines what type of resource is created in the DMS.
 
-- `inbox`: Creates an ContentObject inside a given Inbox.
-- `incoming_object`: Creates an Incoming (with a ContentObject) inside a given Procedure or the OU work queue of the user.
+- `inbox_content_object`: Creates an ContentObject inside a given Inbox.
+- `procedure_incoming`: Creates an Incoming (with a ContentObject) inside a given Procedure or the OU work queue of the user.
 - `metadata_file`: Resolve target type via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Metadata file](#metadata-file).
 
 ### Coo source
 
-The `coo-source` attribute of a use case defines how the target resource, under which the new ressource is created, is resolved.
+The `coo-source` attribute of a use case defines how the target resource, under which the new resource is created, is resolved.
 
 - `metadata_file`: The target coo and username are resolved via a separate metadata file, which is placed beside the original file in the S3. See [Metadata file](#metadata-file).
 - `static`: The target coo is defined statically via the `target-coo` use case attribute.
 - `filename`: The target coo is resolved via the Regex pattern under `filename-coo-pattern`.
 - `filename_map`: The target coo is resolved via the Map defined under `filename-to-coo`, which consist of pairs of Regex pattern and static coo. The coo of the first matching (case-insensitive) pattern is used.
+- `filename_name`: The target coo is resolved via DMS object name. The name extracted via `filename-name-pattern` is looked up in the DMS and if exactly one match is found that is used as parent. In most cases the pattern should end with `*` as wildcard (e.g. `/^([^.]+)/${1}*/`).
 - `ou_work_queue`: The Incoming is created inside the OU work queue of `username`. Can only be used with type `incoming_object`.
 
 #### Metadata file
@@ -129,7 +131,7 @@ The metadata file is used for following different functions:
   - The below example would lead to a subject `ExampleKey1: Example Value 1\nExampleKey2: Example Value 2`.
 - Target type
   - The target resource type is resolved via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Type](#type) `metadata_file`.
-  - Allowed values in metadata file are `inbox` and `incoming`.
+  - Allowed values in metadata file are all use case [Types](#type) except `metadata_file` (e.g. `inbox_content_object`).
 
 If a metadata file is required but missing or is invalid (syntax, value combination, ...) an Exception is thrown, which is handled by the [error-handling](#error-handling).
 
@@ -139,7 +141,7 @@ If a metadata file is required but missing or is invalid (syntax, value combinat
     "IndexFields": [
       {
         "Name": "SWIM_DMS_Target",
-        "Value": "<inbox/incoming>"
+        "Value": ""
       },
       {
         "Name": "PPK_COO",

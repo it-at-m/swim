@@ -61,7 +61,7 @@ public class SwimDispatcherProperties {
      * Tag value for protocol finished processing.
      */
     @NotBlank
-    private String protocolProcessedStateTageValue;
+    private String protocolProcessedStateTagValue;
     /**
      * Tag value for error occurred.
      */
@@ -127,7 +127,7 @@ public class SwimDispatcherProperties {
      */
     public Map<String, List<String>> getProtocolExcludeTags() {
         return Map.of(
-                protocolStateTagKey, List.of(protocolProcessedStateTageValue, errorStateValue));
+                protocolStateTagKey, List.of(protocolProcessedStateTagValue, errorStateValue));
     }
 
     /**

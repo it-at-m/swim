@@ -105,7 +105,7 @@ class ProtocolProcessingUseCaseTest {
         verify(storeProtocolOutPort, times(1)).deleteProtocol(eq(USE_CASE), eq(PROTOCOL_RAW_PATH));
         verify(storeProtocolOutPort, times(1)).storeProtocol(eq(USE_CASE), eq(PROTOCOL_RAW_PATH), eq(List.of(PROTOCOL_ENTRY1, PROTOCOL_ENTRY2)));
         verify(fileSystemOutPort, times(1)).tagFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()), eq(Map.of(
-                swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue(),
+                swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTagValue(),
                 swimDispatcherProperties.getProtocolMatchTagKey(), "correct")));
         verify(fileSystemOutPort, times(1)).moveFile(eq(BUCKET), eq(PROTOCOL_FILE.path()), eq("test/finishedProtocols/path/path.csv"));
         verify(fileHandlingHelper, times(0)).markFileError(any(), any(), any());
@@ -132,7 +132,7 @@ class ProtocolProcessingUseCaseTest {
         verify(notificationOutPort, times(1)).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_RAW_PATH), eq(protocolStream),
                 eq(List.of("test4.pdf")), eq(List.of("test3.pdf")));
         verify(fileSystemOutPort, times(1)).tagFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()), eq(Map.of(
-                swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTageValue(),
+                swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTagValue(),
                 swimDispatcherProperties.getProtocolMatchTagKey(), "missingInProtocolAndFiles")));
         verify(fileHandlingHelper, times(0)).markFileError(any(), any(), any());
         verify(notificationOutPort, times(0)).sendProtocolError(any(), any(), any(), any());

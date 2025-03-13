@@ -4,7 +4,7 @@ package de.muenchen.oss.swim.dispatcher.domain.model;
  * Available actions while dispatching.
  * Determines how the file is processed.
  */
-public enum DispatchActions {
+public enum DispatchAction {
     /**
      * Dispatch file event to handler services.
      */

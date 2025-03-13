@@ -19,13 +19,13 @@ public class DispatchMeter {
      * Increment counter metric of successfully dispatched files.
      *
      * @param useCase The use case of the file.
-     * @param destination The destination the file was dispatched to.
+     * @param actionName The action which was executed or the destination the file was dispatched to.
      */
-    public void incrementDispatched(final String useCase, final String destination) {
-        final String key = useCase + "_" + destination;
+    public void incrementDispatched(final String useCase, final String actionName) {
+        final String key = useCase + "_" + actionName;
         final Counter counter = dispatchedCounters.computeIfAbsent(key, k -> Counter.builder("swim_dispatch_dispatched_count")
                 .tag("use-case", useCase)
-                .tag("destination", destination)
+                .tag("destination", actionName)
                 .register(meterRegistry));
         counter.increment();
     }

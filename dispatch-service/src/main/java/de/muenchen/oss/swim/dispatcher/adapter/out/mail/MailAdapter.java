@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -22,14 +23,18 @@ import org.springframework.stereotype.Service;
 public class MailAdapter implements NotificationOutPort {
     private final MailProperties mailProperties;
     private final JavaMailSender mailSender;
+    private final MessageSource messageSource;
+
     private final static String MAIL_ADDRESS_DELIMITER = ";";
+    private final static String SUBJECT_OK = "OK";
+    private final static String SUBJECT_ERROR = "ERROR";
 
     @Override
     public void sendDispatchErrors(final List<String> recipients, final String useCase, final Map<String, Throwable> errors) {
         final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
-        final String subject = String.format("%sERROR: Dispatching %s", mailProperties.getMailSubjectPrefix(), useCase);
+        final String subject = this.buildSubject(true, String.format(this.getMessage("dispatchErrors.subject"), useCase));
         final String body = String.format(
-                "Use case: %s%nError count: %d%n%nErrors:%n%s",
+                this.getMessage("dispatchErrors.message"),
                 useCase, errors.size(),
                 errors.entrySet().stream()
                         .map(e -> String.format("- %s: %s", e.getKey(), e.getValue().getMessage()))
@@ -42,11 +47,10 @@ public class MailAdapter implements NotificationOutPort {
             final List<String> missingFiles, final List<String> missingInProtocol) {
         final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
         final boolean missmatch = !missingFiles.isEmpty() || !missingInProtocol.isEmpty();
-        final String state = missmatch ? "ERROR" : "OK";
-        final String subject = String.format("%s%s: Protocol %s for %s", mailProperties.getMailSubjectPrefix(), state, protocolName, useCase);
+        final String subject = this.buildSubject(missmatch, String.format(this.getMessage("protocol.subject"), protocolName, useCase));
         final String body = String.format(
-                "State: %s%nUse case: %s%nProtocol name: %s%nMissing files: %d%nFiles missing in protocol: %d",
-                state, useCase, protocolName, missingFiles.size(), missingInProtocol.size());
+                this.getMessage("protocol.message"),
+                useCase, protocolName, missingFiles.size(), missingInProtocol.size());
         final Map<String, InputStream> attachments = new HashMap<>();
         attachments.put(protocolName, protocol);
         if (!missingFiles.isEmpty()) {
@@ -61,9 +65,9 @@ public class MailAdapter implements NotificationOutPort {
     @Override
     public void sendProtocolError(final List<String> recipients, final String useCase, final String protocolPath, final Throwable error) {
         final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
-        final String subject = String.format("%sERROR: Processing protocol %s for use case %s", mailProperties.getMailSubjectPrefix(), protocolPath, useCase);
+        final String subject = this.buildSubject(true, String.format(this.getMessage("protocolError.subject"), protocolPath, useCase));
         final String body = String.format(
-                "Use case: %s%nProtocol file: %s%nError type: %s%nError message: %s",
+                this.getMessage("protocolError.message"),
                 useCase, protocolPath, error.getClass(), error.getMessage());
         this.sendMail(parsedRecipients, subject, body, Map.of());
     }
@@ -72,9 +76,9 @@ public class MailAdapter implements NotificationOutPort {
     public void sendFileError(final List<String> recipients, final String useCase, final String filePath, final ErrorDetails inputError,
             final Throwable error) {
         final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
-        final String subject = String.format("%sERROR: Error handler for file %s for use case %s", mailProperties.getMailSubjectPrefix(), filePath, useCase);
+        final String subject = this.buildSubject(true, String.format(this.getMessage("fileErrorHandlerError.subject"), filePath, useCase));
         final String body = String.format(
-                "Use case: %s%nFile: %s%nSource: %s%n%nError type: %s%nError message: %s%n%nOriginal error type: %s%nOriginal error message: %s%nOriginal error stacktrace: %s",
+                this.getMessage("fileErrorHandlerError.message"),
                 useCase, filePath, inputError.source(),
                 error.getClass(), error.getMessage(),
                 inputError.className(), inputError.message(), inputError.stacktrace());
@@ -84,9 +88,9 @@ public class MailAdapter implements NotificationOutPort {
     @Override
     public void sendFileError(final List<String> recipients, final String useCase, final String filePath, final ErrorDetails error) {
         final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
-        final String subject = String.format("%sERROR: File %s for use case %s", mailProperties.getMailSubjectPrefix(), filePath, useCase);
+        final String subject = this.buildSubject(true, String.format(this.getMessage("fileError.subject"), filePath, useCase));
         final String body = String.format(
-                "Use case: %s%nFile: %s%nSource: %s%nError class: %s%nError message: %s%nError stacktrace: %s",
+                this.getMessage("fileError.message"),
                 useCase, filePath, error.source(), error.className(), error.message(), error.stacktrace());
         this.sendMail(parsedRecipients, subject, body, Map.of());
     }
@@ -126,5 +130,29 @@ public class MailAdapter implements NotificationOutPort {
     protected InputStream fileListToInputStream(final List<String> files) {
         final String content = String.join("\n", files);
         return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Build mail subject.
+     * Pattern: {@code <prefix><state>: <message>}
+     *
+     * @param isError If is error else ok.
+     * @param message The message.
+     * @return Built subject.
+     */
+    protected String buildSubject(final boolean isError, final String message) {
+        final String state = isError ? SUBJECT_ERROR : SUBJECT_OK;
+        return String.format("%s%s: %s", this.mailProperties.getMailSubjectPrefix(), state, message);
+    }
+
+    /**
+     * Resolve localized message.
+     * Uses {@link MailProperties#getLocale()}.
+     *
+     * @param code The message code to resolve the message.
+     * @return The resolved message.
+     */
+    protected String getMessage(final String code) {
+        return this.messageSource.getMessage(code, null, this.mailProperties.getLocale());
     }
 }

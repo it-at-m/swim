@@ -26,7 +26,39 @@ flowchart LR
   - [Kafka-UI](http://localhost:8089/)
   - [pgAdmin](http://localhost:5050/)
 
-## Adding additional target
+## Configuration
+
+In addition to the properties listed below, other Spring libraries must also be configured (e.g. Mail, DB).
+These properties and example values can be found in the [`application-local.yml`](./src/main/resources/application-local.yml).
+
+```yaml
+swim:
+  dispatching-cron: # cron interval for triggering dispatching
+  protocol-processing-cron: # cron interval for triggering protocol processing
+  fallback-mail: # fallback mail used for notification mails if use case can't be resolved
+  mail:
+    from-address: # mail address used for sending notifications
+    mail-subject-prefix: # prefix added to mail subject (e.g. for specifying the environment)
+    locale: # change the language of the mails (optional, default: en, alternatives: de)
+  # s3 connection options
+  s3:
+    url:
+    access-key:
+    secret-key:
+  # list of use cases
+  use-cases:
+    - name: # name of the use case
+      bucket: # bucket to look for new files in
+      path: # path to look for new files under
+      recursive: # if the file lookup should be recursive (optional, default: false)
+      required-tags: # map of tags required on files to be dispatched (optional, default: {})
+      requires-metadata: # if a metadata file is required (optional, default: false)
+      destination-binding: # the target destination binding, see section "Adding additional target"
+      mail-addresses: # list of mail addresses used for sending notifications
+      sensitive-filename: # if the filename is sensitive, if true it isn't logged (optional, default: false)
+```
+
+### Adding additional target
 
 For adding additional destinations the according outgoing Kafka binding needs to be added as following:
 
@@ -41,5 +73,3 @@ spring:
 ```
 
 The binding key (in the above example `example-out`) can then be used as use case destination.
-
-See [`application-local.yml`](./src/main/resources/application-local.yml) as example.

@@ -5,6 +5,8 @@ CREATE TABLE protocol
     protocol_name           VARCHAR NOT NULL,
     file_name               VARCHAR NOT NULL,
     page_count              INT NOT NULL,
+    department              VARCHAR,
+    box_id                  VARCHAR,
     pagination_id           VARCHAR,
     document_type           VARCHAR,
     coo_address             VARCHAR,

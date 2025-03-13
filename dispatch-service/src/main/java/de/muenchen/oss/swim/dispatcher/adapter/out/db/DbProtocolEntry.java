@@ -37,7 +37,9 @@ class DbProtocolEntry {
     @NotBlank
     private String fileName;
     @NotNull
-    private int pageCount;
+    private Integer pageCount;
+    private String department;
+    private String boxId;
     private String paginationId;
     private String documentType;
     private String cooAddress;

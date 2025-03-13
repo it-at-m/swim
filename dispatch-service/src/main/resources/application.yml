@@ -93,6 +93,8 @@ swim:
   dispatch-folder: inProcess
   finished-folder: finished
   protocol-finished-folder: finishedProtocols
+  # metadata
+  metadata-dispatch-binding-key: SWIM_Dispatch_Target
   # s3 tags
   dispatch-state-tag-key: SWIM_State
   dispatched-state-tag-value: sentToKafka

@@ -37,6 +37,12 @@ public class UseCase {
      */
     private boolean requiresMetadata = false;
     /**
+     * If destination binding should be resolved via metadata file.
+     * See {@link SwimDispatcherProperties#getMetadataDispatchBindingKey()}.
+     * Uses {@link #destinationBinding} as fallback.
+     */
+    private boolean overwriteDestinationViaMetadata = false;
+    /**
      * Tags required to start processing file.
      */
     private Map<String, String> requiredTags = Map.of();

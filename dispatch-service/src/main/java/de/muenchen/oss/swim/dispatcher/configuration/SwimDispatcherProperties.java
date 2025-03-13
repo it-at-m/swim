@@ -73,6 +73,13 @@ public class SwimDispatcherProperties {
      */
     @NotEmpty
     private List<UseCase> useCases = List.of();
+    // ########### metadata ###########
+    /**
+     * Metadata IndexFields key to use for destination binding.
+     * {@link UseCase#isOverwriteDestinationViaMetadata()}
+     */
+    @NotBlank
+    private String metadataDispatchBindingKey;
     // ########### additional attributes ###########
     /**
      * Fallback mail address for notifications.

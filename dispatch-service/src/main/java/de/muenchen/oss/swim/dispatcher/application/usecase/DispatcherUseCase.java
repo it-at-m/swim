@@ -132,7 +132,7 @@ public class DispatcherUseCase implements DispatcherInPort {
         // resolve action
         final DispatchAction action = this.resolveDispatchAction(tags);
         // execute action
-        String destination = action.name();
+        String actionName = action.name();
         switch (action) {
         case DELETE, IGNORE:
             this.finishFile(useCase, file);
@@ -141,14 +141,16 @@ public class DispatcherUseCase implements DispatcherInPort {
             this.rerouteFileToUseCase(useCase, file, tags);
             break;
         case DISPATCH:
-            destination = this.resolveDestinationBinding(useCase, file);
-            this.dispatchFile(useCase, file, destination);
+            final String destinationBinding = this.resolveDestinationBinding(useCase, file);
+            this.dispatchFile(useCase, file, destinationBinding);
+            // use destination binding as actionName for more specific metrics
+            actionName = destinationBinding;
             break;
         default:
             throw new IllegalStateException(String.format("Unknown dispatch action '%s' for file '%s'", action, file.path()));
         }
         // update metric
-        dispatchMeter.incrementDispatched(useCase.getName(), destination);
+        dispatchMeter.incrementDispatched(useCase.getName(), actionName);
     }
 
     /**
@@ -160,7 +162,12 @@ public class DispatcherUseCase implements DispatcherInPort {
      */
     protected @NotNull
     DispatchAction resolveDispatchAction(final Map<String, String> tags) {
-        final String actionString = tags.getOrDefault(swimDispatcherProperties.getDispatchActionTagKey(), DISPATCH.name());
+        // dispatch if tag doesn't exist
+        if (!tags.containsKey(swimDispatcherProperties.getDispatchActionTagKey())) {
+            return DISPATCH;
+        }
+        // parse tag value
+        final String actionString = tags.get(swimDispatcherProperties.getDispatchActionTagKey());
         if (actionString == null) {
             throw new IllegalStateException("Action tag value cannot be null");
         }
@@ -217,10 +224,8 @@ public class DispatcherUseCase implements DispatcherInPort {
                 if (Strings.isNotBlank(value)) {
                     return value;
                 }
-            } catch (final FileSystemAccessException e) {
+            } catch (final FileSystemAccessException | IOException e) {
                 throw new MetadataException("Destination via metadata: Error while loading metadata file", e);
-            } catch (final IOException e) {
-                throw new MetadataException("Destination via metadata: Error while parsing metadata file", e);
             }
         }
         // use UseCase destination binding

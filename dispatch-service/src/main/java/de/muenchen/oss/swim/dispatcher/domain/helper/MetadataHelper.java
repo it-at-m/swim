@@ -12,6 +12,10 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/**
+ * Copy of {@link de.muenchen.oss.swim.libs.handlercore.domain.helper.MetadataHelper}.
+ * Should be kept in sync.
+ */
 @Component
 @RequiredArgsConstructor
 public class MetadataHelper {

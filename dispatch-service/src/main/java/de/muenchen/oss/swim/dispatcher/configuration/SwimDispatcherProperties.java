@@ -73,6 +73,7 @@ public class SwimDispatcherProperties {
      */
     @NotEmpty
     private List<UseCase> useCases = List.of();
+    // ########### metadata ###########
     /**
      * Metadata IndexFields key to use for destination binding.
      * {@link UseCase#isDestinationViaMetadata()}

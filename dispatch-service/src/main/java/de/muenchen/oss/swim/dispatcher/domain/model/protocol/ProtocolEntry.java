@@ -6,7 +6,7 @@ import java.util.Map;
 
 public record ProtocolEntry(
         @NotBlank String fileName,
-        @NotNull int pageCount,
+        @NotNull Integer pageCount,
         String department,
         String boxId,
         String paginationId,

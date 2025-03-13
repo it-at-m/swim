@@ -16,6 +16,7 @@ class CsvProtocolEntry {
     @JsonAlias("Dateiname")
     private String fileName;
     @JsonProperty(value = "Seiten", required = true)
+    @JsonAlias("Seitenzahl")
     private Integer pageCount;
     @JsonProperty("RefEB")
     private String department;

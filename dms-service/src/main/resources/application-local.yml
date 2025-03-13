@@ -26,5 +26,12 @@ swim:
     base-url: "https://dmsresteai-test-dmsresteai.apps.capk.muenchen.de/api"
   use-cases:
     - name: test-meta
-      type: inbox
+      type: inbox_content_object
       coo-source: metadata_file
+    - name: test
+      type: procedure_incoming
+      coo-source: filename_name
+      filename-name-pattern: "s/^(.+)_(?:COO.[^-]+)_.+$/\\${1}*/"
+      #username:
+      #joboe:
+      #jobposition:

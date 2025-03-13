@@ -324,7 +324,7 @@
                         <excludeRoot>target/generated-test-sources</excludeRoot>
                     </excludeRoots>
                     <rulesets>
-                        <ruleset>refarch-pmd-ruleset.xml</ruleset>
+                        <ruleset>swim-pmd-ruleset.xml</ruleset>
                     </rulesets>
                 </configuration>
                 <executions>

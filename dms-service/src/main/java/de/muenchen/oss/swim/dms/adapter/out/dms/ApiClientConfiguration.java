@@ -6,6 +6,7 @@ import de.muenchen.refarch.integration.dms.api.IncomingsApi;
 import de.muenchen.refarch.integration.dms.api.ObjectAndImportToInboxApi;
 import de.muenchen.refarch.integration.dms.api.ProcedureObjectsApi;
 import de.muenchen.refarch.integration.dms.api.ProceduresApi;
+import de.muenchen.refarch.integration.dms.api.SearchObjNamesApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -43,5 +44,10 @@ class ApiClientConfiguration {
     @Bean
     protected ContentObjectsApi contentObjectsApi(final ApiClient apiClient) {
         return new ContentObjectsApi(apiClient);
+    }
+
+    @Bean
+    protected SearchObjNamesApi searchObjNamesApi(final ApiClient apiClient) {
+        return new SearchObjNamesApi(apiClient);
     }
 }

@@ -1,10 +1,13 @@
 package de.muenchen.oss.swim.dms.application.port.out;
 
+import de.muenchen.oss.swim.dms.domain.model.DmsRequestContext;
+import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.validation.annotation.Validated;
 
@@ -21,10 +24,10 @@ public interface DmsOutPort {
 
     /**
      * Create Incoming.
-     * Either inside given Procedure {@link DmsTarget#coo()} or OU work queue of
-     * {@link DmsTarget#userName()}.
+     * Either inside given Procedure {@link DmsTarget#getCoo()} or OU work queue of
+     * {@link DmsTarget#getUsername()}.
      *
-     * @param dmsTarget The target. If {@link DmsTarget#coo()} is defined: Procedure, if not: OU work
+     * @param dmsTarget The target. If {@link DmsTarget#getCoo()} is defined: Procedure, if not: OU work
      *            queue.
      * @param incomingName The name of the new Incoming.
      * @param incomingSubject The subject of the new Incoming.
@@ -61,4 +64,14 @@ public interface DmsOutPort {
      * @return The coo of the new ContentObject.
      */
     String createContentObject(@NotNull @Valid DmsTarget dmsTarget, @NotNull String contentObjectName, @NotNull InputStream inputStream);
+
+    /**
+     * Find dms object via name and resource type.
+     *
+     * @param resourceType The type of the dms resource to search for.
+     * @param objectName The name of the object to search for.
+     * @param requestContext The context (username, joboe, jobposition) to make the search request with.
+     * @return The COOs of all matching objects.
+     */
+    List<String> findObjectsByName(@NotNull DmsResourceType resourceType, @NotNull String objectName, @NotNull @Valid DmsRequestContext requestContext);
 }

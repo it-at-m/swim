@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.util.Map;
 import lombok.Data;
+import lombok.Getter;
 
 @Data
 public class UseCase {
@@ -32,7 +33,7 @@ public class UseCase {
     /**
      * Regex pattern for defining a custom Incoming name.
      * If not defined overwritten filename is used.
-     * Only applies to {@link Type#INCOMING_OBJECT}
+     * Only applies to {@link Type#PROCEDURE_INCOMING}
      */
     @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String incomingNamePattern;
@@ -42,6 +43,12 @@ public class UseCase {
      */
     @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String filenameCooPattern;
+    /**
+     * Regex pattern for extracting target dms resource name from filename.
+     * {@link UseCase.CooSource#FILENAME_NAME}
+     */
+    @Pattern(regexp = PatternHelper.RAW_PATTERN)
+    private String filenameNamePattern;
     /**
      * Map for resolving target coo via filename.
      * Key: Regex which is matched against filename (case-insensitive).
@@ -57,18 +64,18 @@ public class UseCase {
     private String targetCoo;
     /**
      * Verify name of resolved Procedure against pattern, if defined.
-     * Only applies to {@link Type#INCOMING_OBJECT}
+     * Only applies to {@link Type#PROCEDURE_INCOMING}
      */
     @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String verifyProcedureNamePattern;
     /**
      * Reuse Incoming with same name if true.
-     * Only applies to {@link Type#INCOMING_OBJECT}
+     * Only applies to {@link Type#PROCEDURE_INCOMING}
      */
     private boolean reuseIncoming = false;
     /**
      * Fill subject with metadata. See {@link de.muenchen.oss.swim.dms.configuration.SwimDmsProperties}.
-     * Currently only works for {@link Type#INCOMING_OBJECT}.
+     * Currently only works for {@link Type#PROCEDURE_INCOMING}.
      */
     private boolean metadataSubject = false;
     /**
@@ -85,21 +92,42 @@ public class UseCase {
      */
     private String jobposition = null;
 
+    @Getter
     public enum Type {
         /**
-         * Create an Object inside an Inbox.
+         * Create a Content Object inside an Inbox.
          */
-        INBOX,
+        INBOX_CONTENT_OBJECT(DmsResourceType.INBOX, DmsResourceType.CONTENT_OBJECT),
         /**
-         * Create an Incoming
-         * Either inside given Procedure {@link DmsTarget#coo()} or OU work queue of
-         * {@link DmsTarget#userName()}.
+         * Create an Incoming either inside given Procedure {@link DmsTarget#getCoo()} or OU work queue of
+         * {@link DmsTarget#getUsername()}.
          */
-        INCOMING_OBJECT,
+        PROCEDURE_INCOMING(DmsResourceType.PROCEDURE, DmsResourceType.INCOMING),
         /**
          * Resolve target resource type from metadata file.
          */
-        METADATA_FILE
+        METADATA_FILE(null, null);
+
+        /**
+         * The type of the target to create the new resource under.
+         */
+        private final DmsResourceType target;
+        /**
+         * The type of resource to create.
+         */
+        private final DmsResourceType type;
+
+        /**
+         * Type of the use case.
+         * Specifies where and what resource is created.
+         *
+         * @param target The type of the target to create the new resource under.
+         * @param type The type of resource to create.
+         */
+        Type(final DmsResourceType target, final DmsResourceType type) {
+            this.target = target;
+            this.type = type;
+        }
     }
 
     public enum CooSource {
@@ -119,13 +147,18 @@ public class UseCase {
          */
         FILENAME_MAP,
         /**
+         * Resolve target coo by search for name extracted from filename.
+         * See {@link UseCase#filenameNamePattern}.
+         */
+        FILENAME_NAME,
+        /**
          * Target coo is statically configured.
          * {@link UseCase#targetCoo}
          */
         STATIC,
         /**
          * Target is OU work queue of {@link UseCase#username}.
-         * Can only be used with {@link Type#INCOMING_OBJECT}.
+         * Can only be used with {@link Type#PROCEDURE_INCOMING}.
          */
         OU_WORK_QUEUE
     }

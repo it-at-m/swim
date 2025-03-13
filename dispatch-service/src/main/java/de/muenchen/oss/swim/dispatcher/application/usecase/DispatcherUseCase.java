@@ -1,7 +1,7 @@
 package de.muenchen.oss.swim.dispatcher.application.usecase;
 
 import static de.muenchen.oss.swim.dispatcher.application.usecase.helper.FileHandlingHelper.FILE_EXTENSION_PDF;
-import static de.muenchen.oss.swim.dispatcher.domain.model.DispatchActions.DISPATCH;
+import static de.muenchen.oss.swim.dispatcher.domain.model.DispatchAction.DISPATCH;
 
 import de.muenchen.oss.swim.dispatcher.application.port.in.DispatcherInPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileDispatchingOutPort;
@@ -11,17 +11,23 @@ import de.muenchen.oss.swim.dispatcher.application.usecase.helper.FileHandlingHe
 import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
+import de.muenchen.oss.swim.dispatcher.domain.exception.FileSystemAccessException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
-import de.muenchen.oss.swim.dispatcher.domain.model.DispatchActions;
+import de.muenchen.oss.swim.dispatcher.domain.helper.MetadataHelper;
+import de.muenchen.oss.swim.dispatcher.domain.model.DispatchAction;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
+import de.muenchen.oss.swim.dispatcher.domain.model.Metadata;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +43,7 @@ public class DispatcherUseCase implements DispatcherInPort {
     private final NotificationOutPort notificationOutPort;
     private final FileHandlingHelper fileHandlingHelper;
     private final DispatchMeter dispatchMeter;
+    private final MetadataHelper metadataHelper;
 
     @Override
     public void triggerDispatching() {
@@ -123,8 +130,9 @@ public class DispatcherUseCase implements DispatcherInPort {
             throw new FileSizeException(message);
         }
         // resolve action
-        final DispatchActions action = this.resolveDispatchAction(tags);
+        final DispatchAction action = this.resolveDispatchAction(tags);
         // execute action
+        String actionName = action.name();
         switch (action) {
         case DELETE, IGNORE:
             this.finishFile(useCase, file);
@@ -133,30 +141,37 @@ public class DispatcherUseCase implements DispatcherInPort {
             this.rerouteFileToUseCase(useCase, file, tags);
             break;
         case DISPATCH:
-            this.dispatchFile(useCase, file);
+            final String destinationBinding = this.resolveDestinationBinding(useCase, file);
+            this.dispatchFile(useCase, file, destinationBinding);
+            // use destination binding as actionName for more specific metrics
+            actionName = destinationBinding;
             break;
         default:
             throw new IllegalStateException(String.format("Unknown dispatch action '%s' for file '%s'", action, file.path()));
         }
         // update metric
-        final String destination = DISPATCH == action ? useCase.getDestinationBinding() : action.name();
-        dispatchMeter.incrementDispatched(useCase.getName(), destination);
+        dispatchMeter.incrementDispatched(useCase.getName(), actionName);
     }
 
     /**
      * Resolve dispatch action from tags.
-     * If tag isn't present defaults to {@link DispatchActions#DISPATCH}.
+     * If tag isn't present defaults to {@link DispatchAction#DISPATCH}.
      *
      * @param tags The tags of the file.
      * @return The resolved action.
      */
     protected @NotNull
-    DispatchActions resolveDispatchAction(final Map<String, String> tags) {
-        final String actionString = tags.getOrDefault(swimDispatcherProperties.getDispatchActionTagKey(), DISPATCH.name());
+    DispatchAction resolveDispatchAction(final Map<String, String> tags) {
+        // dispatch if tag doesn't exist
+        if (!tags.containsKey(swimDispatcherProperties.getDispatchActionTagKey())) {
+            return DISPATCH;
+        }
+        // parse tag value
+        final String actionString = tags.get(swimDispatcherProperties.getDispatchActionTagKey());
         if (actionString == null) {
             throw new IllegalStateException("Action tag value cannot be null");
         }
-        return DispatchActions.valueOf(actionString.toUpperCase(Locale.ROOT));
+        return DispatchAction.valueOf(actionString.toUpperCase(Locale.ROOT));
     }
 
     /**
@@ -164,9 +179,10 @@ public class DispatcherUseCase implements DispatcherInPort {
      *
      * @param useCase The use case of the file.
      * @param file The file.
+     * @param destination Destination binding to dispatch to.
      * @throws MetadataException If metadata file required but could not be loaded.
      */
-    protected void dispatchFile(final UseCase useCase, final File file) throws MetadataException {
+    protected void dispatchFile(final UseCase useCase, final File file, final String destination) throws MetadataException {
         // check metadata file exists if required
         final String metadataPresignedUrl;
         if (useCase.isRequiresMetadata()) {
@@ -183,11 +199,38 @@ public class DispatcherUseCase implements DispatcherInPort {
         }
         // dispatch file
         final String presignedUrl = fileSystemOutPort.getPresignedUrl(file.bucket(), file.path());
-        fileDispatchingOutPort.dispatchFile(useCase.getDestinationBinding(), useCase.getName(), presignedUrl, metadataPresignedUrl);
+        fileDispatchingOutPort.dispatchFile(destination, useCase.getName(), presignedUrl, metadataPresignedUrl);
         // mark file as dispatched
         fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(),
                 swimDispatcherProperties.getDispatchedStateTagValue()));
+    }
+
+    /**
+     * Resolve destination binding either via metadata file or use case.
+     * See {@link UseCase#isOverwriteDestinationViaMetadata()} and
+     * {@link UseCase#getDestinationBinding()}.
+     *
+     * @param useCase The use case to resolve the destination binding for.
+     * @param file The file to resolve the destination binding for.
+     * @return The resolved destination binding.
+     * @throws MetadataException If metadata file can't be loaded or parsed.
+     */
+    protected String resolveDestinationBinding(final UseCase useCase, final File file) throws MetadataException {
+        // resolve via metadata file if enabled
+        if (useCase.isOverwriteDestinationViaMetadata()) {
+            try (InputStream metadataFileStream = this.fileSystemOutPort.readFile(file.bucket(), file.getMetadataFilePath())) {
+                final Metadata metadata = metadataHelper.parseMetadataFile(metadataFileStream);
+                final String value = metadata.indexFields().get(swimDispatcherProperties.getMetadataDispatchBindingKey());
+                if (Strings.isNotBlank(value)) {
+                    return value;
+                }
+            } catch (final FileSystemAccessException | IOException e) {
+                throw new MetadataException("Destination via metadata: Error while loading metadata file", e);
+            }
+        }
+        // use UseCase destination binding
+        return useCase.getDestinationBinding();
     }
 
     /**

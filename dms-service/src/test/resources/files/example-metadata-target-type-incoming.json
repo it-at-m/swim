@@ -3,7 +3,7 @@
     "IndexFields": [
       {
         "Name": "SWIM_DMS_Target",
-        "Value": "incoming"
+        "Value": "procedure_incoming"
       },
       {
         "Name": "VG_COO",

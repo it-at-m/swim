@@ -387,6 +387,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                     .readerFor(CsvProtocolEntry.class)
                     .with(schema)
                     .with(CsvParser.Feature.SKIP_EMPTY_LINES)
+                    .without(CsvParser.Feature.FAIL_ON_MISSING_HEADER_COLUMNS)
                     .readValues(reader)) {
                 return protocolMapper.toDomain(iterator.readAll());
             }

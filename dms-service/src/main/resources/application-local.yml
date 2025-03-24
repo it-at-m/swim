@@ -27,11 +27,12 @@ swim:
   use-cases:
     - name: test-meta
       type: inbox_content_object
-      coo-source: metadata_file
-    - name: test
-      type: procedure_incoming
-      coo-source: filename_name
-      filename-name-pattern: "s/^(.+)_(?:COO.[^-]+)_.+$/\\${1}*/"
-      #username:
-      #joboe:
-      #jobposition:
+      coo-source:
+        type: metadata_file
+#    - name: test
+#      type: incoming_object
+#      coo-source: filename_name
+#      filename-name-pattern: "s/^(.+)_(?:COO.[^-]+)_.+$/\\${1}*/"
+#      username: simon.hirtreiter
+#      joboe: COO.2150.9150.1.13722
+#      jobposition: OfficialInCharge

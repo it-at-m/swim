@@ -16,6 +16,7 @@ import de.muenchen.refarch.integration.dms.model.CreateContentObjectAntwortDTO;
 import de.muenchen.refarch.integration.dms.model.CreateIncomingAntwortDTO;
 import de.muenchen.refarch.integration.dms.model.CreateIncomingBasisAnfrageDTO;
 import de.muenchen.refarch.integration.dms.model.CreateObjectAndImportToInboxDTO;
+import de.muenchen.refarch.integration.dms.model.CreateObjectAndImportToInboxResponseDTO;
 import de.muenchen.refarch.integration.dms.model.Objektreferenz;
 import de.muenchen.refarch.integration.dms.model.ReadProcedureObjectsAntwortDTO;
 import de.muenchen.refarch.integration.dms.model.ReadProcedureResponseDTO;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -52,20 +54,30 @@ public class DmsAdapter implements DmsOutPort {
             DmsResourceType.INBOX, DMS_OBJECT_TYPE_INBOX);
 
     @Override
-    public void createContentObjectInInbox(final DmsTarget dmsTarget, final String contentObjectName, final InputStream inputStream) {
+    public String createContentObjectInInbox(final DmsTarget dmsTarget, final String contentObjectName, final String contentObjectSubject,
+            final InputStream inputStream) {
         log.debug("Putting ContentObject {} in inbox {}", contentObjectName, dmsTarget);
         final CreateObjectAndImportToInboxDTO request = new CreateObjectAndImportToInboxDTO();
         request.setObjaddress(dmsTarget.getCoo());
+        if (Strings.isNotBlank(contentObjectSubject)) {
+            request.setFilesubj(List.of(List.of(contentObjectSubject)));
+        }
         try {
             final AbstractResource file = new NamedInputStreamResource(contentObjectName, inputStream);
-            objectAndImportToInboxApi.createObjectAndImportToInbox(
+            final CreateObjectAndImportToInboxResponseDTO response = objectAndImportToInboxApi.createObjectAndImportToInbox(
                     request,
                     DMS_APPLICATION,
                     dmsTarget.getUsername(),
                     null,
                     null,
                     List.of(file)).block();
-            log.info("Created new ContentObject {} in Inbox {}", contentObjectName, dmsTarget);
+            if (response != null && response.getListcontents() != null && response.getListcontents().size() != 1) {
+                final String coo = response.getListcontents().getFirst().getObjaddress();
+                log.info("Created new ContentObject {} in Inbox {}", coo, dmsTarget);
+                return coo;
+            } else {
+                throw new DmsException("Invalid response while creating ContentObject in Inbox");
+            }
         } catch (final WebClientResponseException e) {
             throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
         }

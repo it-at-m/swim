@@ -95,7 +95,7 @@ class ProcessFileUseCaseTest {
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(processFileUseCase, times(1)).resolveTargetCoo(eq(UseCaseType.INBOX_CONTENT_OBJECT), any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(1)).resolveInboxDmsTarget(any());
-        verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(METADATA_DMS_TARGET_USER), eq(FILE_NAME), eq(null));
+        verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(METADATA_DMS_TARGET_USER), eq(FILE_NAME), eq(null), eq(null));
         verify(dmsMeter, times(1)).incrementProcessed(eq(useCaseName), eq("INBOX_CONTENT_OBJECT"));
     }
 
@@ -219,7 +219,7 @@ class ProcessFileUseCaseTest {
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(processFileUseCase, times(1)).resolveTargetCoo(eq(targetType), any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(0)).resolveInboxDmsTarget(any());
-        verify(dmsOutPort, times(0)).createContentObjectInInbox(any(), any(), any());
+        verify(dmsOutPort, times(0)).createContentObjectInInbox(any(), any(), any(), any());
         verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(incomingName), eq(incomingSubject), eq(contentObjectName), eq(null));
     }
 

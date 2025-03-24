@@ -69,13 +69,17 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             // get target coo
             final DmsTarget dmsTarget = this.resolveTargetCoo(targetResource, metadata, useCase, file);
             log.debug("Resolved dms target: {}", dmsTarget);
-            // get ContentObject name
+            // get ContentObject name and subject
             final String contentObjectName = this.patternHelper.applyPattern(useCase.getContentObject().getFilenameOverwritePattern(), file.getFileName(),
                     metadata);
+            final String contentObjectSubjectPattern = useCase.getContentObject().getSubjectPattern();
+            final String contentObjectSubject = Strings.isNotBlank(contentObjectSubjectPattern)
+                    ? this.patternHelper.applyPattern(contentObjectSubjectPattern, file.getFileName(), metadata)
+                    : null;
             // transfer to dms
             switch (targetResource) {
             // to dms inbox
-            case INBOX_CONTENT_OBJECT -> dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectName, fileStream);
+            case INBOX_CONTENT_OBJECT -> dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectName, contentObjectSubject, fileStream);
             // create dms incoming
             case PROCEDURE_INCOMING -> this.processIncoming(file, useCase, dmsTarget, contentObjectName, fileStream, metadata);
             case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");

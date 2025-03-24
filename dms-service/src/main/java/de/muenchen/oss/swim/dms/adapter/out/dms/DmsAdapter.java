@@ -71,7 +71,7 @@ public class DmsAdapter implements DmsOutPort {
                     null,
                     null,
                     List.of(file)).block();
-            if (response != null && response.getListcontents() != null && response.getListcontents().size() != 1) {
+            if (response != null && response.getListcontents() != null && response.getListcontents().size() == 1) {
                 final String coo = response.getListcontents().getFirst().getObjaddress();
                 log.info("Created new ContentObject {} in Inbox {}", coo, dmsTarget);
                 return coo;

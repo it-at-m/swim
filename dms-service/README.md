@@ -64,18 +64,22 @@ swim:
   use-cases:
     - name: # required
       type: # required, see section "Type"
-      coo-source: # required, see section "Coo source"
-      username: # user under which the DMS action is executed
-      joboe: # used to resolve user role under which the DMS action is executed, default role if not defined
-      jobposition: # used to resolve user role under which the DMS action is executed, default role if not defined
-      target-coo: # for coo-source static
-      filename-coo-pattern: # for coo-source filename
-      filename-to-coo: # for coo-source filename_map
-      filename-name-pattern: # for coo-source filename_name
-      filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
-      incoming-name-pattern: # overwrite Incoming name via Regex pattern, only applies to type incoming_object
-      metadata-subject: # enables incoming subject be built from metadata file
-      verify-procedure-name-pattern: # verifies target procedure name matches this pattern, only applies to type incoming_object
+      coo-source:
+        type: # required, see section "Coo source"
+        target-coo: # for coo-source static
+        filename-coo-pattern: # for coo-source filename
+        filename-to-coo: # for coo-source filename_map
+        filename-name-pattern: # for coo-source filename_name
+      context:
+        username: # user under which the DMS action is executed
+        joboe: # used to resolve user role under which the DMS action is executed, default role if not defined
+        jobposition: # used to resolve user role under which the DMS action is executed, default role if not defined
+      incoming:
+        incoming-name-pattern: # overwrite Incoming name via Regex pattern, only applies to type incoming_object
+        verify-procedure-name-pattern: # verifies target procedure name matches this pattern, only applies to type incoming_object
+        metadata-subject: # enables incoming subject be built from metadata file
+      content_object:
+        filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
 ```
 
 ### Pattern
@@ -110,7 +114,7 @@ The `type` attribute of a use case defines what type of resource is created in t
 
 ### Coo source
 
-The `coo-source` attribute of a use case defines how the target resource, under which the new resource is created, is resolved.
+The `coo-source.type` attribute of a use case defines how the target resource, under which the new resource is created, is resolved.
 
 - `metadata_file`: The target coo and username are resolved via a separate metadata file, which is placed beside the original file in the S3. See [Metadata file](#metadata-file).
 - `static`: The target coo is defined statically via the `target-coo` use case attribute.

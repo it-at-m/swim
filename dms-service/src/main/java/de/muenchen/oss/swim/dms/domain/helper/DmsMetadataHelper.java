@@ -40,7 +40,7 @@ public class DmsMetadataHelper extends MetadataHelper {
 
     /**
      * Extract incoming or ou work queue dms target from metadata file.
-     * For incoming {@link DmsTarget#coo()} is set and for ou work queue empty.
+     * For incoming {@link DmsTarget#getCoo()} is set and for ou work queue empty.
      *
      * @param metadata Parsed metadata file.
      * @return The incoming or ou work queue target.

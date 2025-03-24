@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build and push image
-        uses: it-at-m/.github/.github/actions/action-build-image@main
+        uses: it-at-m/lhm_actions/action-templates/actions/action-build-image@main
         with:
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}

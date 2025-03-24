@@ -76,7 +76,8 @@ class ProcessFileUseCaseTest {
     private final static String METADATA_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, METADAT_PATH);
     private final static DmsTarget STATIC_DMS_TARGET = new DmsTarget("staticCoo", "staticUsername", "staticJobOe", "staticJobPosition");
     private final static DmsTarget FILENAME_DMS_TARGET = new DmsTarget("COO.123.123.123", "staticUsername", "staticJobOe", "staticJobPosition");
-    public static final String OVERWRITTEN_INCOMING_NAME = "test";
+    public static final String PATTERN_VALUE_TEST = "test";
+    public static final String OVERWRITTEN_INCOMING_NAME = PATTERN_VALUE_TEST;
 
     @BeforeEach
     void setup() throws PresignedUrlException {
@@ -107,7 +108,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL), FILE);
         // test
-        verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(STATIC_DMS_TARGET), eq(FILE_NAME), eq("test"), eq(null));
+        verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(STATIC_DMS_TARGET), eq(FILE_NAME), eq(PATTERN_VALUE_TEST), eq(null));
     }
 
     @Test
@@ -175,12 +176,12 @@ class ProcessFileUseCaseTest {
     @Test
     void testProcessFile_FilenameNameIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "filename-name-incoming";
-        when(dmsOutPort.findObjectsByName(eq(DmsResourceType.PROCEDURE), eq("test"), any())).thenReturn(List.of("COO.123.123.123"));
+        when(dmsOutPort.findObjectsByName(eq(DmsResourceType.PROCEDURE), eq(PATTERN_VALUE_TEST), any())).thenReturn(List.of("COO.123.123.123"));
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
         testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME);
-        verify(dmsOutPort, times(1)).findObjectsByName(eq(DmsResourceType.PROCEDURE), eq("test"), any());
+        verify(dmsOutPort, times(1)).findObjectsByName(eq(DmsResourceType.PROCEDURE), eq(PATTERN_VALUE_TEST), any());
     }
 
     @Test

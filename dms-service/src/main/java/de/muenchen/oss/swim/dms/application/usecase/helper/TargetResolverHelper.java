@@ -96,9 +96,9 @@ public class TargetResolverHelper {
         }
         // extract coo and username from metadata
         final DmsTarget metadataTarget = switch (resourceType) {
-            case INBOX_CONTENT_OBJECT, INBOX_INCOMING -> dmsMetadataHelper.resolveInboxDmsTarget(metadata);
-            case PROCEDURE_INCOMING -> dmsMetadataHelper.resolveIncomingDmsTarget(metadata);
-            case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
+        case INBOX_CONTENT_OBJECT, INBOX_INCOMING -> dmsMetadataHelper.resolveInboxDmsTarget(metadata);
+        case PROCEDURE_INCOMING -> dmsMetadataHelper.resolveIncomingDmsTarget(metadata);
+        case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
         };
         // combine resolves target with use case
         return this.combineDmsTargetWithUseCase(metadataTarget, useCase);
@@ -153,8 +153,6 @@ public class TargetResolverHelper {
         }
         return new DmsTarget(dmsTarget.getCoo(), dmsTarget.getUsername(), useCase.getContext().getJoboe(), useCase.getContext().getJobposition());
     }
-
-
 
     /**
      * Resolve dms target resource type from metadata file.

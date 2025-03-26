@@ -37,26 +37,26 @@ public class TargetResolverHelper {
     public DmsTarget resolveTargetCoo(final UseCaseType resourceType, final Metadata metadata, final UseCase useCase, final File file)
             throws MetadataException {
         return switch (useCase.getCooSource().getType()) {
-            case METADATA_FILE -> this.resolveMetadataTargetCoo(resourceType, metadata, useCase);
-            case FILENAME -> {
-                if (Strings.isBlank(useCase.getCooSource().getFilenameCooPattern())) {
-                    throw new IllegalArgumentException("Filename coo pattern is required");
-                }
-                final String targetCoo = this.patternHelper.applyPattern(useCase.getCooSource().getFilenameCooPattern(), file.getFileName(), metadata);
-                yield new DmsTarget(targetCoo, useCase.getContext());
+        case METADATA_FILE -> this.resolveMetadataTargetCoo(resourceType, metadata, useCase);
+        case FILENAME -> {
+            if (Strings.isBlank(useCase.getCooSource().getFilenameCooPattern())) {
+                throw new IllegalArgumentException("Filename coo pattern is required");
             }
-            case FILENAME_MAP -> {
-                // find first matching target coo from map
-                final String targetCoo = useCase.getCooSource().getFilenameToCoo().entrySet().stream()
-                        .filter(i -> Pattern.compile(i.getKey(), Pattern.CASE_INSENSITIVE).matcher(file.getFileName()).find())
-                        .findFirst()
-                        .map(Map.Entry::getValue)
-                        .orElseThrow(() -> new IllegalStateException("No matching filename map entry configured."));
-                yield new DmsTarget(targetCoo, useCase.getContext());
-            }
-            case FILENAME_NAME -> this.resolveTargetCooViaName(useCase.getType().getTarget(), metadata, useCase, file);
-            case STATIC -> new DmsTarget(useCase.getCooSource().getTargetCoo(), useCase.getContext());
-            case OU_WORK_QUEUE -> new DmsTarget(null, useCase.getContext());
+            final String targetCoo = this.patternHelper.applyPattern(useCase.getCooSource().getFilenameCooPattern(), file.getFileName(), metadata);
+            yield new DmsTarget(targetCoo, useCase.getContext());
+        }
+        case FILENAME_MAP -> {
+            // find first matching target coo from map
+            final String targetCoo = useCase.getCooSource().getFilenameToCoo().entrySet().stream()
+                    .filter(i -> Pattern.compile(i.getKey(), Pattern.CASE_INSENSITIVE).matcher(file.getFileName()).find())
+                    .findFirst()
+                    .map(Map.Entry::getValue)
+                    .orElseThrow(() -> new IllegalStateException("No matching filename map entry configured."));
+            yield new DmsTarget(targetCoo, useCase.getContext());
+        }
+        case FILENAME_NAME -> this.resolveTargetCooViaName(useCase.getType().getTarget(), metadata, useCase, file);
+        case STATIC -> new DmsTarget(useCase.getCooSource().getTargetCoo(), useCase.getContext());
+        case OU_WORK_QUEUE -> new DmsTarget(null, useCase.getContext());
         };
     }
 
@@ -75,9 +75,9 @@ public class TargetResolverHelper {
         }
         // extract coo and username from metadata
         final DmsTarget metadataTarget = switch (resourceType.getTarget()) {
-            case INBOX -> dmsMetadataHelper.resolveInboxDmsTarget(metadata);
-            case INCOMING -> dmsMetadataHelper.resolveIncomingDmsTarget(metadata);
-            default -> throw new IllegalStateException(String.format("Target type %s can't be resolved via metadata file", resourceType.getTarget()));
+        case INBOX -> dmsMetadataHelper.resolveInboxDmsTarget(metadata);
+        case INCOMING -> dmsMetadataHelper.resolveIncomingDmsTarget(metadata);
+        default -> throw new IllegalStateException(String.format("Target type %s can't be resolved via metadata file", resourceType.getTarget()));
         };
         // combine resolves target with use case
         return this.combineDmsTargetWithUseCase(metadataTarget, useCase);

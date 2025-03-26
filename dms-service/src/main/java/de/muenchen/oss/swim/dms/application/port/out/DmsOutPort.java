@@ -20,9 +20,20 @@ public interface DmsOutPort {
      * @param dmsTarget The target Inbox.
      * @param contentObjectRequest The values for the new ContentObject.
      * @param inputStream The content of the new ContentObject.
+     * @return The coo of the new ContentObject.
      */
-    void createContentObjectInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest,
+    String createContentObjectInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest,
             @NotNull InputStream inputStream);
+
+    /**
+     * Create Incoming inside an Inbox-
+     *
+     * @param dmsTarget The target Inbox.
+     * @param incomingRequest The values for the new Incoming.
+     * @param inputStream The content of the new ContentObject.
+     * @return The coo of the new Incoming.
+     */
+    String createIncomingInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest, @NotNull InputStream inputStream);
 
     /**
      * Create Incoming.

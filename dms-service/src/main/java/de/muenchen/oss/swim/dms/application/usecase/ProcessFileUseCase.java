@@ -7,6 +7,8 @@ import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.helper.DmsMetadataHelper;
 import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
+import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
+import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseType;
@@ -72,6 +74,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             switch (targetResource) {
             // ContentObject in Inbox
             case INBOX_CONTENT_OBJECT -> this.processInboxContentObject(file, useCase, dmsTarget, fileStream, metadata);
+            // Incoming in Inbox
+            case INBOX_INCOMING -> this.processInboxIncoming(file, useCase, dmsTarget, fileStream, metadata);
             // Incoming in Procedure
             case PROCEDURE_INCOMING -> this.processProcedureIncoming(file, useCase, dmsTarget, fileStream, metadata);
             case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
@@ -139,6 +143,22 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         final DmsContentObjectRequest contentObjectRequest = this.resolveContentObjectParameters(file, useCase, metadata);
         // create ContentObject
         this.dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectRequest, fileStream);
+    }
+
+    /**
+     * Process {@link UseCaseType#INBOX_INCOMING} files.
+     *
+     * @param file The file to process.
+     * @param useCase The use case of the file.
+     * @param dmsTarget The resolved dms target.
+     * @param fileStream The content of the file.
+     * @param metadata Parsed metadata file.
+     */
+    protected void processInboxIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget,
+            final InputStream fileStream, final Metadata metadata) throws MetadataException {
+        final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata);
+        // create Incoming
+        this.dmsOutPort.createIncomingInInbox(dmsTarget, incomingRequest, fileStream);
     }
 
     /**

@@ -4,6 +4,17 @@ swim:
       type: inbox_content_object
       coo-source:
         type: metadata_file
+    - name: static-inbox
+      type: inbox_content_object
+      coo-source:
+        type: static
+        target-coo: staticCoo
+      content-object:
+        subject-pattern: "s/^(.+)(?:-COO.[^-]+-).+$/\\${1}/"
+      context:
+        username: staticUsername
+        joboe: staticJobOe
+        jobposition: staticJobPosition
     - name: metadata-metadata
       type: metadata_file
       coo-source:

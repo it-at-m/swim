@@ -16,4 +16,10 @@ public class UseCaseContentObject {
      */
     @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String filenameOverwritePattern;
+    /**
+     * Regex pattern for setting subject in dms by providing regex pattern.
+     * Pattern is applied to S3 filename.
+     */
+    @Pattern(regexp = PatternHelper.RAW_PATTERN)
+    private String subjectPattern;
 }

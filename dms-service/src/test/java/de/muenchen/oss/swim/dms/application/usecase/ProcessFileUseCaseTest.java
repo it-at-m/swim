@@ -76,7 +76,8 @@ class ProcessFileUseCaseTest {
     private final static String METADATA_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, METADAT_PATH);
     private final static DmsTarget STATIC_DMS_TARGET = new DmsTarget("staticCoo", "staticUsername", "staticJobOe", "staticJobPosition");
     private final static DmsTarget FILENAME_DMS_TARGET = new DmsTarget("COO.123.123.123", "staticUsername", "staticJobOe", "staticJobPosition");
-    public static final String OVERWRITTEN_INCOMING_NAME = "test";
+    public static final String PATTERN_VALUE_TEST = "test";
+    public static final String OVERWRITTEN_INCOMING_NAME = PATTERN_VALUE_TEST;
 
     @BeforeEach
     void setup() throws PresignedUrlException {
@@ -95,8 +96,19 @@ class ProcessFileUseCaseTest {
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(processFileUseCase, times(1)).resolveTargetCoo(eq(UseCaseType.INBOX_CONTENT_OBJECT), any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(1)).resolveInboxDmsTarget(any());
-        verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(METADATA_DMS_TARGET_USER), eq(FILE_NAME), eq(null));
+        verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(METADATA_DMS_TARGET_USER), eq(FILE_NAME), eq(null), eq(null));
         verify(dmsMeter, times(1)).incrementProcessed(eq(useCaseName), eq("INBOX_CONTENT_OBJECT"));
+    }
+
+    @Test
+    void testProcessFile_StaticInbox() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
+        final String useCaseName = "static-inbox";
+        // setup
+        when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL))).thenReturn(getClass().getResourceAsStream("/files/example-metadata-user.json"));
+        // call
+        processFileUseCase.processFile(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL), FILE);
+        // test
+        verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(STATIC_DMS_TARGET), eq(FILE_NAME), eq(PATTERN_VALUE_TEST), eq(null));
     }
 
     @Test
@@ -164,12 +176,12 @@ class ProcessFileUseCaseTest {
     @Test
     void testProcessFile_FilenameNameIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "filename-name-incoming";
-        when(dmsOutPort.findObjectsByName(eq(DmsResourceType.PROCEDURE), eq("test"), any())).thenReturn(List.of("COO.123.123.123"));
+        when(dmsOutPort.findObjectsByName(eq(DmsResourceType.PROCEDURE), eq(PATTERN_VALUE_TEST), any())).thenReturn(List.of("COO.123.123.123"));
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
         testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME);
-        verify(dmsOutPort, times(1)).findObjectsByName(eq(DmsResourceType.PROCEDURE), eq("test"), any());
+        verify(dmsOutPort, times(1)).findObjectsByName(eq(DmsResourceType.PROCEDURE), eq(PATTERN_VALUE_TEST), any());
     }
 
     @Test
@@ -219,7 +231,7 @@ class ProcessFileUseCaseTest {
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(processFileUseCase, times(1)).resolveTargetCoo(eq(targetType), any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(0)).resolveInboxDmsTarget(any());
-        verify(dmsOutPort, times(0)).createContentObjectInInbox(any(), any(), any());
+        verify(dmsOutPort, times(0)).createContentObjectInInbox(any(), any(), any(), any());
         verify(dmsOutPort, times(1)).createIncoming(eq(dmsTarget), eq(incomingName), eq(incomingSubject), eq(contentObjectName), eq(null));
     }
 

@@ -69,13 +69,13 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             // get target coo
             final DmsTarget dmsTarget = this.resolveTargetCoo(targetResource, metadata, useCase, file);
             log.debug("Resolved dms target: {}", dmsTarget);
-            // get ContentObject name
+            // get ContentObject name and subject
             final String contentObjectName = this.patternHelper.applyPattern(useCase.getContentObject().getFilenameOverwritePattern(), file.getFileName(),
                     metadata);
             // transfer to dms
             switch (targetResource) {
             // to dms inbox
-            case INBOX_CONTENT_OBJECT -> dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectName, fileStream);
+            case INBOX_CONTENT_OBJECT -> this.processInboxContentObject(file, useCase, dmsTarget, contentObjectName, fileStream, metadata);
             // create dms incoming
             case PROCEDURE_INCOMING -> this.processIncoming(file, useCase, dmsTarget, contentObjectName, fileStream, metadata);
             case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
@@ -144,6 +144,27 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         }
         // create Incoming
         dmsOutPort.createIncoming(dmsTarget, incomingName, incomingSubject, contentObjectName, fileStream);
+    }
+
+    /**
+     * Process {@link UseCaseType#INBOX_CONTENT_OBJECT} files.
+     *
+     * @param file The file to process.
+     * @param useCase The use case of the file.
+     * @param dmsTarget The resolved dms target.
+     * @param contentObjectName The resolved name of the new ContentObject.
+     * @param fileStream The content of the file.
+     * @param metadata Parsed metadata file.
+     */
+    protected void processInboxContentObject(final File file, final UseCase useCase, final DmsTarget dmsTarget, final String contentObjectName,
+            final InputStream fileStream, final Metadata metadata) {
+        // resolve ContentObject subject
+        final String contentObjectSubjectPattern = useCase.getContentObject().getSubjectPattern();
+        final String contentObjectSubject = Strings.isNotBlank(contentObjectSubjectPattern)
+                ? this.patternHelper.applyPattern(contentObjectSubjectPattern, file.getFileName(), metadata)
+                : null;
+        // create ContentObject
+        this.dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectName, contentObjectSubject, fileStream);
     }
 
     /**

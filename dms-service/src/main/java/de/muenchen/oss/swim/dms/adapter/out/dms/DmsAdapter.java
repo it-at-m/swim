@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -52,19 +53,23 @@ public class DmsAdapter implements DmsOutPort {
             DmsResourceType.INBOX, DMS_OBJECT_TYPE_INBOX);
 
     @Override
-    public void createContentObjectInInbox(final DmsTarget dmsTarget, final String contentObjectName, final InputStream inputStream) {
+    public void createContentObjectInInbox(final DmsTarget dmsTarget, final String contentObjectName, final String contentObjectSubject,
+            final InputStream inputStream) {
         log.debug("Putting ContentObject {} in inbox {}", contentObjectName, dmsTarget);
         final CreateObjectAndImportToInboxDTO request = new CreateObjectAndImportToInboxDTO();
         request.setObjaddress(dmsTarget.getCoo());
+        if (Strings.isNotBlank(contentObjectSubject)) {
+            request.setFilesubj(List.of(List.of(contentObjectSubject)));
+        }
         try {
             final AbstractResource file = new NamedInputStreamResource(contentObjectName, inputStream);
-            objectAndImportToInboxApi.createObjectAndImportToInbox(
+            objectAndImportToInboxApi.createObjectAndImportToInboxWithResponseSpec(
                     request,
                     DMS_APPLICATION,
                     dmsTarget.getUsername(),
                     null,
                     null,
-                    List.of(file)).block();
+                    List.of(file)).toBodilessEntity().block();
             log.info("Created new ContentObject {} in Inbox {}", contentObjectName, dmsTarget);
         } catch (final WebClientResponseException e) {
             throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);

@@ -18,6 +18,7 @@ public interface DmsOutPort {
      *
      * @param dmsTarget The target Inbox.
      * @param contentObjectName The name of the new ContentObject.
+     * @param contentObjectSubject The subject of the new ContentObject.
      * @param inputStream The content of the new ContentObject.
      */
     void createContentObjectInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotBlank String contentObjectName, String contentObjectSubject,

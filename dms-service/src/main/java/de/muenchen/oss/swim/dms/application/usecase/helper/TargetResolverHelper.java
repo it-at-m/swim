@@ -95,10 +95,10 @@ public class TargetResolverHelper {
             throw new MetadataException("Target coo via metadata file: Metadata is required");
         }
         // extract coo and username from metadata
-        final DmsTarget metadataTarget = switch (resourceType.getTarget()) {
-        case INBOX -> dmsMetadataHelper.resolveInboxDmsTarget(metadata);
-        case INCOMING -> dmsMetadataHelper.resolveIncomingDmsTarget(metadata);
-        default -> throw new IllegalStateException(String.format("Target type %s can't be resolved via metadata file", resourceType.getTarget()));
+        final DmsTarget metadataTarget = switch (resourceType) {
+            case INBOX_CONTENT_OBJECT, INBOX_INCOMING -> dmsMetadataHelper.resolveInboxDmsTarget(metadata);
+            case PROCEDURE_INCOMING -> dmsMetadataHelper.resolveIncomingDmsTarget(metadata);
+            case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
         };
         // combine resolves target with use case
         return this.combineDmsTargetWithUseCase(metadataTarget, useCase);
@@ -163,7 +163,7 @@ public class TargetResolverHelper {
      * @return The resolved type.
      * @throws MetadataException If metadata can't be parsed or has illegal values.
      */
-    protected UseCaseType resolveTypeFromMetadataFile(final Metadata metadata) throws MetadataException {
+    public UseCaseType resolveTypeFromMetadataFile(final Metadata metadata) throws MetadataException {
         // validate metadata provided
         if (metadata == null) {
             throw new MetadataException("DMS target type via metadata file: Metadata is required");

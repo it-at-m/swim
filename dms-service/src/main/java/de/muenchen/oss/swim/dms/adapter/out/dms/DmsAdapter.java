@@ -2,6 +2,8 @@ package de.muenchen.oss.swim.dms.adapter.out.dms;
 
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
+import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
+import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsRequestContext;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
@@ -53,17 +55,17 @@ public class DmsAdapter implements DmsOutPort {
             DmsResourceType.INBOX, DMS_OBJECT_TYPE_INBOX);
 
     @Override
-    public void createContentObjectInInbox(final DmsTarget dmsTarget, final String contentObjectName, final String contentObjectSubject,
+    public void createContentObjectInInbox(final DmsTarget dmsTarget, final DmsContentObjectRequest contentObjectRequest,
             final InputStream inputStream) {
-        log.debug("Putting ContentObject {} in inbox {}", contentObjectName, dmsTarget);
+        log.debug("Putting ContentObject {} in inbox {}", contentObjectRequest.name(), dmsTarget);
         final CreateObjectAndImportToInboxDTO request = new CreateObjectAndImportToInboxDTO();
         request.setObjaddress(dmsTarget.getCoo());
-        if (Strings.isNotBlank(contentObjectSubject)) {
-            request.setFilesubj(List.of(List.of(contentObjectSubject)));
+        if (Strings.isNotBlank(contentObjectRequest.subject())) {
+            request.setFilesubj(List.of(List.of(contentObjectRequest.subject())));
         }
         try {
-            final AbstractResource file = new NamedInputStreamResource(contentObjectName, inputStream);
             objectAndImportToInboxApi.createObjectAndImportToInboxWithResponseSpec(
+            final AbstractResource file = new NamedInputStreamResource(contentObjectRequest.name(), inputStream);
                     request,
                     DMS_APPLICATION,
                     dmsTarget.getUsername(),
@@ -77,16 +79,15 @@ public class DmsAdapter implements DmsOutPort {
     }
 
     @Override
-    public String createIncoming(final DmsTarget dmsTarget, final String incomingName, final String incomingSubject, final String contentObjectName,
-            final InputStream inputStream) {
-        log.debug("Putting file {} in procedure {}", contentObjectName, dmsTarget);
+    public String createProcedureIncoming(final DmsTarget dmsTarget, final DmsIncomingRequest incomingRequest, final InputStream inputStream) {
+        log.debug("Putting Incoming {} in Procedure {}", incomingRequest.name(), dmsTarget);
         final CreateIncomingBasisAnfrageDTO request = new CreateIncomingBasisAnfrageDTO();
         request.referrednumber(dmsTarget.getCoo());
-        request.shortname(incomingName);
-        request.filesubj(incomingSubject);
+        request.shortname(incomingRequest.name());
+        request.filesubj(incomingRequest.subject());
         request.useou(true);
         try {
-            final AbstractResource file = new NamedInputStreamResource(contentObjectName, inputStream);
+            final AbstractResource file = new NamedInputStreamResource(incomingRequest.contentObject().name(), inputStream);
             final CreateIncomingAntwortDTO response = incomingsApi.createIncoming(
                     request,
                     DMS_APPLICATION,
@@ -148,11 +149,11 @@ public class DmsAdapter implements DmsOutPort {
     }
 
     @Override
-    public String createContentObject(final DmsTarget dmsTarget, final String contentObjectName, final InputStream inputStream) {
+    public String createContentObject(final DmsTarget dmsTarget, final DmsContentObjectRequest contentObjectRequest, final InputStream inputStream) {
         final CreateContentObjectAnfrageDTO createContentObjectAnfrageDTO = new CreateContentObjectAnfrageDTO();
         createContentObjectAnfrageDTO.referrednumber(dmsTarget.getCoo());
         try {
-            final AbstractResource file = new NamedInputStreamResource(contentObjectName, inputStream);
+            final AbstractResource file = new NamedInputStreamResource(contentObjectRequest.name(), inputStream);
             final CreateContentObjectAntwortDTO response = this.contentObjectsApi.createContentObject(
                     createContentObjectAnfrageDTO,
                     DMS_APPLICATION,

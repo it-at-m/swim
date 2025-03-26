@@ -1,10 +1,11 @@
 package de.muenchen.oss.swim.dms.application.port.out;
 
+import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
+import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsRequestContext;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.InputStream;
 import java.util.List;
@@ -17,10 +18,10 @@ public interface DmsOutPort {
      * Create ContentObject inside an Inbox.
      *
      * @param dmsTarget The target Inbox.
-     * @param contentObjectName The name of the new ContentObject.
+     * @param contentObjectRequest The values for the new ContentObject.
      * @param inputStream The content of the new ContentObject.
      */
-    void createContentObjectInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotBlank String contentObjectName, String contentObjectSubject,
+    void createContentObjectInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest,
             @NotNull InputStream inputStream);
 
     /**
@@ -30,14 +31,11 @@ public interface DmsOutPort {
      *
      * @param dmsTarget The target. If {@link DmsTarget#getCoo()} is defined: Procedure, if not: OU work
      *            queue.
-     * @param incomingName The name of the new Incoming.
-     * @param incomingSubject The subject of the new Incoming.
-     * @param contentObjectName The name of the ContentObject inside the Incoming.
+     * @param incomingRequest The values for the new Incoming.
      * @param inputStream The content of the new ContentObject.
      * @return The coo of the new Incoming.
      */
-    String createIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotBlank String incomingName, String incomingSubject, @NotBlank String contentObjectName,
-            @NotNull InputStream inputStream);
+    String createProcedureIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest, @NotNull InputStream inputStream);
 
     /**
      * Get name of Procedure by coo.
@@ -60,11 +58,12 @@ public interface DmsOutPort {
      * Create ContentObject inside Incoming.
      *
      * @param dmsTarget The Incoming to create the ContentObject in.
-     * @param contentObjectName The name of the new ContentObject.
+     * @param contentObjectRequest The values for the new ContentObject.
      * @param inputStream The content of the new ContentObject.
      * @return The coo of the new ContentObject.
      */
-    String createContentObject(@NotNull @Valid DmsTarget dmsTarget, @NotNull String contentObjectName, @NotNull InputStream inputStream);
+    String createContentObject(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest,
+            @NotNull InputStream inputStream);
 
     /**
      * Find dms object via name and resource type.

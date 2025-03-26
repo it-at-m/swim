@@ -1,6 +1,7 @@
 package de.muenchen.oss.swim.dms.application.usecase.helper;
 
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
+import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.helper.DmsMetadataHelper;
 import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
@@ -11,6 +12,7 @@ import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +22,28 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class TargetResolverHelper {
+    private final SwimDmsProperties swimDmsProperties;
     private final DmsOutPort dmsOutPort;
     private final PatternHelper patternHelper;
     private final DmsMetadataHelper dmsMetadataHelper;
+
+    /**
+     * Resolve UseCase type. Either directly configured or via metadata file.
+     *
+     * @param useCase The UseCase to resolve the type for.
+     * @param metadata Parsed metadata file.
+     * @return The resolved UseCaseType.
+     * @throws MetadataException If metadata can't be parsed or has illegal values.
+     */
+    public UseCaseType resolveUseCaseType(final UseCase useCase, final Metadata metadata) throws MetadataException {
+        final UseCaseType targetResource;
+        if (useCase.getType() == UseCaseType.METADATA_FILE) {
+            targetResource = this.resolveTypeFromMetadataFile(metadata);
+        } else {
+            targetResource = useCase.getType();
+        }
+        return targetResource;
+    }
 
     /**
      * Resolve target coo for useCase.
@@ -131,5 +152,36 @@ public class TargetResolverHelper {
             return dmsTarget;
         }
         return new DmsTarget(dmsTarget.getCoo(), dmsTarget.getUsername(), useCase.getContext().getJoboe(), useCase.getContext().getJobposition());
+    }
+
+
+
+    /**
+     * Resolve dms target resource type from metadata file.
+     *
+     * @param metadata Parsed metadata file.
+     * @return The resolved type.
+     * @throws MetadataException If metadata can't be parsed or has illegal values.
+     */
+    protected UseCaseType resolveTypeFromMetadataFile(final Metadata metadata) throws MetadataException {
+        // validate metadata provided
+        if (metadata == null) {
+            throw new MetadataException("DMS target type via metadata file: Metadata is required");
+        }
+        // load value from metadata file
+        final Map<String, String> indexFields = metadata.indexFields();
+        final String metadataDmsTarget = indexFields.get(swimDmsProperties.getMetadataDmsTargetKey());
+        // resolve type from value
+        try {
+            final UseCaseType resolvedType = UseCaseType.valueOf(metadataDmsTarget.toUpperCase(Locale.ROOT));
+            if (resolvedType == UseCaseType.METADATA_FILE) {
+                throw new MetadataException("DMS target type via metadata file: Target type can't be METADATA_FILE");
+            }
+            return resolvedType;
+        } catch (final IllegalArgumentException e) {
+            throw new MetadataException(
+                    String.format("DMS target type via metadata file: Unexpected %s value: %s", swimDmsProperties.getMetadataDmsTargetKey(), metadataDmsTarget),
+                    e);
+        }
     }
 }

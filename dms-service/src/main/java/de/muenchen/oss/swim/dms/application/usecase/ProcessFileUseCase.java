@@ -61,12 +61,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 }
             }
             // resolve target resource type
-            final UseCaseType targetResource;
-            if (useCase.getType() == UseCaseType.METADATA_FILE) {
-                targetResource = this.resolveTypeFromMetadataFile(metadata);
-            } else {
-                targetResource = useCase.getType();
-            }
+            final UseCaseType targetResource = this.targetResolverHelper.resolveUseCaseType(useCase, metadata);
             // get target coo
             final DmsTarget dmsTarget = this.targetResolverHelper.resolveTargetCoo(targetResource, metadata, useCase, file);
             log.debug("Resolved dms target: {}", dmsTarget);
@@ -159,35 +154,6 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata);
         // create Incoming
         this.dmsOutPort.createIncomingInInbox(dmsTarget, incomingRequest, fileStream);
-    }
-
-    /**
-     * Resolve dms target resource type from metadata file.
-     *
-     * @param metadata Parsed metadata file.
-     * @return The resolved type.
-     * @throws MetadataException If metadata can't be parsed or has illegal values.
-     */
-    protected UseCaseType resolveTypeFromMetadataFile(final Metadata metadata) throws MetadataException {
-        // validate metadata provided
-        if (metadata == null) {
-            throw new MetadataException("DMS target type via metadata file: Metadata is required");
-        }
-        // load value from metadata file
-        final Map<String, String> indexFields = metadata.indexFields();
-        final String metadataDmsTarget = indexFields.get(swimDmsProperties.getMetadataDmsTargetKey());
-        // resolve type from value
-        try {
-            final UseCaseType resolvedType = UseCaseType.valueOf(metadataDmsTarget.toUpperCase(Locale.ROOT));
-            if (resolvedType == UseCaseType.METADATA_FILE) {
-                throw new MetadataException("DMS target type via metadata file: Target type can't be METADATA_FILE");
-            }
-            return resolvedType;
-        } catch (final IllegalArgumentException e) {
-            throw new MetadataException(
-                    String.format("DMS target type via metadata file: Unexpected %s value: %s", swimDmsProperties.getMetadataDmsTargetKey(), metadataDmsTarget),
-                    e);
-        }
     }
 
     /**

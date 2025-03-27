@@ -126,7 +126,8 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, FILE_NAME_WITHOUT_EXTENSION, new DmsContentObjectRequest(FILE_NAME, null));
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, FILE_NAME_WITHOUT_EXTENSION,
+                new DmsContentObjectRequest(FILE_NAME, null));
         verify(dmsOutPort, times(1)).createIncomingInInbox(eq(STATIC_DMS_TARGET), eq(incomingRequest), eq(null));
     }
 

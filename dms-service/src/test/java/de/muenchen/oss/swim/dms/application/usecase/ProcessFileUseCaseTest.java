@@ -113,13 +113,21 @@ class ProcessFileUseCaseTest {
     @Test
     void testProcessFile_StaticInbox() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "static-inbox";
-        // setup
-        when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL))).thenReturn(getClass().getResourceAsStream("/files/example-metadata-user.json"));
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL), FILE);
+        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
         final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, PATTERN_VALUE_TEST);
         verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(STATIC_DMS_TARGET), eq(contentObjectRequest), eq(null));
+    }
+
+    @Test
+    void testProcessFile_StaticInboxIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
+        final String useCaseName = "static-inbox-incoming";
+        // call
+        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
+        // test
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, FILE_NAME_WITHOUT_EXTENSION, new DmsContentObjectRequest(FILE_NAME, null));
+        verify(dmsOutPort, times(1)).createIncomingInInbox(eq(STATIC_DMS_TARGET), eq(incomingRequest), eq(null));
     }
 
     @Test

@@ -10,12 +10,18 @@ import de.muenchen.refarch.integration.dms.api.ProceduresApi;
 import de.muenchen.refarch.integration.dms.api.SearchObjNamesApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Component
 class ApiClientConfiguration {
+    private final int MAX_RESPONSE_BODY_SIZE = 100 * 1024 * 1024;
+
     @Bean
     protected ApiClient apiClient(final DmsProperties dmsProperties) {
-        final ApiClient apiClient = new ApiClient();
+        final WebClient webClient = WebClient.builder()
+                .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(MAX_RESPONSE_BODY_SIZE))
+                .build();
+        final ApiClient apiClient = new ApiClient(webClient);
         apiClient.setBasePath(dmsProperties.getBaseUrl());
         apiClient.setUsername(dmsProperties.getUsername());
         apiClient.setPassword(dmsProperties.getPassword());

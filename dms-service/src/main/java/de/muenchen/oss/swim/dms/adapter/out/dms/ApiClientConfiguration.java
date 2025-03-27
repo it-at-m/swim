@@ -15,7 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Component
 class ApiClientConfiguration {
     // FIXME remove workaround after API response was changed
-    private final int MAX_RESPONSE_BODY_SIZE = 100 * 1024 * 1024;
+    private static final int MAX_RESPONSE_BODY_SIZE = 100 * 1024 * 1024;
 
     @Bean
     protected ApiClient apiClient(final DmsProperties dmsProperties) {

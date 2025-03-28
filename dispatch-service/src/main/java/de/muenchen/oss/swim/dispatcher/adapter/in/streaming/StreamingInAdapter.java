@@ -5,11 +5,11 @@ import de.muenchen.oss.swim.dispatcher.application.port.in.MarkFileFinishedInPor
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileEvent;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
@@ -21,14 +21,11 @@ public class StreamingInAdapter {
     private final ErrorHandlerInPort errorHandlerInPort;
 
     @Bean
-    protected Consumer<Message<FileEventDTO>> finished() {
+    protected Consumer<Message<FileEvent>> finished() {
         return fileFinishedEventDTOMessage -> {
-            final FileEventDTO fileFinishedDTO = fileFinishedEventDTOMessage.getPayload();
+            final FileEvent fileFinishedDTO = fileFinishedEventDTOMessage.getPayload();
             try {
-                markFileFinishedInPort.markFileFinished(fileFinishedDTO.useCase(), fileFinishedDTO.presignedUrl());
-                if (Strings.isNotBlank(fileFinishedDTO.metadataPresignedUrl())) {
-                    markFileFinishedInPort.markFileFinished(fileFinishedDTO.useCase(), fileFinishedDTO.metadataPresignedUrl());
-                }
+                markFileFinishedInPort.markFileFinished(fileFinishedDTO);
             } catch (PresignedUrlException | UseCaseException e) {
                 throw new RuntimeException(e);
             }
@@ -36,11 +33,11 @@ public class StreamingInAdapter {
     }
 
     @Bean
-    protected Consumer<Message<FileEventDTO>> dlq() {
+    protected Consumer<Message<FileEvent>> dlq() {
         return message -> {
-            final FileEventDTO fileFinishedDTO = message.getPayload();
+            final FileEvent fileFinishedDTO = message.getPayload();
             final ErrorDetails error = this.errorDetailsFromHeaders(message.getHeaders());
-            errorHandlerInPort.handleError(fileFinishedDTO.useCase(), fileFinishedDTO.presignedUrl(), fileFinishedDTO.metadataPresignedUrl(), error);
+            errorHandlerInPort.handleError(fileFinishedDTO, error);
         };
     }
 

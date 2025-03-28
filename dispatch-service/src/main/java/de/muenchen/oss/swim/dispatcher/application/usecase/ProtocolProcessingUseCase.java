@@ -89,7 +89,8 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
                             Map.of()).keySet());
             // load files in finished folder
             final String finishedPath = useCase.getFinishedPath(swimDispatcherProperties, file.getParentPath());
-            folderFiles.addAll(fileSystemOutPort.getMatchingFilesWithTags(file.tenant(), file.bucket(), finishedPath, false, FILE_EXTENSION_PDF, Map.of(), Map.of()).keySet());
+            folderFiles.addAll(fileSystemOutPort
+                    .getMatchingFilesWithTags(file.tenant(), file.bucket(), finishedPath, false, FILE_EXTENSION_PDF, Map.of(), Map.of()).keySet());
             // parse files
             final Set<String> folderFileNames = folderFiles.stream().map(File::getFileName).collect(Collectors.toSet());
             // compare files with protocol

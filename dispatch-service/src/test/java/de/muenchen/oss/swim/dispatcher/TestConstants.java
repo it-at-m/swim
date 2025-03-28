@@ -27,6 +27,5 @@ public final class TestConstants {
     public static final String TEST_PRESIGNED_URL = "https://s3.muenchen.de/test-bucket/test/inProcess/path/example.pdf";
     public static final String TEST_PRESIGNED_URL_PATH = "test/inProcess/path/example.pdf";
     public static final FileEvent TEST_FILE_EVENT = new FileEvent(
-            USE_CASE, TEST_PRESIGNED_URL, null
-    );
+            USE_CASE, TEST_PRESIGNED_URL, null);
 }

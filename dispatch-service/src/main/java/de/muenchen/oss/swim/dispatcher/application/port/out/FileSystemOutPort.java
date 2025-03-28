@@ -105,5 +105,6 @@ public interface FileSystemOutPort {
      * @param clearTags If the existing tags should be removed.
      */
     @SuppressWarnings("PMD.UseObjectForClearerAPI")
-    void copyFile(@NotBlank String tenant, @NotBlank String srcBucket, @NotBlank String srcPath, @NotBlank String destBucket, @NotBlank String destPath, boolean clearTags);
+    void copyFile(@NotBlank String tenant, @NotBlank String srcBucket, @NotBlank String srcPath, @NotBlank String destBucket, @NotBlank String destPath,
+            boolean clearTags);
 }

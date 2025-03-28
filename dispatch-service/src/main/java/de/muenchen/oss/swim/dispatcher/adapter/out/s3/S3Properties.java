@@ -88,7 +88,6 @@ class S3Properties {
                 .filter(entry -> entry.getValue().getUrl().equals(url))
                 .map(Map.Entry::getKey)
                 .findFirst().orElseThrow(
-                        () -> new IllegalArgumentException(String.format("Tenant with URL %s doesn't exist", url))
-                );
+                        () -> new IllegalArgumentException(String.format("Tenant with URL %s doesn't exist", url)));
     }
 }

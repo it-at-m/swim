@@ -73,9 +73,10 @@ class ProtocolProcessingUseCaseTest {
     @Test
     void testTriggerProtocolProcessing_Successful() {
         // setup
-        when(fileSystemOutPort.getMatchingFilesWithTags(eq(TENANT), eq(BUCKET), eq(USE_CASE_DISPATCH_PATH), eq(true), eq("csv"), anyMap(), anyMap())).thenReturn(Map.of(
-                PROTOCOL_FILE, TAGS,
-                NO_PROTOCOL_FILE, TAGS));
+        when(fileSystemOutPort.getMatchingFilesWithTags(eq(TENANT), eq(BUCKET), eq(USE_CASE_DISPATCH_PATH), eq(true), eq("csv"), anyMap(), anyMap()))
+                .thenReturn(Map.of(
+                        PROTOCOL_FILE, TAGS,
+                        NO_PROTOCOL_FILE, TAGS));
         doNothing().when(protocolProcessingUseCase).processProtocolFile(any(), any());
         // call
         protocolProcessingUseCase.triggerProtocolProcessing();
@@ -91,9 +92,11 @@ class ProtocolProcessingUseCaseTest {
     void testProcessProtocolFile_Successful() throws PresignedUrlException {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         // setup
-        when(readProtocolOutPort.loadProtocol(eq(TENANT), eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(List.of(PROTOCOL_ENTRY1, PROTOCOL_ENTRY2));
+        when(readProtocolOutPort.loadProtocol(eq(TENANT), eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path())))
+                .thenReturn(List.of(PROTOCOL_ENTRY1, PROTOCOL_ENTRY2));
         final String protocolDir = PROTOCOL_FILE.getParentPath();
-        when(fileSystemOutPort.getMatchingFilesWithTags(eq(TENANT), eq(BUCKET), eq(protocolDir), eq(false), any(), any(), anyMap())).thenReturn(Map.of(FILE1, TAGS));
+        when(fileSystemOutPort.getMatchingFilesWithTags(eq(TENANT), eq(BUCKET), eq(protocolDir), eq(false), any(), any(), anyMap()))
+                .thenReturn(Map.of(FILE1, TAGS));
         final String protocolDirFinished = useCase.getFinishedPath(swimDispatcherProperties, protocolDir);
         when(fileSystemOutPort.getMatchingFilesWithTags(eq(TENANT), eq(BUCKET), eq(protocolDirFinished), eq(false), any(), any(), anyMap()))
                 .thenReturn(Map.of(FILE1, TAGS, FILE2, TAGS));

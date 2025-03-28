@@ -50,7 +50,8 @@ class MarkFileFinishedUseCaseTest {
         verify(fileSystemOutPort, times(1)).verifyAndResolvePresignedUrl(TEST_PRESIGNED_URL);
         verify(fileSystemOutPort, times(1)).tagFile(eq("test-tenant"), eq("test-bucket"), eq("test/inProcess/path/example.pdf"), eq(Map.of(
                 "SWIM_State", "finished")));
-        verify(fileSystemOutPort, times(1)).moveFile(eq("test-tenant"), eq("test-bucket"), eq("test/inProcess/path/example.pdf"), eq("test/finished/path/example.pdf"));
+        verify(fileSystemOutPort, times(1)).moveFile(eq("test-tenant"), eq("test-bucket"), eq("test/inProcess/path/example.pdf"),
+                eq("test/finished/path/example.pdf"));
         verify(dispatchMeter, times(1)).incrementFinished(eq(USE_CASE));
     }
 
@@ -63,7 +64,6 @@ class MarkFileFinishedUseCaseTest {
     @Test
     void testMarkFileFinished_UseCaseException() {
         assertThrows(UseCaseException.class, () -> markFileFinishedUseCase.markFileFinished(
-                new FileEvent("unknown-usecase", TEST_PRESIGNED_URL, null))
-        );
+                new FileEvent("unknown-usecase", TEST_PRESIGNED_URL, null)));
     }
 }

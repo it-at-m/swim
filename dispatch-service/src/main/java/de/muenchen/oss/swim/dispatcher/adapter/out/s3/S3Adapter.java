@@ -252,7 +252,8 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
 
     @Override
     @SuppressWarnings("PMD.UseObjectForClearerAPI")
-    public void copyFile(final String tenant, final String srcBucket, final String srcPath, final String destBucket, final String destPath, final boolean clearTags) {
+    public void copyFile(final String tenant, final String srcBucket, final String srcPath, final String destBucket, final String destPath,
+            final boolean clearTags) {
         try {
             final CopySource copySource = CopySource.builder()
                     .bucket(srcBucket)

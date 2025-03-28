@@ -23,6 +23,7 @@ public interface FileSystemOutPort {
      * @return Map of files (with all tags) having required and not having any exclude tags.
      */
     Map<File, Map<String, String>> getMatchingFilesWithTags(
+            @NotBlank String tenant,
             @NotBlank String bucket,
             @NotNull String pathPrefix,
             @NotNull boolean recursive,
@@ -37,7 +38,7 @@ public interface FileSystemOutPort {
      * @param pathPrefix The path to look under.
      * @return The names of the subdirectories.
      */
-    List<String> getSubDirectories(
+    List<String> getSubDirectories(@NotBlank String tenant,
             @NotBlank String bucket,
             @NotNull String pathPrefix);
 
@@ -48,7 +49,7 @@ public interface FileSystemOutPort {
      * @param path The path to the file.
      * @param tags The tags to add.
      */
-    void tagFile(@NotBlank String bucket, @NotBlank String path, @NotNull Map<String, String> tags);
+    void tagFile(@NotBlank String tenant, @NotBlank String bucket, @NotBlank String path, @NotNull Map<String, String> tags);
 
     /**
      * Check if a file exists.
@@ -57,7 +58,7 @@ public interface FileSystemOutPort {
      * @param path The path to the file.
      * @return If the file exists.
      */
-    boolean fileExists(@NotBlank String bucket, @NotBlank String path);
+    boolean fileExists(@NotBlank String tenant, @NotBlank String bucket, @NotBlank String path);
 
     /**
      * Get content of a file.
@@ -66,7 +67,7 @@ public interface FileSystemOutPort {
      * @param path The path of the file.
      * @return The content of the file.
      */
-    InputStream readFile(@NotBlank String bucket, @NotBlank String path);
+    InputStream readFile(@NotBlank String tenant, @NotBlank String bucket, @NotBlank String path);
 
     /**
      * Get presigned url for downloading a file.
@@ -75,14 +76,15 @@ public interface FileSystemOutPort {
      * @param path The path of the file.
      * @return The presigned url for the file.
      */
-    String getPresignedUrl(@NotBlank String bucket, @NotBlank String path);
+    String getPresignedUrl(@NotBlank String tenant, @NotBlank String bucket, @NotBlank String path);
 
     /**
-     * Verify a presigned url for downloading a file.
+     * Verify and extract File from a presigned URL for downloading a file.
      *
      * @param presignedUrl The presigned url.
+     * @return The File extracted from the presigned URL.
      */
-    boolean verifyPresignedUrl(@NotBlank String presignedUrl) throws PresignedUrlException;
+    File verifyAndResolvePresignedUrl(@NotBlank String presignedUrl) throws PresignedUrlException;
 
     /**
      * Move a file from one place to another.
@@ -91,7 +93,7 @@ public interface FileSystemOutPort {
      * @param srcPath The source path of the file.
      * @param destPath The destination path of the file.
      */
-    void moveFile(@NotBlank String bucket, @NotBlank String srcPath, @NotBlank String destPath);
+    void moveFile(@NotBlank String tenant, @NotBlank String bucket, @NotBlank String srcPath, @NotBlank String destPath);
 
     /**
      * Copy a file from one place to another.
@@ -103,5 +105,5 @@ public interface FileSystemOutPort {
      * @param clearTags If the existing tags should be removed.
      */
     @SuppressWarnings("PMD.UseObjectForClearerAPI")
-    void copyFile(@NotBlank String srcBucket, @NotBlank String srcPath, @NotBlank String destBucket, @NotBlank String destPath, boolean clearTags);
+    void copyFile(@NotBlank String tenant, @NotBlank String srcBucket, @NotBlank String srcPath, @NotBlank String destBucket, @NotBlank String destPath, boolean clearTags);
 }

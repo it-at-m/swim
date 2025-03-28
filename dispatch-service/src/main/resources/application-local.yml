@@ -67,9 +67,11 @@ swim:
       mail-addresses:
         - test-invoice@example.com
   s3:
-    url: http://localhost:9000
-    access-key: minio
-    secret-key: Test1234
+    tenants:
+      swm:
+        url: http://localhost:9000
+        access-key: minio
+        secret-key: Test1234
   dispatching-cron: "0 */1 * * * *"
   protocol-processing-cron: "0 */1 * * * *"
   fallback-mail: swim@example.com

@@ -1,9 +1,14 @@
 swim:
+  s3:
+    tenants:
+      test-tenant:
+        url: https://s3.muenchen.de
   mail:
     from-address: swim@example.com
   # use case
   use-cases:
     - name: test-meta
+      tenant: test-tenant
       bucket: test-bucket
       path: test
       recursive: true
@@ -14,6 +19,7 @@ swim:
       mail-addresses:
         - test-meta@example.com
     - name: test-meta-dest
+      tenant: test-tenant
       bucket: test-bucket-3
       path: test3
       recursive: true
@@ -23,6 +29,7 @@ swim:
       mail-addresses:
         - test-meta@example.com
     - name: test2
+      tenant: test-tenant
       bucket: test-bucket-2
       path: path/test2
   fallback-mail: swim@example.com

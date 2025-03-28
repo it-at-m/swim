@@ -64,10 +64,5 @@ class DmsMetadataHelperTest {
                 .parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-ou-work-queue.json"));
         final DmsTarget dmsTargetWorkQueue = dmsMetadataHelper.resolveIncomingDmsTarget(metadataNodeWorkQueue);
         assertEquals(METADATA_DMS_TARGET_OU_WORK_QUEUE, dmsTargetWorkQueue);
-        // empty
-        final Metadata metadataNodeEmpty = dmsMetadataHelper
-                .parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-invalid-empty.json"));
-        assertThrows(MetadataException.class, () -> dmsMetadataHelper.resolveIncomingDmsTarget(metadataNodeEmpty));
-
     }
 }

@@ -25,7 +25,7 @@ class S3Properties {
      * Internal mapping of tenant names to already created Clients.
      * Ensures only one MinoClient per tenant is created and reused.
      */
-    private static final Map<String, MinioClient> clients = new HashMap<>();
+    private static final Map<String, MinioClient> CLIENTS = new HashMap<>();
     /**
      * List of S3 tenants which can be used as {@link UseCase#getTenant()}.
      */
@@ -47,7 +47,7 @@ class S3Properties {
     @Setter
     @Getter
     @ToString(exclude = { "secretKey", "accessKey" })
-    static class ConnectionOptions {
+    protected static class ConnectionOptions {
         @NotBlank
         private String url;
         @NotBlank
@@ -64,7 +64,7 @@ class S3Properties {
      * @return A MinioClient for the specified tenant.
      */
     protected MinioClient getClient(final String tenant) {
-        return clients.computeIfAbsent(tenant, key -> {
+        return CLIENTS.computeIfAbsent(tenant, key -> {
             if (this.tenants.containsKey(key)) {
                 throw new IllegalArgumentException("Tenant doesn't exist: " + tenant);
             }

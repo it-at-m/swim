@@ -7,6 +7,7 @@ import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileEvent;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.List;
 import java.util.Map;
@@ -24,21 +25,21 @@ public class ErrorHandlerUseCase implements ErrorHandlerInPort {
     private final DispatchMeter dispatchMeter;
 
     @Override
-    public void handleError(final String useCaseName, final String presignedUrl, final String metadataPresignedUrl, final ErrorDetails cause) {
-        log.warn("Processing error for use case {} and presigned url {}: {}", useCaseName, presignedUrl, cause);
+    public void handleError(final FileEvent event, final ErrorDetails cause) {
+        log.warn("Processing error for use case {} and presigned url {}: {}", event.useCase(), event.presignedUrl(), cause);
         try {
-            final UseCase useCase = swimDispatcherProperties.findUseCase(useCaseName);
-            final File file = File.fromPresignedUrl(presignedUrl);
+            final UseCase useCase = swimDispatcherProperties.findUseCase(event.useCase());
+            final File file = this.fileSystemOutPort.verifyAndResolvePresignedUrl(event.presignedUrl());
             // tag file
             this.markFileError(file, cause);
             // send notification
-            notificationOutPort.sendFileError(useCase.getMailAddresses(), useCaseName, file.path(), cause);
+            notificationOutPort.sendFileError(useCase.getMailAddresses(), event.useCase(), file.path(), cause);
         } catch (final Exception e) {
             log.error("Error while handling error", e);
-            notificationOutPort.sendFileError(List.of(swimDispatcherProperties.getFallbackMail()), useCaseName, presignedUrl, cause, e);
+            notificationOutPort.sendFileError(List.of(swimDispatcherProperties.getFallbackMail()), event.useCase(), event.presignedUrl(), cause, e);
         }
         // update metric
-        dispatchMeter.incrementError(useCaseName, cause.source());
+        dispatchMeter.incrementError(event.useCase(), cause.source());
     }
 
     /**
@@ -52,7 +53,7 @@ public class ErrorHandlerUseCase implements ErrorHandlerInPort {
         final String escapedMessage = e.message().replaceAll("[^\\w .-]", " ");
         // shorten exception message for tag value max 256 chars
         final String shortenedExceptionMessage = escapedMessage.length() > 256 ? escapedMessage.substring(0, 256) : escapedMessage;
-        fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
+        fileSystemOutPort.tagFile(file.tenant(), file.bucket(), file.path(), Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getErrorStateValue(),
                 swimDispatcherProperties.getErrorClassTagKey(), e.className(),
                 swimDispatcherProperties.getErrorMessageTagKey(), shortenedExceptionMessage));

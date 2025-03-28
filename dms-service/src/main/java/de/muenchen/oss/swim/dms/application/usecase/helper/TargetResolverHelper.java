@@ -135,23 +135,24 @@ public class TargetResolverHelper {
 
     /**
      * Combine resolved DmsTarget with UseCase values.
-     * Checks that only one of both defines job oe and position values.
+     * Uses resolved over UseCase if present.
      *
      * @param dmsTarget Resolved target.
      * @param useCase UseCase the target was resolved for.
      * @return Combined DmsTarget.
-     * @throws IllegalStateException If both inputs define job oe or position.
+     * @throws IllegalStateException If username is neither defined via DmsTarget nor UseCase.
      */
     protected DmsTarget combineDmsTargetWithUseCase(final DmsTarget dmsTarget, final UseCase useCase) {
-        final boolean dmsTargetHasJob = Strings.isNotBlank(dmsTarget.getJoboe()) || Strings.isNotBlank(dmsTarget.getJobposition());
-        final boolean useCaseHasJob = Strings.isNotBlank(useCase.getContext().getJoboe()) || Strings.isNotBlank(useCase.getContext().getJobposition());
-        if (dmsTargetHasJob && useCaseHasJob) {
-            throw new IllegalStateException("Resolve dms target: Job oe and position defined via resolve and via use case not allowed");
+        // username
+        final String username = Strings.isNotBlank(dmsTarget.getUsername()) ? dmsTarget.getUsername() : useCase.getContext().getUsername();
+        if (Strings.isBlank(username)) {
+            throw new IllegalStateException("Resolve dms target: Username neither defined via target nor use case but is required");
         }
-        if (dmsTargetHasJob) {
-            return dmsTarget;
-        }
-        return new DmsTarget(dmsTarget.getCoo(), dmsTarget.getUsername(), useCase.getContext().getJoboe(), useCase.getContext().getJobposition());
+        // joboe and jobposition
+        final String joboe = Strings.isNotBlank(dmsTarget.getJoboe()) ? dmsTarget.getJoboe() : useCase.getContext().getJoboe();
+        final String jobposition = Strings.isNotBlank(dmsTarget.getJobposition()) ? dmsTarget.getJobposition() : useCase.getContext().getJobposition();
+        // return merged
+        return new DmsTarget(dmsTarget.getCoo(), username, joboe, jobposition);
     }
 
     /**

@@ -15,6 +15,15 @@ swim:
         username: staticUsername
         joboe: staticJobOe
         jobposition: staticJobPosition
+    - name: static-inbox-incoming
+      type: inbox_incoming
+      coo-source:
+        type: static
+        target-coo: staticCoo
+      context:
+        username: staticUsername
+        joboe: staticJobOe
+        jobposition: staticJobPosition
     - name: metadata-metadata
       type: metadata_file
       coo-source:

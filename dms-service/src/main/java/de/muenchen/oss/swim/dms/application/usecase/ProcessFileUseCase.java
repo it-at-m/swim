@@ -1,12 +1,14 @@
 package de.muenchen.oss.swim.dms.application.usecase;
 
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
+import de.muenchen.oss.swim.dms.application.usecase.helper.TargetResolverHelper;
 import de.muenchen.oss.swim.dms.configuration.DmsMeter;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.helper.DmsMetadataHelper;
 import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
-import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
+import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
+import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseType;
@@ -21,11 +23,9 @@ import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +42,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     private final FileEventOutPort fileEventOutPort;
     private final DmsMetadataHelper dmsMetadataHelper;
     private final PatternHelper patternHelper;
+    private final TargetResolverHelper targetResolverHelper;
     private final DmsMeter dmsMeter;
 
     @Override
@@ -60,24 +61,18 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 }
             }
             // resolve target resource type
-            final UseCaseType targetResource;
-            if (useCase.getType() == UseCaseType.METADATA_FILE) {
-                targetResource = this.resolveTypeFromMetadataFile(metadata);
-            } else {
-                targetResource = useCase.getType();
-            }
+            final UseCaseType targetResource = this.targetResolverHelper.resolveUseCaseType(useCase, metadata);
             // get target coo
-            final DmsTarget dmsTarget = this.resolveTargetCoo(targetResource, metadata, useCase, file);
+            final DmsTarget dmsTarget = this.targetResolverHelper.resolveTargetCoo(targetResource, metadata, useCase, file);
             log.debug("Resolved dms target: {}", dmsTarget);
-            // get ContentObject name and subject
-            final String contentObjectName = this.patternHelper.applyPattern(useCase.getContentObject().getFilenameOverwritePattern(), file.getFileName(),
-                    metadata);
             // transfer to dms
             switch (targetResource) {
-            // to dms inbox
-            case INBOX_CONTENT_OBJECT -> this.processInboxContentObject(file, useCase, dmsTarget, contentObjectName, fileStream, metadata);
-            // create dms incoming
-            case PROCEDURE_INCOMING -> this.processIncoming(file, useCase, dmsTarget, contentObjectName, fileStream, metadata);
+            // ContentObject in Inbox
+            case INBOX_CONTENT_OBJECT -> this.processInboxContentObject(file, useCase, dmsTarget, fileStream, metadata);
+            // Incoming in Inbox
+            case INBOX_INCOMING -> this.processInboxIncoming(file, useCase, dmsTarget, fileStream, metadata);
+            // Incoming in Procedure
+            case PROCEDURE_INCOMING -> this.processProcedureIncoming(file, useCase, dmsTarget, fileStream, metadata);
             case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
             }
         } catch (final IOException e) {
@@ -96,13 +91,11 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param file The file to process.
      * @param useCase The use case of the file.
      * @param dmsTarget The resolved dms target.
-     * @param contentObjectName The resolved name of the new ContentObject.
      * @param fileStream The content of the file.
      * @param metadata Parsed metadata file.
      */
-    protected void processIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget, final String contentObjectName,
+    protected void processProcedureIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget,
             final InputStream fileStream, final Metadata metadata) throws MetadataException {
-        final String contentObjectNameWithoutExtension = contentObjectName.substring(0, contentObjectName.lastIndexOf('.'));
         final String filename = file.getFileName();
         final String filenameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
         // check target procedure name
@@ -115,35 +108,20 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 throw new DmsException(message);
             }
         }
-        // resolve name for Incoming
-        final String incomingName;
-        if (Strings.isBlank(useCase.getIncoming().getIncomingNamePattern())) {
-            // use resolved ContentObject name (filename) if no pattern for Incoming name is defined
-            // resolved in this case means the UseCase#filenameOverwritePattern is applied first
-            incomingName = contentObjectNameWithoutExtension;
-        } else {
-            // else apply pattern to original filename
-            incomingName = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingNamePattern(), filenameWithoutExtension, metadata);
-        }
-        // resolve subject for Incoming;
-        final String incomingSubject;
-        if (useCase.getIncoming().isMetadataSubject()) {
-            incomingSubject = this.subjectFromMetadata(metadata);
-        } else {
-            incomingSubject = incomingName;
-        }
+        // resolve Incoming parameters
+        final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata);
         // check if incoming already exists
         if (useCase.getIncoming().isReuseIncoming()) {
-            final Optional<String> incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, incomingName);
+            final Optional<String> incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, incomingRequest.name());
             if (incomingCoo.isPresent()) {
                 // add ContentObject to Incoming
                 final DmsTarget incomingDmsTarget = new DmsTarget(incomingCoo.get(), dmsTarget.getUsername(), dmsTarget.getJoboe(), dmsTarget.getJobposition());
-                this.dmsOutPort.createContentObject(incomingDmsTarget, contentObjectName, fileStream);
+                this.dmsOutPort.createContentObject(incomingDmsTarget, incomingRequest.contentObject(), fileStream);
                 return;
             }
         }
         // create Incoming
-        dmsOutPort.createIncoming(dmsTarget, incomingName, incomingSubject, contentObjectName, fileStream);
+        dmsOutPort.createProcedureIncoming(dmsTarget, incomingRequest, fileStream);
     }
 
     /**
@@ -152,136 +130,30 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param file The file to process.
      * @param useCase The use case of the file.
      * @param dmsTarget The resolved dms target.
-     * @param contentObjectName The resolved name of the new ContentObject.
      * @param fileStream The content of the file.
      * @param metadata Parsed metadata file.
      */
-    protected void processInboxContentObject(final File file, final UseCase useCase, final DmsTarget dmsTarget, final String contentObjectName,
+    protected void processInboxContentObject(final File file, final UseCase useCase, final DmsTarget dmsTarget,
             final InputStream fileStream, final Metadata metadata) {
-        // resolve ContentObject subject
-        final String contentObjectSubjectPattern = useCase.getContentObject().getSubjectPattern();
-        final String contentObjectSubject = Strings.isNotBlank(contentObjectSubjectPattern)
-                ? this.patternHelper.applyPattern(contentObjectSubjectPattern, file.getFileName(), metadata)
-                : null;
+        final DmsContentObjectRequest contentObjectRequest = this.resolveContentObjectParameters(file, useCase, metadata);
         // create ContentObject
-        this.dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectName, contentObjectSubject, fileStream);
+        this.dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectRequest, fileStream);
     }
 
     /**
-     * Resolve target coo for useCase.
-     * {@link UseCaseType}
+     * Process {@link UseCaseType#INBOX_INCOMING} files.
      *
-     * @param resourceType Target type the coo is resolved for.
+     * @param file The file to process.
+     * @param useCase The use case of the file.
+     * @param dmsTarget The resolved dms target.
+     * @param fileStream The content of the file.
      * @param metadata Parsed metadata file.
-     * @param useCase The use case.
-     * @param file The file to resolve the coo for.
-     * @return The resolved coo.
      */
-    protected DmsTarget resolveTargetCoo(final UseCaseType resourceType, final Metadata metadata, final UseCase useCase, final File file)
-            throws MetadataException {
-        return switch (useCase.getCooSource().getType()) {
-        case METADATA_FILE -> this.resolveMetadataTargetCoo(resourceType, metadata, useCase);
-        case FILENAME -> {
-            if (Strings.isBlank(useCase.getCooSource().getFilenameCooPattern())) {
-                throw new IllegalArgumentException("Filename coo pattern is required");
-            }
-            final String targetCoo = this.patternHelper.applyPattern(useCase.getCooSource().getFilenameCooPattern(), file.getFileName(), metadata);
-            yield new DmsTarget(targetCoo, useCase.getContext());
-        }
-        case FILENAME_MAP -> {
-            // find first matching target coo from map
-            final String targetCoo = useCase.getCooSource().getFilenameToCoo().entrySet().stream()
-                    .filter(i -> Pattern.compile(i.getKey(), Pattern.CASE_INSENSITIVE).matcher(file.getFileName()).find())
-                    .findFirst()
-                    .map(Map.Entry::getValue)
-                    .orElseThrow(() -> new IllegalStateException("No matching filename map entry configured."));
-            yield new DmsTarget(targetCoo, useCase.getContext());
-        }
-        case FILENAME_NAME -> this.resolveTargetCooViaName(useCase.getType().getTarget(), metadata, useCase, file);
-        case STATIC -> new DmsTarget(useCase.getCooSource().getTargetCoo(), useCase.getContext());
-        case OU_WORK_QUEUE -> new DmsTarget(null, useCase.getContext());
-        };
-    }
-
-    /**
-     * Resolve DmsTarget via metadata file.
-     *
-     * @param resourceType The type of the use case used for resolving.
-     * @param metadata Parsed metadata file.
-     * @param useCase UseCase of the file.
-     * @return Resolved DmsTarget.
-     */
-    protected DmsTarget resolveMetadataTargetCoo(final UseCaseType resourceType, final Metadata metadata, final UseCase useCase) throws MetadataException {
-        // validate metadata provided
-        if (metadata == null) {
-            throw new MetadataException("Target coo via metadata file: Metadata is required");
-        }
-        // extract coo and username from metadata
-        final DmsTarget metadataTarget = switch (resourceType) {
-        case INBOX_CONTENT_OBJECT -> dmsMetadataHelper.resolveInboxDmsTarget(metadata);
-        case PROCEDURE_INCOMING -> dmsMetadataHelper.resolveIncomingDmsTarget(metadata);
-        case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
-        };
-        // combine resolves target with use case
-        return this.combineDmsTargetWithUseCase(metadataTarget, useCase);
-    }
-
-    /**
-     * Resolve target coo via dms object name.
-     *
-     * @param resourceType The resource type of the target.
-     * @param metadata The metadata used for resolving the name pattern.
-     * @param useCase The use case to resolve the target for.
-     * @param file The file to resolve the target for.
-     * @return Dms target resolved via dms object name.
-     */
-    protected DmsTarget resolveTargetCooViaName(final DmsResourceType resourceType, final Metadata metadata, final UseCase useCase, final File file) {
-        // validate required use case properties
-        if (Strings.isBlank(useCase.getCooSource().getFilenameNamePattern())) {
-            throw new IllegalArgumentException("DMS target coo via object name: Filename name pattern is required");
-        }
-        if (Strings.isBlank(useCase.getContext().getUsername())) {
-            throw new IllegalStateException("DMS target coo via object name: Username is required");
-        }
-        // resolve lookup name
-        final String objectName = this.patternHelper.applyPattern(useCase.getCooSource().getFilenameNamePattern(), file.getFileName(), metadata);
-        // search for object name
-        final DmsTarget requestContext = new DmsTarget(null, useCase.getContext());
-        final List<String> coos = this.dmsOutPort.findObjectsByName(resourceType, objectName, requestContext);
-        if (coos.size() != 1) {
-            throw new IllegalStateException(
-                    String.format("DMS target coo via object name: Found %d instead of exactly one object for pattern %s", coos.size(), objectName));
-        }
-        return new DmsTarget(coos.getFirst(), useCase.getContext());
-    }
-
-    /**
-     * Resolve dms target resource type from metadata file.
-     *
-     * @param metadata Parsed metadata file.
-     * @return The resolved type.
-     * @throws MetadataException If metadata can't be parsed or has illegal values.
-     */
-    protected UseCaseType resolveTypeFromMetadataFile(final Metadata metadata) throws MetadataException {
-        // validate metadata provided
-        if (metadata == null) {
-            throw new MetadataException("DMS target type via metadata file: Metadata is required");
-        }
-        // load value from metadata file
-        final Map<String, String> indexFields = metadata.indexFields();
-        final String metadataDmsTarget = indexFields.get(swimDmsProperties.getMetadataDmsTargetKey());
-        // resolve type from value
-        try {
-            final UseCaseType resolvedType = UseCaseType.valueOf(metadataDmsTarget.toUpperCase(Locale.ROOT));
-            if (resolvedType == UseCaseType.METADATA_FILE) {
-                throw new MetadataException("DMS target type via metadata file: Target type can't be METADATA_FILE");
-            }
-            return resolvedType;
-        } catch (final IllegalArgumentException e) {
-            throw new MetadataException(
-                    String.format("DMS target type via metadata file: Unexpected %s value: %s", swimDmsProperties.getMetadataDmsTargetKey(), metadataDmsTarget),
-                    e);
-        }
+    protected void processInboxIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget,
+            final InputStream fileStream, final Metadata metadata) throws MetadataException {
+        final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata);
+        // create Incoming
+        this.dmsOutPort.createIncomingInInbox(dmsTarget, incomingRequest, fileStream);
     }
 
     /**
@@ -311,23 +183,58 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     }
 
     /**
-     * Combine resolved DmsTarget with UseCase values.
-     * Checks that only one of both defines job oe and position values.
+     * Resolve parameters for new ContentObject.
      *
-     * @param dmsTarget Resolved target.
-     * @param useCase UseCase the target was resolved for.
-     * @return Combined DmsTarget.
-     * @throws IllegalStateException If both inputs define job oe or position.
+     * @param file The file to resolve the values for.
+     * @param metadata Parsed metadata file.
+     * @param useCase The use case.
+     * @return Resolved parameters for new ContentObject.
      */
-    protected DmsTarget combineDmsTargetWithUseCase(final DmsTarget dmsTarget, final UseCase useCase) {
-        final boolean dmsTargetHasJob = Strings.isNotBlank(dmsTarget.getJoboe()) || Strings.isNotBlank(dmsTarget.getJobposition());
-        final boolean useCaseHasJob = Strings.isNotBlank(useCase.getContext().getJoboe()) || Strings.isNotBlank(useCase.getContext().getJobposition());
-        if (dmsTargetHasJob && useCaseHasJob) {
-            throw new IllegalStateException("Resolve dms target: Job oe and position defined via resolve and via use case not allowed");
+    protected DmsContentObjectRequest resolveContentObjectParameters(final File file, final UseCase useCase,
+            final Metadata metadata) {
+        // resolve ContentObject name
+        final String contentObjectName = this.patternHelper.applyPattern(useCase.getContentObject().getFilenameOverwritePattern(), file.getFileName(),
+                metadata);
+        // resolve ContentObject subject
+        final String contentObjectSubjectPattern = useCase.getContentObject().getSubjectPattern();
+        final String contentObjectSubject = Strings.isNotBlank(contentObjectSubjectPattern)
+                ? this.patternHelper.applyPattern(contentObjectSubjectPattern, file.getFileName(), metadata)
+                : null;
+        return new DmsContentObjectRequest(contentObjectName, contentObjectSubject);
+    }
+
+    /**
+     * Resolve parameters for new Incoming.
+     *
+     * @param file The file to resolve the values for.
+     * @param metadata Parsed metadata file.
+     * @param useCase The use case.
+     * @return Resolved parameters for new Incoming.
+     */
+    protected DmsIncomingRequest resolveIncomingParameters(final File file, final UseCase useCase,
+            final Metadata metadata) throws MetadataException {
+        // resolve ContentObject
+        final DmsContentObjectRequest contentObjectRequest = this.resolveContentObjectParameters(file, useCase, metadata);
+        // resolve name for Incoming
+        final String incomingName;
+        if (Strings.isBlank(useCase.getIncoming().getIncomingNamePattern())) {
+            // use resolved ContentObject name (filename) if no pattern for Incoming name is defined
+            // resolved in this case means the UseCase#filenameOverwritePattern is applied first
+            // extension is removed
+            incomingName = contentObjectRequest.name().substring(0, contentObjectRequest.name().lastIndexOf('.'));
+        } else {
+            // else apply pattern to original filename
+            final String filename = file.getFileName();
+            final String filenameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
+            incomingName = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingNamePattern(), filenameWithoutExtension, metadata);
         }
-        if (dmsTargetHasJob) {
-            return dmsTarget;
+        // resolve subject for Incoming;
+        final String incomingSubject;
+        if (useCase.getIncoming().isMetadataSubject()) {
+            incomingSubject = this.subjectFromMetadata(metadata);
+        } else {
+            incomingSubject = incomingName;
         }
-        return new DmsTarget(dmsTarget.getCoo(), dmsTarget.getUsername(), useCase.getContext().getJoboe(), useCase.getContext().getJobposition());
+        return new DmsIncomingRequest(incomingName, incomingSubject, contentObjectRequest);
     }
 }

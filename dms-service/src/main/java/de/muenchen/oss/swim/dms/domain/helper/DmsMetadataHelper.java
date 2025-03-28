@@ -44,17 +44,13 @@ public class DmsMetadataHelper extends MetadataHelper {
      *
      * @param metadata Parsed metadata file.
      * @return The incoming or ou work queue target.
-     * @throws MetadataException If required values are missing.
      */
-    public DmsTarget resolveIncomingDmsTarget(@NotNull final Metadata metadata) throws MetadataException {
+    public DmsTarget resolveIncomingDmsTarget(@NotNull final Metadata metadata) {
         final Map<String, String> indexFields = metadata.indexFields();
         final String incomingCoo = indexFields.get(swimDmsProperties.getMetadataIncomingCooKey());
         final String incomingOwner = indexFields.get(swimDmsProperties.getMetadataIncomingUserKey());
         final String incomingJoboe = indexFields.get(swimDmsProperties.getMetadataIncomingJoboeKey());
         final String incomingJobposition = indexFields.get(swimDmsProperties.getMetadataIncomingJobpositionKey());
-        if (Strings.isBlank(incomingOwner)) {
-            throw new MetadataException("Error while resolving incoming target from metadata: username is required");
-        }
         return new DmsTarget(Strings.isNotBlank(incomingCoo) ? incomingCoo : null, incomingOwner, incomingJoboe, incomingJobposition);
     }
 

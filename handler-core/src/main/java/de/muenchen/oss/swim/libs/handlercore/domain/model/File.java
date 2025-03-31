@@ -13,6 +13,15 @@ public record File(
         return lastSlash == -1 ? path : path.substring(lastSlash + 1);
     }
 
+    public String getFileNameWithoutExtension() {
+        final String fileName = this.getFileName();
+        return fileName.substring(0, fileName.lastIndexOf('.'));
+    }
+
+    public String getFileExtension() {
+        return this.getFileName().substring(this.getFileName().lastIndexOf(".") + 1);
+    }
+
     /**
      * Build {@link File} from presigned URL.
      *

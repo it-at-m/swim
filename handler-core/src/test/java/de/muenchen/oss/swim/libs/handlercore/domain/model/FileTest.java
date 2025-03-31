@@ -12,5 +12,7 @@ class FileTest {
         assertEquals("bucket", file.bucket());
         assertEquals("test/deep/path/file.pdf", file.path());
         assertEquals("file.pdf", file.getFileName());
+        assertEquals("file", file.getFileNameWithoutExtension());
+        assertEquals("pdf", file.getFileExtension());
     }
 }

@@ -99,7 +99,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         // check target procedure name
         if (Strings.isNotBlank(useCase.getIncoming().getVerifyProcedureNamePattern())) {
             final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);
-            final String resolvedPattern = this.patternHelper.applyPattern(useCase.getIncoming().getVerifyProcedureNamePattern(), file.getFileNameWithoutExtension(),
+            final String resolvedPattern = this.patternHelper.applyPattern(useCase.getIncoming().getVerifyProcedureNamePattern(),
+                    file.getFileNameWithoutExtension(),
                     metadata);
             if (!procedureName.toLowerCase(Locale.ROOT).contains(resolvedPattern.toLowerCase(Locale.ROOT))) {
                 final String message = String.format("Procedure name %s doesn't contain resolved pattern %s", procedureName, resolvedPattern);

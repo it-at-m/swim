@@ -15,6 +15,7 @@ public record DmsContentObjectRequest(@NotBlank String name, String subject) {
      * @return The name without the file extension.
      */
     public String getNameWithoutExtension() {
-        return name.substring(0, name.lastIndexOf('.'));
+        int lastDotIndex = name.lastIndexOf('.');
+        return lastDotIndex != -1 ? name.substring(0, lastDotIndex) : name;
     }
 }

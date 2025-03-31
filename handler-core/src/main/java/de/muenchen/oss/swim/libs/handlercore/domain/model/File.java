@@ -13,13 +13,26 @@ public record File(
         return lastSlash == -1 ? path : path.substring(lastSlash + 1);
     }
 
+    /**
+     * Get filename without file extension.
+     *
+     * @return The filename without extension.
+     * @throws StringIndexOutOfBoundsException If filename doesn't contain point.
+     */
     public String getFileNameWithoutExtension() {
         final String fileName = this.getFileName();
         return fileName.substring(0, fileName.lastIndexOf('.'));
     }
 
+    /**
+     * Get file extension.
+     *
+     * @return The file extension.
+     * @throws StringIndexOutOfBoundsException If filename doesn't contain point.
+     */
     public String getFileExtension() {
-        return this.getFileName().substring(this.getFileName().lastIndexOf(".") + 1);
+        final String fileName = this.getFileName();
+        return fileName.substring(fileName.lastIndexOf(".") + 1);
     }
 
     /**

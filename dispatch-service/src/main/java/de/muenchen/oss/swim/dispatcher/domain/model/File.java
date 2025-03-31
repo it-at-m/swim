@@ -11,9 +11,19 @@ public record File(@NotBlank String bucket, @NotBlank String path, Long size) {
         return path.substring(path.lastIndexOf('/') + 1);
     }
 
+    /**
+     * Get filename without file extension.
+     *
+     * @return The filename without extension.
+     * @throws IllegalArgumentException If filename has no extension.
+     */
     public String getFileNameWithoutExtension() {
         final String fileName = this.getFileName();
-        return fileName.substring(0, fileName.lastIndexOf('.'));
+        final int lastPointIndex = fileName.lastIndexOf('.');
+        if (lastPointIndex == -1) {
+            throw new IllegalArgumentException("Filename has no extension");
+        }
+        return fileName.substring(0, lastPointIndex);
     }
 
     public String getParentPath() {

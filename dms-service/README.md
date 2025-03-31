@@ -85,14 +85,15 @@ swim:
 
 ### Pattern
 
-The fields `filename-coo-pattern`, `incoming-name-pattern`, `filename-overwrite-pattern` and `verify-procedure-name-pattern` require a specific syntax (inspired by the sed command and regex substitution).
+The `*-pattern`-fields require a specific syntax (inspired by the sed command and regex substitution).
 
 ```
 s/<regex>/<substitution>/<options>
 ```
 
 The pattern is applied as following:
-- `<regex>` is applied to input
+- `<regex>` is applied to input (filename without extension)
+  - The extension is re-added where required
 - Build substitution values
   - Matching groups of regex are available via name and index
   - If option `m` is present metadata file is loaded
@@ -100,10 +101,10 @@ The pattern is applied as following:
 - Evaluate `<substitution>` and inject collected substitution values
 
 Example:
-- Filename: `Test-File.pdf`
+- Filename: `Test-File.pdf` -> Input: `Test-File`
 - Pattern: `s/^(.+)-(.+)$/${1}_${if.CustomValue}_${2}/m`
 - Metadata file: `{"Document" : { "IndexFields" : [{ "Name": "CustomValue", "Value": "ExampleValue" }] } }`
-- Result: `Test_ExampleValue_File.pdf`
+- Result: `Test_ExampleValue_File`
 
 ### Type
 

@@ -118,7 +118,7 @@ The `type` attribute of a use case defines what type of resource is created in t
 
 The `coo-source.type` attribute of a use case defines how the target resource, under which the new resource is created, is resolved.
 
-- `metadata_file`: The target coo and username are resolved via a separate metadata file, which is placed beside the original file in the S3. See [Metadata file](#metadata-file).
+- `metadata_file`: The target coo and username are resolved via a separate metadata file, which is placed beside the original file in the S3. See [Metadata file](#metadata-file). If username is missing it will be taken from `context` section of the usecase. 
 - `static`: The target coo is defined statically via the `target-coo` use case attribute.
 - `filename`: The target coo is resolved via the Regex pattern under `filename-coo-pattern`.
 - `filename_map`: The target coo is resolved via the Map defined under `filename-to-coo`, which consist of pairs of Regex pattern and static coo. The coo of the first matching (case-insensitive) pattern is used.

@@ -152,6 +152,7 @@ class ProcessFileUseCaseTest {
     @Test
     void testProcessFile_StaticIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "static-incoming";
+        final String overwrittenIncomingName = "asd";
         final String overwrittenContentObjectName = "test-asd.pdf";
         // setup
         when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL)))
@@ -160,7 +161,7 @@ class ProcessFileUseCaseTest {
         processFileUseCase.processFile(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL), FILE);
         // test
         final String incomingSubject = "TestKey_1: Test_Value_1\nTestKey_2: Test_Value_2";
-        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, STATIC_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, incomingSubject, overwrittenContentObjectName);
+        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, STATIC_DMS_TARGET, overwrittenIncomingName, incomingSubject, overwrittenContentObjectName);
         verify(dmsOutPort, times(0)).getProcedureName(any());
         verify(dmsOutPort, times(0)).getIncomingCooByName(any(), any());
     }

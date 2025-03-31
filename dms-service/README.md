@@ -75,10 +75,11 @@ swim:
         joboe: # used to resolve user role under which the DMS action is executed, default role if not defined
         jobposition: # used to resolve user role under which the DMS action is executed, default role if not defined
       incoming:
-        incoming-name-pattern: # overwrite Incoming name via Regex pattern, only applies to type incoming_object
-        verify-procedure-name-pattern: # verifies target procedure name matches this pattern, only applies to type incoming_object
-        metadata-subject: # enables incoming subject be built from metadata file
+        incoming-name-pattern: # overwrite Incoming name via Regex pattern
+        verify-procedure-name-pattern: # verifies target procedure name matches this pattern, only applies to type procedure_incoming
+        metadata-subject: # enables Incoming subject be built from metadata file
       content_object:
+        subject-pattern: # pattern for subject of new ContentObject, currently only works inside Inbox
         filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
 ```
 
@@ -109,6 +110,7 @@ Example:
 The `type` attribute of a use case defines what type of resource is created in the DMS.
 
 - `inbox_content_object`: Creates an ContentObject inside a given Inbox.
+- `inbox_incoming`: Creates an Incoming (with a ContentObject) inside a given Inbox.
 - `procedure_incoming`: Creates an Incoming (with a ContentObject) inside a given Procedure or the OU work queue of the user.
 - `metadata_file`: Resolve target type via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Metadata file](#metadata-file).
 
@@ -116,12 +118,12 @@ The `type` attribute of a use case defines what type of resource is created in t
 
 The `coo-source.type` attribute of a use case defines how the target resource, under which the new resource is created, is resolved.
 
-- `metadata_file`: The target coo and username are resolved via a separate metadata file, which is placed beside the original file in the S3. See [Metadata file](#metadata-file).
+- `metadata_file`: The target coo and username are resolved via a separate metadata file, which is placed beside the original file in the S3. See [Metadata file](#metadata-file). If username is missing it will be taken from `context` section of the usecase. 
 - `static`: The target coo is defined statically via the `target-coo` use case attribute.
 - `filename`: The target coo is resolved via the Regex pattern under `filename-coo-pattern`.
 - `filename_map`: The target coo is resolved via the Map defined under `filename-to-coo`, which consist of pairs of Regex pattern and static coo. The coo of the first matching (case-insensitive) pattern is used.
 - `filename_name`: The target coo is resolved via DMS object name. The name extracted via `filename-name-pattern` is looked up in the DMS and if exactly one match is found that is used as parent. In most cases the pattern should end with `*` as wildcard (e.g. `/^([^.]+)/${1}*/`).
-- `ou_work_queue`: The Incoming is created inside the OU work queue of `username`. Can only be used with type `incoming_object`.
+- `ou_work_queue`: The Incoming is created inside the OU work queue of `username`. Can only be used with type `procedure_incoming`.
 
 #### Metadata file
 

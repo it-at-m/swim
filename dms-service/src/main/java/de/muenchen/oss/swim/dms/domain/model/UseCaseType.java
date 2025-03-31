@@ -9,6 +9,10 @@ public enum UseCaseType {
      */
     INBOX_CONTENT_OBJECT(DmsResourceType.INBOX, DmsResourceType.CONTENT_OBJECT),
     /**
+     * Create an Incoming inside an Inbox.
+     */
+    INBOX_INCOMING(DmsResourceType.INBOX, DmsResourceType.INCOMING),
+    /**
      * Create an Incoming either inside given Procedure {@link DmsTarget#getCoo()} or OU work queue of
      * {@link DmsTarget#getUsername()}.
      */

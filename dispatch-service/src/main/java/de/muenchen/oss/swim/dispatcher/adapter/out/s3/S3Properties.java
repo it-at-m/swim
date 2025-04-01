@@ -65,7 +65,7 @@ class S3Properties {
      */
     protected MinioClient getClient(final String tenant) {
         return CLIENTS.computeIfAbsent(tenant, key -> {
-            if (this.tenants.containsKey(key)) {
+            if (!this.tenants.containsKey(key)) {
                 throw new IllegalArgumentException("Tenant doesn't exist: " + tenant);
             }
             final ConnectionOptions options = this.tenants.get(key);

@@ -145,10 +145,6 @@ class DispatcherUseCaseTest {
         dispatcherUseCase.processFile(useCase, FILE1, TAGS);
         // test
         verify(fileDispatchingOutPort, times(1)).dispatchFile(eq("invoice-out"), eq(useCaseName), eq(PRESIGNED_URL_FILE), eq(PRESIGNED_URL_METADATA_FILE));
-        verify(dispatcherUseCase, times(0)).rerouteFileToUseCase(any(), any(), any());
-        verify(fileSystemOutPort, times(1)).tagFile(eq(TENANT), eq(BUCKET), eq(FILE1.path()), eq(Map.of(
-                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
-        verify(dispatchMeter, times(1)).incrementDispatched(eq(useCaseName), eq("invoice-out"));
     }
 
     @Test

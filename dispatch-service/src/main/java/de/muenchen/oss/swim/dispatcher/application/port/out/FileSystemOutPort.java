@@ -22,6 +22,7 @@ public interface FileSystemOutPort {
      * @param excludeTags Tag entries where none should be on the file.
      * @return Map of files (with all tags) having required and not having any exclude tags.
      */
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
     Map<File, Map<String, String>> getMatchingFilesWithTags(
             @NotBlank String tenant,
             @NotBlank String bucket,
@@ -93,6 +94,7 @@ public interface FileSystemOutPort {
      * @param srcPath The source path of the file.
      * @param destPath The destination path of the file.
      */
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
     void moveFile(@NotBlank String tenant, @NotBlank String bucket, @NotBlank String srcPath, @NotBlank String destPath);
 
     /**

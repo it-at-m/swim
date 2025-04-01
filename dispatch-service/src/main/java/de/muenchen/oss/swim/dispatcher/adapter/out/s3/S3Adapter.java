@@ -77,6 +77,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     @Override
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
     public Map<File, Map<String, String>> getMatchingFilesWithTags(
             final String tenant,
             final String bucket,
@@ -226,6 +227,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     @Override
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
     public void moveFile(final String tenant, final String bucket, final String srcPath, final String destPath) {
         try {
             // copy file

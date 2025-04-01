@@ -14,6 +14,36 @@ public record File(
     }
 
     /**
+     * Get filename without file extension.
+     *
+     * @return The filename without extension.
+     * @throws IllegalArgumentException If filename has no extension.
+     */
+    public String getFileNameWithoutExtension() {
+        final String fileName = this.getFileName();
+        final int lastPointIndex = fileName.lastIndexOf('.');
+        if (lastPointIndex == -1) {
+            throw new IllegalArgumentException("Filename has no extension");
+        }
+        return fileName.substring(0, lastPointIndex);
+    }
+
+    /**
+     * Get file extension.
+     *
+     * @return The file extension.
+     * @throws IllegalArgumentException If filename has no extension.
+     */
+    public String getFileExtension() {
+        final String fileName = this.getFileName();
+        final int lastPointIndex = fileName.lastIndexOf('.');
+        if (lastPointIndex == -1) {
+            throw new IllegalArgumentException("Filename has no extension");
+        }
+        return fileName.substring(lastPointIndex + 1);
+    }
+
+    /**
      * Build {@link File} from presigned URL.
      *
      * @param presignedUrlString The presigned URL of a file.

@@ -19,6 +19,7 @@ public class UseCaseContentObject {
     /**
      * Regex pattern for setting subject in dms by providing regex pattern.
      * Pattern is applied to S3 filename.
+     * Currently only works inside {@link DmsResourceType#INBOX}.
      */
     @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String subjectPattern;

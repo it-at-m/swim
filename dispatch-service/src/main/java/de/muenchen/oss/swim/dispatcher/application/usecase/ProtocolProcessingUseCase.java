@@ -13,6 +13,7 @@ import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import de.muenchen.oss.swim.dispatcher.domain.model.protocol.ProtocolEntry;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -120,7 +121,7 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
             // move protocol
             final String destPath = useCase.getFinishedProtocolPath(swimDispatcherProperties, file.path());
             fileSystemOutPort.moveFile(file.bucket(), file.path(), destPath);
-        } catch (final Exception e) {
+        } catch (final IOException | RuntimeException e) {
             log.warn("Error file processing {} for use case {}", file.path(), useCase.getName(), e);
             fileHandlingHelper.markFileError(file, swimDispatcherProperties.getProtocolStateTagKey(), e);
             notificationOutPort.sendProtocolError(useCase.getMailAddresses(), useCase.getName(), file.path(), e);

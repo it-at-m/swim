@@ -76,7 +76,7 @@ public class RestAdapter {
         }
         final String originalFilename = file.getOriginalFilename();
         final boolean validOriginalFilename = originalFilename == null || originalFilename.endsWith(CSV_EXTENSION);
-        final boolean validContentType = CSV_CONTENT_TYPES.contains(originalFilename);
+        final boolean validContentType = CSV_CONTENT_TYPES.contains(file.getContentType());
         if (!validOriginalFilename || !validContentType) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File needs to be a csv");
         }

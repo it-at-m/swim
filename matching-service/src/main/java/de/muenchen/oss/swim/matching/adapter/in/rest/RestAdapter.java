@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -34,6 +33,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class RestAdapter {
     private static final char CSV_DELIMITER = ';';
+    private static final String CSV_EXTENSION = ".csv";
+    private static final List<String> CSV_CONTENT_TYPES = List.of("text/csv", "application/vnd.ms-excel");
 
     private final DmsExportMapper dmsExportMapper;
     private final ProcessDmsExportInPort processDmsExportInPort;
@@ -73,7 +74,7 @@ public class RestAdapter {
         if (file.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
         }
-        if (!Objects.equals(file.getContentType(), "text/csv")) {
+        if (!(file.getOriginalFilename() == null || file.getOriginalFilename().endsWith(CSV_EXTENSION)) || !CSV_CONTENT_TYPES.contains(file.getContentType())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File needs to be a csv");
         }
 

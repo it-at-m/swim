@@ -263,7 +263,10 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                     .source(copySource)
                     .object(destPath);
             if (clearTags) {
-                copyObjectArgs.taggingDirective(Directive.REPLACE).tags(Map.of());
+                copyObjectArgs.taggingDirective(Directive.REPLACE);
+                // workaround as empty tags are not set as header by minio but required
+                copyObjectArgs.extraHeaders(Map.of(
+                        "x-amz-tagging", ""));
             }
             this.minioClient.copyObject(copyObjectArgs.build());
             log.info("Copied file {} from bucket {} to {} in bucket {}", srcPath, srcBucket, destPath, destBucket);

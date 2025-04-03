@@ -10,11 +10,9 @@ import de.muenchen.oss.swim.dispatcher.application.port.out.ReadProtocolOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.StoreProtocolOutPort;
 import de.muenchen.oss.swim.dispatcher.application.usecase.helper.FileHandlingHelper;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
-import de.muenchen.oss.swim.dispatcher.domain.exception.ProtocolException;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import de.muenchen.oss.swim.dispatcher.domain.model.protocol.ProtocolEntry;
-import jakarta.validation.ConstraintViolationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -24,7 +22,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -124,7 +121,7 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
             // move protocol
             final String destPath = useCase.getFinishedProtocolPath(swimDispatcherProperties, file.path());
             fileSystemOutPort.moveFile(file.bucket(), file.path(), destPath);
-        } catch (final ProtocolException | IOException | DataIntegrityViolationException | ConstraintViolationException e) {
+        } catch (final IOException | RuntimeException e) {
             log.warn("Error file processing {} for use case {}", file.path(), useCase.getName(), e);
             fileHandlingHelper.markFileError(file, swimDispatcherProperties.getProtocolStateTagKey(), e);
             notificationOutPort.sendProtocolError(useCase.getMailAddresses(), useCase.getName(), file.path(), e);

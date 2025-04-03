@@ -76,6 +76,7 @@ swim:
         jobposition: # used to resolve user role under which the DMS action is executed, default role if not defined
       incoming:
         incoming-name-pattern: # overwrite Incoming name via Regex pattern
+        reuse-incoming: # if already existing Incoming (based on name) should be reused, when existing only ContentObject is created inside
         verify-procedure-name-pattern: # verifies target procedure name matches this pattern, only applies to type procedure_incoming
         metadata-subject: # enables Incoming subject be built from metadata file
       content_object:
@@ -93,7 +94,7 @@ s/<regex>/<substitution>/<options>
 
 The pattern is applied as following:
 - `<regex>` is applied to input (filename without extension)
-  - The extension is re-added where required
+  - The extension is re-added where required (e.g. for the ContentObject name, as that is used to determine the file type)
 - Build substitution values
   - Matching groups of regex are available via name and index
   - If option `m` is present metadata file is loaded

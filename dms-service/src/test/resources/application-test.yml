@@ -36,7 +36,7 @@ swim:
       content-object:
         filename-overwrite-pattern: "s/^(.+)(?:-COO.[^-]+-)(.+)$/\\${1}-\\${2}/"
       incoming:
-        incoming-name-pattern: "s/^(.+)(?:-COO.[^-]+-).+$/\\${1}/"
+        incoming-name-pattern: "s/^(.+)(?:-COO.[^-]+-)(.+)$/\\${2}/"
         metadata-subject: true
       context:
         username: staticUsername

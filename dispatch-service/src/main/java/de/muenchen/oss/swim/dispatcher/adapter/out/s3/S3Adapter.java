@@ -323,7 +323,13 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .object(objectName)
                 .build();
         try {
-            return new HashMap<>(minioClient.getObjectTags(getObjectTagsArgs).get());
+            final Map<String, String> tags = minioClient.getObjectTags(getObjectTagsArgs).get();
+            // workaround: convert null value to empty string
+            return tags.entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            entry -> entry.getValue() == null ? "" : entry.getValue()));
         } catch (final ErrorResponseException e) {
             // handle exception which indicates file doesn't exist
             if (ERROR_CODE_NO_SUCH_KEY.equals(e.errorResponse().code())) {

@@ -14,5 +14,5 @@ public interface ReadProtocolOutPort {
      * @param path The path of the protocol file.
      * @return The parsed protocol entries.
      */
-    List<ProtocolEntry> loadProtocol(@NotBlank String bucket, @NotBlank String path);
+    List<ProtocolEntry> loadProtocol(@NotBlank String tenant, @NotBlank String bucket, @NotBlank String path);
 }

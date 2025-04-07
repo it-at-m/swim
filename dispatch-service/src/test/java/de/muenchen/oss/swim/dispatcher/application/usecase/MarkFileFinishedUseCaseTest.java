@@ -1,5 +1,7 @@
 package de.muenchen.oss.swim.dispatcher.application.usecase;
 
+import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE1;
+import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_FILE_EVENT;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -16,6 +18,7 @@ import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileEvent;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,23 +45,25 @@ class MarkFileFinishedUseCaseTest {
 
     @Test
     void testMarkFileFinished_Success() throws PresignedUrlException, UseCaseException {
-        when(fileSystemOutPort.verifyPresignedUrl(any())).thenReturn(true);
-        markFileFinishedUseCase.markFileFinished(USE_CASE, TEST_PRESIGNED_URL);
-        verify(fileSystemOutPort, times(1)).verifyPresignedUrl(TEST_PRESIGNED_URL);
-        verify(fileSystemOutPort, times(1)).tagFile(eq("test-bucket"), eq("test/inProcess/path/example.pdf"), eq(Map.of(
+        when(fileSystemOutPort.verifyAndResolvePresignedUrl(any(), any())).thenReturn(FILE1);
+        markFileFinishedUseCase.markFileFinished(TEST_FILE_EVENT);
+        verify(fileSystemOutPort, times(1)).verifyAndResolvePresignedUrl(any(), eq(TEST_PRESIGNED_URL));
+        verify(fileSystemOutPort, times(1)).tagFile(eq("test-tenant"), eq("test-bucket"), eq("test/inProcess/path/example.pdf"), eq(Map.of(
                 "SWIM_State", "finished")));
-        verify(fileSystemOutPort, times(1)).moveFile(eq("test-bucket"), eq("test/inProcess/path/example.pdf"), eq("test/finished/path/example.pdf"));
+        verify(fileSystemOutPort, times(1)).moveFile(eq("test-tenant"), eq("test-bucket"), eq("test/inProcess/path/example.pdf"),
+                eq("test/finished/path/example.pdf"));
         verify(dispatchMeter, times(1)).incrementFinished(eq(USE_CASE));
     }
 
     @Test
     void testMarkFileFinished_PresignedUrlException() throws PresignedUrlException {
-        when(fileSystemOutPort.verifyPresignedUrl(any())).thenReturn(false);
-        assertThrows(PresignedUrlException.class, () -> markFileFinishedUseCase.markFileFinished(USE_CASE, TEST_PRESIGNED_URL));
+        when(fileSystemOutPort.verifyAndResolvePresignedUrl(any(), any())).thenThrow(new PresignedUrlException(""));
+        assertThrows(PresignedUrlException.class, () -> markFileFinishedUseCase.markFileFinished(TEST_FILE_EVENT));
     }
 
     @Test
     void testMarkFileFinished_UseCaseException() {
-        assertThrows(UseCaseException.class, () -> markFileFinishedUseCase.markFileFinished("unknown-usecase", TEST_PRESIGNED_URL));
+        assertThrows(UseCaseException.class, () -> markFileFinishedUseCase.markFileFinished(
+                new FileEvent("unknown-usecase", TEST_PRESIGNED_URL, null)));
     }
 }

@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.dispatcher.application.port.out;
 
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
+import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.InputStream;
@@ -82,10 +83,11 @@ public interface FileSystemOutPort {
     /**
      * Verify and extract File from a presigned URL for downloading a file.
      *
+     * @param useCase The resolved use case of the presigned url.
      * @param presignedUrl The presigned url.
      * @return The File extracted from the presigned URL.
      */
-    File verifyAndResolvePresignedUrl(@NotBlank String presignedUrl) throws PresignedUrlException;
+    File verifyAndResolvePresignedUrl(@NotNull UseCase useCase, @NotBlank String presignedUrl) throws PresignedUrlException;
 
     /**
      * Move a file from one place to another.

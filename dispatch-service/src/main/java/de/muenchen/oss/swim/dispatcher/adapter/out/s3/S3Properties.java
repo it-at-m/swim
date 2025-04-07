@@ -75,19 +75,4 @@ class S3Properties {
                     .build();
         });
     }
-
-    /**
-     * Find a tenant name by url.
-     * See {@link #tenants} and {@link ConnectionOptions#url}.
-     *
-     * @param url The url to search for.
-     * @return The resolved tenant name.
-     */
-    protected String findTenantByUrl(final String url) {
-        return this.tenants.entrySet().stream()
-                .filter(entry -> entry.getValue().getUrl().equals(url))
-                .map(Map.Entry::getKey)
-                .findFirst().orElseThrow(
-                        () -> new IllegalArgumentException(String.format("Tenant with URL %s doesn't exist", url)));
-    }
 }

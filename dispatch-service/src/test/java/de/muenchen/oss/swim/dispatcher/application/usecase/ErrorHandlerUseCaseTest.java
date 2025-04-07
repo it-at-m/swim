@@ -54,7 +54,7 @@ class ErrorHandlerUseCaseTest {
     void handleError_Success() throws PresignedUrlException {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         // setup
-        when(fileSystemOutPort.verifyAndResolvePresignedUrl(eq(TEST_PRESIGNED_URL))).thenReturn(FILE1);
+        when(fileSystemOutPort.verifyAndResolvePresignedUrl(eq(useCase), eq(TEST_PRESIGNED_URL))).thenReturn(FILE1);
         // call
         errorHandlerUseCase.handleError(TEST_FILE_EVENT, TEST_ERROR_DETAILS);
         // test

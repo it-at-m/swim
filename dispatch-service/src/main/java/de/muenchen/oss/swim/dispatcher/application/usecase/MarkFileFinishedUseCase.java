@@ -27,13 +27,13 @@ public class MarkFileFinishedUseCase implements MarkFileFinishedInPort {
         // resolve usecase from name
         final UseCase useCase = this.swimDispatcherProperties.findUseCase(event.useCase());
         // verify presigned url and extract File
-        final File file = this.fileSystemOutPort.verifyAndResolvePresignedUrl(event.presignedUrl());
+        final File file = this.fileSystemOutPort.verifyAndResolvePresignedUrl(useCase, event.presignedUrl());
         // finish file
         fileHandlingHelper.finishFile(useCase, file.tenant(), file.bucket(), file.path());
         // finish metadata file
         if (Strings.isNotBlank(event.metadataPresignedUrl())) {
             // verify presigned url and extract metadata File
-            final File metadataFile = this.fileSystemOutPort.verifyAndResolvePresignedUrl(event.metadataPresignedUrl());
+            final File metadataFile = this.fileSystemOutPort.verifyAndResolvePresignedUrl(useCase, event.metadataPresignedUrl());
             // finish metadata file
             fileHandlingHelper.finishFile(useCase, metadataFile.tenant(), metadataFile.bucket(), metadataFile.path());
         }

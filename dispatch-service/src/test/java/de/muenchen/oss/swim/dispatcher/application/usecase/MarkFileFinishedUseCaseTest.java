@@ -45,9 +45,9 @@ class MarkFileFinishedUseCaseTest {
 
     @Test
     void testMarkFileFinished_Success() throws PresignedUrlException, UseCaseException {
-        when(fileSystemOutPort.verifyAndResolvePresignedUrl(any())).thenReturn(FILE1);
+        when(fileSystemOutPort.verifyAndResolvePresignedUrl(any(), any())).thenReturn(FILE1);
         markFileFinishedUseCase.markFileFinished(TEST_FILE_EVENT);
-        verify(fileSystemOutPort, times(1)).verifyAndResolvePresignedUrl(TEST_PRESIGNED_URL);
+        verify(fileSystemOutPort, times(1)).verifyAndResolvePresignedUrl(any(), eq(TEST_PRESIGNED_URL));
         verify(fileSystemOutPort, times(1)).tagFile(eq("test-tenant"), eq("test-bucket"), eq("test/inProcess/path/example.pdf"), eq(Map.of(
                 "SWIM_State", "finished")));
         verify(fileSystemOutPort, times(1)).moveFile(eq("test-tenant"), eq("test-bucket"), eq("test/inProcess/path/example.pdf"),
@@ -57,7 +57,7 @@ class MarkFileFinishedUseCaseTest {
 
     @Test
     void testMarkFileFinished_PresignedUrlException() throws PresignedUrlException {
-        when(fileSystemOutPort.verifyAndResolvePresignedUrl(any())).thenThrow(new PresignedUrlException(""));
+        when(fileSystemOutPort.verifyAndResolvePresignedUrl(any(), any())).thenThrow(new PresignedUrlException(""));
         assertThrows(PresignedUrlException.class, () -> markFileFinishedUseCase.markFileFinished(TEST_FILE_EVENT));
     }
 

@@ -12,6 +12,7 @@ import de.muenchen.oss.swim.dispatcher.domain.exception.FileSystemAccessExceptio
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.ProtocolException;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
+import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import de.muenchen.oss.swim.dispatcher.domain.model.protocol.ProtocolEntry;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.minio.CopyObjectArgs;
@@ -30,6 +31,7 @@ import io.minio.errors.MinioException;
 import io.minio.http.Method;
 import io.minio.messages.Item;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -207,7 +209,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
 
     @Override
     @SuppressFBWarnings("URLCONNECTION_SSRF_FD")
-    public File verifyAndResolvePresignedUrl(final String presignedUrl) throws PresignedUrlException {
+    public File verifyAndResolvePresignedUrl(final UseCase useCase, final String presignedUrl) throws PresignedUrlException {
         try {
             final URI uri = new URI(presignedUrl);
             final HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
@@ -218,7 +220,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
 
             final HttpStatusCode responseCode = HttpStatusCode.valueOf(connection.getResponseCode());
             if (responseCode.is2xxSuccessful()) {
-                return this.fileFromPresignedUrl(presignedUrl);
+                return this.fileFromPresignedUrl(useCase, presignedUrl);
             }
             throw new PresignedUrlException("Presigned URL verification failed with non 200 status code");
         } catch (final IOException | URISyntaxException e) {
@@ -382,7 +384,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
      * @return The resolved File.
      * @throws PresignedUrlException If the presigned URL can't be parsed.
      */
-    protected File fileFromPresignedUrl(@NotBlank final String presignedUrl) throws PresignedUrlException {
+    protected File fileFromPresignedUrl(@NotNull final UseCase useCase, @NotBlank final String presignedUrl) throws PresignedUrlException {
         // check input has content
         if (Strings.isBlank(presignedUrl)) {
             throw new PresignedUrlException("Empty presigned url can't be parsed");
@@ -396,12 +398,42 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         }
         // create File object from presigned url
         final String tenantUrl = String.format("%s://%s%s", uri.getScheme(), uri.getHost(), uri.getPort() == -1 ? "" : ":" + uri.getPort());
-        final String tenantName = this.s3Properties.findTenantByUrl(tenantUrl);
         final String uriPath = uri.getPath().replaceFirst("^/", "");
         final int slashIndex = uriPath.indexOf('/');
         final String bucket = uriPath.substring(0, slashIndex);
         final String filePath = uriPath.substring(slashIndex + 1);
-        return new File(tenantName, bucket, filePath, null);
+        // compare with UseCase
+        this.verifyPresignedUrlForUseCase(useCase, tenantUrl, bucket, filePath);
+        return new File(useCase.getTenant(), useCase.getBucket(), filePath, null);
+    }
+
+    /**
+     * Verify the given presigned URL is valid for a UseCase.
+     *
+     * @param useCase The UseCase the presigned URL should be for.
+     * @param tenantUrl The resolved tenant URL from the presigned URL.
+     * @param bucket The resolved bucket from the presigned URL.
+     * @param filePath The resolved filePath URL from the presigned URL.
+     * @throws PresignedUrlException If the presigned URL is not valid for the UseCase.
+     */
+    protected void verifyPresignedUrlForUseCase(final UseCase useCase, final String tenantUrl, final String bucket, final String filePath)
+            throws PresignedUrlException {
+        // tenant
+        final S3Properties.ConnectionOptions tenantOptions = this.s3Properties.getTenants().get(useCase.getTenant());
+        if (!tenantOptions.getUrl().startsWith(tenantUrl) && !tenantUrl.startsWith(tenantOptions.getUrl())) {
+            throw new PresignedUrlException(String.format("Presigned URL: UseCase %s tenant URL %s doesn't match presigned URL %s",
+                    useCase.getName(), tenantOptions.getUrl(), tenantUrl));
+        }
+        // bucket
+        if (!useCase.getBucket().equals(bucket)) {
+            throw new PresignedUrlException(String.format("Presigned URL: Bucket %s from UseCase %s doesn't match bucket from presigned URL %s",
+                    useCase.getBucket(), useCase.getName(), bucket));
+        }
+        // path
+        if (!filePath.startsWith(useCase.getPath())) {
+            throw new PresignedUrlException(
+                    String.format("Presigned URL: Filepath %s isn't in UseCase %s path %s", filePath, useCase.getName(), useCase.getPath()));
+        }
     }
 
     @Override

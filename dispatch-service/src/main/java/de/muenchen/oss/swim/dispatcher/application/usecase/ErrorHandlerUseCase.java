@@ -29,7 +29,7 @@ public class ErrorHandlerUseCase implements ErrorHandlerInPort {
         log.warn("Processing error for use case {} and presigned url {}: {}", event.useCase(), event.presignedUrl(), cause);
         try {
             final UseCase useCase = swimDispatcherProperties.findUseCase(event.useCase());
-            final File file = this.fileSystemOutPort.verifyAndResolvePresignedUrl(event.presignedUrl());
+            final File file = this.fileSystemOutPort.verifyAndResolvePresignedUrl(useCase, event.presignedUrl());
             // tag file
             this.markFileError(file, cause);
             // send notification

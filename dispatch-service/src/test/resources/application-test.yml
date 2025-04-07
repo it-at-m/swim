@@ -32,4 +32,5 @@ swim:
       tenant: test-tenant
       bucket: test-bucket-2
       path: path/test2
+      destination-binding: dms-out
   fallback-mail: swim@example.com

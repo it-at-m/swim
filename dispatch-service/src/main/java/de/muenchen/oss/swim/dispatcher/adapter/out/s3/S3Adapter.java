@@ -329,8 +329,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                     .stream()
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            entry -> entry.getValue() == null ? "" : entry.getValue()
-                    ));
+                            entry -> entry.getValue() == null ? "" : entry.getValue()));
         } catch (final ErrorResponseException e) {
             // handle exception which indicates file doesn't exist
             if (ERROR_CODE_NO_SUCH_KEY.equals(e.errorResponse().code())) {

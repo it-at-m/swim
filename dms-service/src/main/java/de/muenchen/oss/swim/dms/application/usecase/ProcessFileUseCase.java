@@ -96,12 +96,11 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      */
     protected void processProcedureIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget,
             final InputStream fileStream, final Metadata metadata) throws MetadataException {
-        final String filename = file.getFileName();
-        final String filenameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
         // check target procedure name
         if (Strings.isNotBlank(useCase.getIncoming().getVerifyProcedureNamePattern())) {
             final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);
-            final String resolvedPattern = this.patternHelper.applyPattern(useCase.getIncoming().getVerifyProcedureNamePattern(), filenameWithoutExtension,
+            final String resolvedPattern = this.patternHelper.applyPattern(useCase.getIncoming().getVerifyProcedureNamePattern(),
+                    file.getFileNameWithoutExtension(),
                     metadata);
             if (!procedureName.toLowerCase(Locale.ROOT).contains(resolvedPattern.toLowerCase(Locale.ROOT))) {
                 final String message = String.format("Procedure name %s doesn't contain resolved pattern %s", procedureName, resolvedPattern);
@@ -193,12 +192,13 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     protected DmsContentObjectRequest resolveContentObjectParameters(final File file, final UseCase useCase,
             final Metadata metadata) {
         // resolve ContentObject name
-        final String contentObjectName = this.patternHelper.applyPattern(useCase.getContentObject().getFilenameOverwritePattern(), file.getFileName(),
-                metadata);
+        final String contentObjectName = String.format("%s.%s",
+                this.patternHelper.applyPattern(useCase.getContentObject().getFilenameOverwritePattern(), file.getFileNameWithoutExtension(), metadata),
+                file.getFileExtension());
         // resolve ContentObject subject
         final String contentObjectSubjectPattern = useCase.getContentObject().getSubjectPattern();
         final String contentObjectSubject = Strings.isNotBlank(contentObjectSubjectPattern)
-                ? this.patternHelper.applyPattern(contentObjectSubjectPattern, file.getFileName(), metadata)
+                ? this.patternHelper.applyPattern(contentObjectSubjectPattern, file.getFileNameWithoutExtension(), metadata)
                 : null;
         return new DmsContentObjectRequest(contentObjectName, contentObjectSubject);
     }
@@ -221,12 +221,10 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             // use resolved ContentObject name (filename) if no pattern for Incoming name is defined
             // resolved in this case means the UseCase#filenameOverwritePattern is applied first
             // extension is removed
-            incomingName = contentObjectRequest.name().substring(0, contentObjectRequest.name().lastIndexOf('.'));
+            incomingName = contentObjectRequest.getNameWithoutExtension();
         } else {
             // else apply pattern to original filename
-            final String filename = file.getFileName();
-            final String filenameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
-            incomingName = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingNamePattern(), filenameWithoutExtension, metadata);
+            incomingName = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingNamePattern(), file.getFileNameWithoutExtension(), metadata);
         }
         // resolve subject for Incoming;
         final String incomingSubject;

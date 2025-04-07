@@ -4,8 +4,8 @@ import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import io.minio.MinioClient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,7 +25,7 @@ class S3Properties {
      * Internal mapping of tenant names to already created Clients.
      * Ensures only one MinoClient per tenant is created and reused.
      */
-    private static final Map<String, MinioClient> CLIENTS = new HashMap<>();
+    private static final Map<String, MinioClient> CLIENTS = new ConcurrentHashMap<>();
     /**
      * List of S3 tenants which can be used as {@link UseCase#getTenant()}.
      */

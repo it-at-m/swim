@@ -14,4 +14,11 @@ public interface ProcessDmsExportInPort {
      * @return Report of import.
      */
     ImportReport processExport(InputStream csvExport) throws IOException;
+
+    /**
+     * Trigger import of DMS inboxes through export in DMS.
+     *
+     * @return Report of import.
+     */
+    ImportReport triggerProcessingViaDms();
 }

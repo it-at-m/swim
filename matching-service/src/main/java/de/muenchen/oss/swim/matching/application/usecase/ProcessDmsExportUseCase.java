@@ -1,6 +1,8 @@
 package de.muenchen.oss.swim.matching.application.usecase;
 
 import de.muenchen.oss.swim.matching.application.port.in.ProcessDmsExportInPort;
+import de.muenchen.oss.swim.matching.application.port.out.DmsOutPort;
+import de.muenchen.oss.swim.matching.application.port.out.ExportParsingOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.StoreMatchingEntriesOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.UserInformationOutPort;
 import de.muenchen.oss.swim.matching.domain.mapper.InboxMapper;
@@ -9,6 +11,8 @@ import de.muenchen.oss.swim.matching.domain.model.GroupDmsInbox;
 import de.muenchen.oss.swim.matching.domain.model.ImportReport;
 import de.muenchen.oss.swim.matching.domain.model.User;
 import de.muenchen.oss.swim.matching.domain.model.UserDmsInbox;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,10 +28,22 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
     private final UserInformationOutPort userInformationOutPort;
     private final StoreMatchingEntriesOutPort storeMatchingEntriesOutPort;
     private final ExportParsingOutPort exportParsingOutPort;
+    private final DmsOutPort dmsOutPort;
 
     @Override
     public ImportReport processExport(final InputStream csvExport) throws IOException {
         return this.process(exportParsingOutPort.parseCsv(csvExport));
+    }
+
+    @Override
+    public ImportReport triggerProcessingViaDms() {
+        final InputStream csvExport = this.dmsOutPort.getExportContent();
+        try {
+            return this.process(exportParsingOutPort.parseCsv(csvExport));
+        } catch (final IOException e) {
+            // TODO
+            throw new RuntimeException(e);
+        }
     }
 
     /**

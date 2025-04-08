@@ -46,6 +46,7 @@ security:
     open-id-connect-url: ${sso.url}/auth/realms/${sso.realm}/.well-known/openid-configuration
 
 swim:
+  schedule-cron: 0 */5 * * * *
   ldap:
     search-ous:
       - rit

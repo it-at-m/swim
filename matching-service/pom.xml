@@ -26,6 +26,7 @@
         <!-- Core Frameworks -->
         <spring-cloud-dependencies.version>2024.0.1</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
         <refarch-tools.version>1.1.0</refarch-tools.version>
+        <refarch-dms-integration-fabasoft-rest-api.version>1.4.1</refarch-dms-integration-fabasoft-rest-api.version>
 
         <!-- Logging -->
         <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
@@ -193,6 +194,11 @@
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
             <version>${spotbugs-annotations.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>de.muenchen.refarch</groupId>
+            <artifactId>refarch-dms-integration-fabasoft-rest-api</artifactId>
+            <version>${refarch-dms-integration-fabasoft-rest-api.version}</version>
         </dependency>
 
         <!-- Validation -->

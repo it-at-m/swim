@@ -12,6 +12,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import de.muenchen.oss.swim.matching.application.port.out.DmsOutPort;
+import de.muenchen.oss.swim.matching.application.port.out.ExportParsingOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.StoreMatchingEntriesOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.UserInformationOutPort;
 import de.muenchen.oss.swim.matching.domain.mapper.InboxMapper;
@@ -30,9 +32,11 @@ class ProcessDmsExportUseCaseTest {
     private final InboxMapper inboxMapper = new InboxMapperImpl();
     private final UserInformationOutPort userInformationOutPort = mock();
     private final StoreMatchingEntriesOutPort storeMatchingEntriesOutPort = mock();
+    private final ExportParsingOutPort exportParsingOutPort = mock();
+    private final DmsOutPort dmsOutPort = mock();
     @Spy
     private final ProcessDmsExportUseCase processDmsExportUseCase = new ProcessDmsExportUseCase(
-            inboxMapper, userInformationOutPort, storeMatchingEntriesOutPort);
+            inboxMapper, userInformationOutPort, storeMatchingEntriesOutPort, exportParsingOutPort, dmsOutPort);
 
     @Test
     void testProcess() {

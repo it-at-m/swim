@@ -23,6 +23,12 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
     private final InboxMapper inboxMapper;
     private final UserInformationOutPort userInformationOutPort;
     private final StoreMatchingEntriesOutPort storeMatchingEntriesOutPort;
+    private final ExportParsingOutPort exportParsingOutPort;
+
+    @Override
+    public ImportReport processExport(final InputStream csvExport) throws IOException {
+        return this.process(exportParsingOutPort.parseCsv(csvExport));
+    }
 
     /**
      * Process inboxes as user and group inboxes.
@@ -32,8 +38,7 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
      * @param dmsInboxes Inboxes to be processed.
      * @return Report of the import.
      */
-    @Override
-    public ImportReport process(final List<DmsInbox> dmsInboxes) {
+    protected ImportReport process(final List<DmsInbox> dmsInboxes) {
         log.info("Starting processing {} inboxes", dmsInboxes.size());
         final ImportReport importReport = new ImportReport();
         importReport.setInputInboxes(dmsInboxes.size());

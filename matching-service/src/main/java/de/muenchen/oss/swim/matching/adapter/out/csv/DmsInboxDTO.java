@@ -1,4 +1,4 @@
-package de.muenchen.oss.swim.matching.adapter.in.rest;
+package de.muenchen.oss.swim.matching.adapter.out.csv;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

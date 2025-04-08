@@ -1,8 +1,5 @@
 package de.muenchen.oss.swim.matching.adapter.in.rest;
 
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.muenchen.oss.swim.matching.application.port.in.ProcessDmsExportInPort;
 import de.muenchen.oss.swim.matching.domain.model.ImportReport;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,11 +30,9 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/matching")
 @RequiredArgsConstructor
 public class RestAdapter {
-    private static final char CSV_DELIMITER = ';';
     private static final String CSV_EXTENSION = ".csv";
     private static final List<String> CSV_CONTENT_TYPES = List.of("text/csv", "application/vnd.ms-excel");
 
-    private final DmsExportMapper dmsExportMapper;
     private final ProcessDmsExportInPort processDmsExportInPort;
 
     /**
@@ -83,36 +78,13 @@ public class RestAdapter {
         }
 
         try {
-            // parse csv
-            final List<DmsInboxDTO> inputInboxDtos = parseCsv(file);
             // process input
-            final ImportReport importReport = processDmsExportInPort.process(dmsExportMapper.fromDtos(inputInboxDtos));
+            final ImportReport importReport = processDmsExportInPort.processExport(file.getInputStream());
 
             return ResponseEntity.ok(importReport);
         } catch (final IOException | ConstraintViolationException e) {
             log.error("Error while parsing csv", e);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid input CSV file: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Parse uploaded csv.
-     *
-     * @param file The uploaded csv file.
-     * @return Parsed content of the csv.
-     * @throws IOException If parsing fails.
-     */
-    private List<DmsInboxDTO> parseCsv(final MultipartFile file) throws IOException {
-        final CsvMapper csvMapper = new CsvMapper();
-        final CsvSchema schema = csvMapper.typedSchemaFor(DmsInboxDTO.class)
-                .withHeader()
-                .withColumnSeparator(CSV_DELIMITER)
-                .withColumnReordering(true);
-        try (MappingIterator<DmsInboxDTO> iterator = csvMapper
-                .readerFor(DmsInboxDTO.class)
-                .with(schema)
-                .readValues(file.getInputStream())) {
-            return iterator.readAll();
         }
     }
 }

@@ -5,13 +5,13 @@ import de.muenchen.oss.swim.matching.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.ExportParsingOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.StoreMatchingEntriesOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.UserInformationOutPort;
+import de.muenchen.oss.swim.matching.domain.exception.CsvParsingException;
 import de.muenchen.oss.swim.matching.domain.mapper.InboxMapper;
 import de.muenchen.oss.swim.matching.domain.model.DmsInbox;
 import de.muenchen.oss.swim.matching.domain.model.GroupDmsInbox;
 import de.muenchen.oss.swim.matching.domain.model.ImportReport;
 import de.muenchen.oss.swim.matching.domain.model.User;
 import de.muenchen.oss.swim.matching.domain.model.UserDmsInbox;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -31,18 +31,20 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
     private final DmsOutPort dmsOutPort;
 
     @Override
-    public ImportReport processExport(final InputStream csvExport) throws IOException {
-        return this.process(exportParsingOutPort.parseCsv(csvExport));
+    public ImportReport processExport(final InputStream csvExport) throws CsvParsingException {
+        final List<DmsInbox> inboxes = exportParsingOutPort.parseCsv(csvExport);
+        return this.process(inboxes);
     }
 
     @Override
-    public ImportReport triggerProcessingViaDms() {
-        final InputStream csvExport = this.dmsOutPort.getExportContent();
+    public ImportReport triggerProcessingViaDms() throws CsvParsingException {
         try {
-            return this.process(exportParsingOutPort.parseCsv(csvExport));
-        } catch (final IOException e) {
-            // TODO
-            throw new RuntimeException(e);
+            final InputStream csvExport = this.dmsOutPort.getExportContent();
+            final List<DmsInbox> inboxes = exportParsingOutPort.parseCsv(csvExport);
+            return this.process(inboxes);
+        } catch (final CsvParsingException | RuntimeException e) {
+            log.error("Error while processing export via DMS", e);
+            throw e;
         }
     }
 

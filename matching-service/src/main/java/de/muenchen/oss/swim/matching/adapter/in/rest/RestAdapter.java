@@ -1,6 +1,7 @@
 package de.muenchen.oss.swim.matching.adapter.in.rest;
 
 import de.muenchen.oss.swim.matching.application.port.in.ProcessDmsExportInPort;
+import de.muenchen.oss.swim.matching.domain.exception.CsvParsingException;
 import de.muenchen.oss.swim.matching.domain.model.ImportReport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -82,7 +83,7 @@ public class RestAdapter {
             final ImportReport importReport = processDmsExportInPort.processExport(file.getInputStream());
 
             return ResponseEntity.ok(importReport);
-        } catch (final IOException | ConstraintViolationException e) {
+        } catch (final CsvParsingException | ConstraintViolationException | IOException e) {
             log.error("Error while parsing csv", e);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid input CSV file: " + e.getMessage(), e);
         }

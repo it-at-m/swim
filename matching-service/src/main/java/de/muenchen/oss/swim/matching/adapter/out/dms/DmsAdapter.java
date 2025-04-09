@@ -6,6 +6,7 @@ import de.muenchen.refarch.integration.dms.api.ContentObjectsApi;
 import de.muenchen.refarch.integration.dms.model.ReadContentObjectResponseDTO;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,8 @@ public class DmsAdapter implements DmsOutPort {
                     null,
                     null).block();
             if (response != null && response.getGiattachmenttype() != null && response.getGiattachmenttype().getFileContent() != null) {
-                return Base64.getDecoder().wrap(new ByteArrayInputStream(response.getGiattachmenttype().getFileContent().getBytes()));
+                final byte[] content = response.getGiattachmenttype().getFileContent().getBytes(StandardCharsets.UTF_8);
+                return Base64.getDecoder().wrap(new ByteArrayInputStream(content));
             } else {
                 throw new DmsException("Invalid response while creating ContentObject in Inbox");
             }

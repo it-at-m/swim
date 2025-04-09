@@ -12,6 +12,7 @@ import de.muenchen.oss.swim.matching.domain.model.GroupDmsInbox;
 import de.muenchen.oss.swim.matching.domain.model.ImportReport;
 import de.muenchen.oss.swim.matching.domain.model.User;
 import de.muenchen.oss.swim.matching.domain.model.UserDmsInbox;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -37,12 +38,11 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
     }
 
     @Override
-    public ImportReport triggerProcessingViaDms() throws CsvParsingException {
-        try {
-            final InputStream csvExport = this.dmsOutPort.getExportContent();
+    public ImportReport triggerProcessingViaDms() throws CsvParsingException, IOException {
+        try (InputStream csvExport = this.dmsOutPort.getExportContent()) {
             final List<DmsInbox> inboxes = exportParsingOutPort.parseCsv(csvExport);
             return this.process(inboxes);
-        } catch (final CsvParsingException | RuntimeException e) {
+        } catch (final CsvParsingException | RuntimeException | IOException e) {
             log.error("Error while processing export via DMS", e);
             throw e;
         }

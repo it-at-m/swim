@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.matching.application.port.in;
 
 import de.muenchen.oss.swim.matching.domain.exception.CsvParsingException;
 import de.muenchen.oss.swim.matching.domain.model.ImportReport;
+import java.io.IOException;
 import java.io.InputStream;
 import org.springframework.validation.annotation.Validated;
 
@@ -21,5 +22,5 @@ public interface ProcessDmsExportInPort {
      *
      * @return Report of import.
      */
-    ImportReport triggerProcessingViaDms() throws CsvParsingException;
+    ImportReport triggerProcessingViaDms() throws CsvParsingException, IOException;
 }

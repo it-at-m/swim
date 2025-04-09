@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.matching.adapter.in.schedule;
 
 import de.muenchen.oss.swim.matching.application.port.in.ProcessDmsExportInPort;
 import de.muenchen.oss.swim.matching.domain.exception.CsvParsingException;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,7 @@ public class ScheduleAdapter {
     private final ProcessDmsExportInPort processDmsExportInPort;
 
     @Scheduled(cron = "${swim.schedule-cron}")
-    public void triggerProcessingViaDms() throws CsvParsingException {
+    public void triggerProcessingViaDms() throws CsvParsingException, IOException {
         processDmsExportInPort.triggerProcessingViaDms();
     }
 }

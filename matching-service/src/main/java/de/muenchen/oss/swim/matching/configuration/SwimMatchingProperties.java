@@ -13,5 +13,5 @@ public class SwimMatchingProperties {
      * Cron for triggering import via export in DMS.
      */
     @NotBlank
-    final String scheduleCron;
+    private String scheduleCron;
 }

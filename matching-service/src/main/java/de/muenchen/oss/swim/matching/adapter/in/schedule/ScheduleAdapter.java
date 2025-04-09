@@ -4,16 +4,22 @@ import de.muenchen.oss.swim.matching.application.port.in.ProcessDmsExportInPort;
 import de.muenchen.oss.swim.matching.domain.exception.CsvParsingException;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ScheduleAdapter {
     private final ProcessDmsExportInPort processDmsExportInPort;
 
     @Scheduled(cron = "${swim.schedule-cron}")
-    public void triggerProcessingViaDms() throws CsvParsingException, IOException {
-        processDmsExportInPort.triggerProcessingViaDms();
+    public void triggerProcessingViaDms() {
+        try {
+            processDmsExportInPort.triggerProcessingViaDms();
+        } catch (CsvParsingException | IOException e) {
+            log.error("Scheduled import from DMS failed", e);
+        }
     }
 }

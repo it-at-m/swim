@@ -42,10 +42,14 @@ public class CsvAdapter implements ExportParsingOutPort {
                     dtos.add(iterator.nextValue());
                 } catch (final IOException e) {
                     skippedLines++;
+                    log.debug("Failed to parse line {}: {}", lines, e.getMessage());
                 }
             }
             if (skippedLines > 0) {
                 log.warn("CSV parsing: {} from {} lines couldn't be parsed and were skipped", skippedLines, lines);
+            }
+            if (dtos.isEmpty() && lines > 0) {
+                throw new CsvParsingException(String.format("Failed to parse any records from CSV file with %d lines", lines));
             }
             return dmsExportMapper.fromDtos(dtos);
         } catch (final IOException e) {

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import de.muenchen.oss.swim.matching.application.port.in.ProcessDmsExportInPort;
+import de.muenchen.oss.swim.matching.domain.exception.CsvParsingException;
 import de.muenchen.oss.swim.matching.domain.model.ImportReport;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +51,7 @@ class RestAdapterTest {
     }
 
     @Test
-    void testUpdateSuccessfulProcessing() throws IOException {
+    void testUpdateSuccessfulProcessing() throws IOException, CsvParsingException {
         final ResponseEntity<ImportReport> response;
         try (InputStream csvInputStream = getClass().getResourceAsStream("/files/test.csv")) {
             final MultipartFile csvFile = new MockMultipartFile("file", "test.csv", "text/csv", csvInputStream);

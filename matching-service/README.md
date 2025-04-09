@@ -12,15 +12,10 @@ Following data is collected and provided:
 
 ```mermaid
 flowchart LR
-    dms[DMS]
-    u([User])
-    s[SWIM matching service]
-    l[LDAP]
-    db[(SWIM db)]
-    dms --- u
-    u --> s
-    s --> l
-    s --> db
+    u([User]) --> s[SWIM matching service]
+    s --> LDAP
+    s --> db[(SWIM db)]
+    s --> DMS
 ```
 
 ## Development
@@ -34,3 +29,20 @@ flowchart LR
   - The default login is `user` with password `user`
 - Also following tools are available:
   - [pgAdmin](http://localhost:5050/)
+
+## Configuration
+
+```yaml
+swim:
+  schedule-cron: # cron for running automatic import from DMS
+  ldap:
+    search-ous: # list of ldap ous to resolve users from
+    user-base-ou: # base ou format string to inject search-ous in for lookup; example: "ou=%s,c=de"
+  # dms connection configuration
+  dms:
+    base-url: 
+    username: 
+    password: 
+    import-coo: # coo of the ContentObject which contains es the export as b64 encoded CSV
+    import-username: # username used for loading import-coo
+```

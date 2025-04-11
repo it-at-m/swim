@@ -5,6 +5,7 @@ import de.muenchen.oss.swim.matching.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.ExportParsingOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.StoreMatchingEntriesOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.UserInformationOutPort;
+import de.muenchen.oss.swim.matching.configuration.SwimMatchingProperties;
 import de.muenchen.oss.swim.matching.domain.exception.CsvParsingException;
 import de.muenchen.oss.swim.matching.domain.mapper.InboxMapper;
 import de.muenchen.oss.swim.matching.domain.model.DmsInbox;
@@ -101,8 +102,9 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
                 .collect(Collectors.groupingBy(i -> i.getUser() != null));
         // inboxes not found in ldap
         if (userDmsInboxes.containsKey(false)) {
-            final List<UserDmsInbox> incompleteUserInboxes = userDmsInboxes.get(false);
-            log.warn("Couldn't find {} users in ldap for user inboxes", incompleteUserInboxes.size());
+            final List<String> incompleteUserInboxes = userDmsInboxes.get(false).stream()
+                    .map(UserDmsInbox::getOwnerLhmObjectId).toList();
+            log.warn("Couldn't find {} users in ldap for user inboxes: {}", incompleteUserInboxes.size(), incompleteUserInboxes);
             importReport.getUserInboxes().setUnresolvable(incompleteUserInboxes.size());
         }
         // store enriched inboxes
@@ -129,8 +131,9 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
                 .collect(Collectors.groupingBy(i -> i.getUsername() != null));
         // inboxes not found in ldap
         if (groupDmsInboxes.containsKey(false)) {
-            final List<GroupDmsInbox> incompleteGroupInboxes = groupDmsInboxes.get(false);
-            log.warn("Couldn't find {} users in ldap for group inboxes", incompleteGroupInboxes.size());
+            final List<String> incompleteGroupInboxes = groupDmsInboxes.get(false).stream()
+                    .map(GroupDmsInbox::getOwnerLhmObjectId).toList();
+            log.warn("Couldn't find {} users in ldap for group inboxes: {}", incompleteGroupInboxes.size(), incompleteGroupInboxes);
             importReport.getGroupInboxes().setUnresolvable(incompleteGroupInboxes.size());
         }
         // store enriched inboxes

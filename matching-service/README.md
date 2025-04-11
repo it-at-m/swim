@@ -38,6 +38,7 @@ swim:
   ldap:
     search-ous: # list of ldap ous to resolve users from
     user-base-ou: # base ou format string to inject search-ous in for lookup; example: "ou=%s,c=de"
+  dms-tenants: # list of tenants to be imported, others are ignored
   # dms connection configuration
   dms:
     base-url: 

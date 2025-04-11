@@ -55,3 +55,8 @@ swim:
       - ska
       - rbs
     user-base-ou: "ou=%s,o=lhm,c=de"
+  dms-tenants:
+    - K2-RIT
+    - K2-SOZ
+    - K2-SKA
+    - K2-RBS

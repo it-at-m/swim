@@ -30,6 +30,7 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
     private final StoreMatchingEntriesOutPort storeMatchingEntriesOutPort;
     private final ExportParsingOutPort exportParsingOutPort;
     private final DmsOutPort dmsOutPort;
+    private final SwimMatchingProperties swimMatchingProperties;
 
     @Override
     public ImportReport processExport(final InputStream csvExport) throws CsvParsingException {
@@ -57,21 +58,27 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
      * @return Report of the import.
      */
     protected ImportReport process(final List<DmsInbox> dmsInboxes) {
-        log.info("Starting processing {} inboxes", dmsInboxes.size());
         final ImportReport importReport = new ImportReport();
         importReport.setInputInboxes(dmsInboxes.size());
-        importReport.setDmsTenants(dmsInboxes.stream().map(DmsInbox::getDmsTenant).collect(Collectors.toSet()));
+        // filter inbox tenant
+        final List<DmsInbox> dmsInboxesFiltered = dmsInboxes.stream()
+                .filter(i -> swimMatchingProperties.getDmsTenants().contains(i.getDmsTenant()))
+                .toList();
+        importReport.setFilteredInboxes(dmsInboxesFiltered.size());
+        log.info("Starting processing of {} whitelisted inboxes ({} before filtering)", dmsInboxesFiltered.size(), dmsInboxes.size());
+        importReport.setDmsTenants(dmsInboxesFiltered.stream().map(DmsInbox::getDmsTenant).collect(Collectors.toSet()));
         // group inboxes by type
-        final Map<DmsInbox.InboxType, List<DmsInbox>> groupedInboxes = dmsInboxes.stream().collect(Collectors.groupingBy(DmsInbox::getType));
-        // process different types
+        final Map<DmsInbox.InboxType, List<DmsInbox>> groupedInboxes = dmsInboxesFiltered.stream().collect(Collectors.groupingBy(DmsInbox::getType));
+        // process group inboxes
         if (groupedInboxes.containsKey(DmsInbox.InboxType.GROUP)) {
             final List<DmsInbox> groupDmsInboxes = groupedInboxes.get(DmsInbox.InboxType.GROUP);
-            importReport.setGroupInboxes(groupDmsInboxes.size());
+            importReport.getGroupInboxes().setInput(groupDmsInboxes.size());
             this.processGroupInboxes(groupDmsInboxes, importReport);
         }
+        // process user inboxes
         if (groupedInboxes.containsKey(DmsInbox.InboxType.USER)) {
             final List<DmsInbox> userDmsInboxes = groupedInboxes.get(DmsInbox.InboxType.USER);
-            importReport.setUserInboxes(userDmsInboxes.size());
+            importReport.getUserInboxes().setInput(userDmsInboxes.size());
             this.processUserInboxes(userDmsInboxes, importReport);
         }
         return importReport;
@@ -96,12 +103,12 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
         if (userDmsInboxes.containsKey(false)) {
             final List<UserDmsInbox> incompleteUserInboxes = userDmsInboxes.get(false);
             log.warn("Couldn't find {} users in ldap for user inboxes", incompleteUserInboxes.size());
-            importReport.setUnresolvableUserInboxes(incompleteUserInboxes.size());
+            importReport.getUserInboxes().setUnresolvable(incompleteUserInboxes.size());
         }
         // store enriched inboxes
         if (userDmsInboxes.containsKey(true)) {
             this.storeMatchingEntriesOutPort.storeUserInboxes(userDmsInboxes.get(true));
-            importReport.setImportedUserInboxes(userDmsInboxes.get(true).size());
+            importReport.getUserInboxes().setImported(userDmsInboxes.get(true).size());
         }
     }
 
@@ -124,12 +131,12 @@ public class ProcessDmsExportUseCase implements ProcessDmsExportInPort {
         if (groupDmsInboxes.containsKey(false)) {
             final List<GroupDmsInbox> incompleteGroupInboxes = groupDmsInboxes.get(false);
             log.warn("Couldn't find {} users in ldap for group inboxes", incompleteGroupInboxes.size());
-            importReport.setUnresolvableGroupInboxes(incompleteGroupInboxes.size());
+            importReport.getGroupInboxes().setUnresolvable(incompleteGroupInboxes.size());
         }
         // store enriched inboxes
         if (groupDmsInboxes.containsKey(true)) {
             this.storeMatchingEntriesOutPort.storeGroupInboxes(groupDmsInboxes.get(true));
-            importReport.setImportedGroupInboxes(groupDmsInboxes.get(true).size());
+            importReport.getGroupInboxes().setImported(groupDmsInboxes.get(true).size());
         }
     }
 }

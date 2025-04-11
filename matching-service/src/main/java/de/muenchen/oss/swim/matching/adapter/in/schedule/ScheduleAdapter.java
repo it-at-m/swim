@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.matching.adapter.in.schedule;
 
 import de.muenchen.oss.swim.matching.application.port.in.ProcessDmsExportInPort;
 import de.muenchen.oss.swim.matching.domain.exception.CsvParsingException;
+import de.muenchen.oss.swim.matching.domain.model.ImportReport;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,8 @@ public class ScheduleAdapter {
     @Scheduled(cron = "${swim.schedule-cron}")
     public void triggerProcessingViaDms() {
         try {
-            processDmsExportInPort.triggerProcessingViaDms();
+            final ImportReport report = processDmsExportInPort.triggerProcessingViaDms();
+            log.info("Scheduled import from DMS completed successfully: {}", report);
         } catch (CsvParsingException | IOException e) {
             log.error("Scheduled import from DMS failed", e);
         }

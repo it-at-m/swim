@@ -22,5 +22,5 @@ public class SwimMatchingProperties {
      * See {@link DmsInbox#getDmsTenant()}
      */
     @NotNull
-    List<String> dmsTenants;
+    private List<String> dmsTenants;
 }

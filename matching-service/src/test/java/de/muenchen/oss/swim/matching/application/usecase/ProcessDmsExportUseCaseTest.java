@@ -7,15 +7,16 @@ import static de.muenchen.oss.swim.matching.TestConstants.USER_INBOX_1;
 import static de.muenchen.oss.swim.matching.TestConstants.USER_INBOX_2;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import de.muenchen.oss.swim.matching.TestConstants;
 import de.muenchen.oss.swim.matching.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.ExportParsingOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.StoreMatchingEntriesOutPort;
 import de.muenchen.oss.swim.matching.application.port.out.UserInformationOutPort;
+import de.muenchen.oss.swim.matching.configuration.SwimMatchingProperties;
 import de.muenchen.oss.swim.matching.domain.mapper.InboxMapper;
 import de.muenchen.oss.swim.matching.domain.mapper.InboxMapperImpl;
 import de.muenchen.oss.swim.matching.domain.model.DmsInbox;
@@ -24,19 +25,32 @@ import de.muenchen.oss.swim.matching.domain.model.UserDmsInbox;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
+@SpringBootTest(classes = { ProcessDmsExportUseCase.class, SwimMatchingProperties.class, InboxMapperImpl.class })
+@EnableConfigurationProperties
+@ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
 @ExtendWith(MockitoExtension.class)
 class ProcessDmsExportUseCaseTest {
-    private final InboxMapper inboxMapper = new InboxMapperImpl();
-    private final UserInformationOutPort userInformationOutPort = mock();
-    private final StoreMatchingEntriesOutPort storeMatchingEntriesOutPort = mock();
-    private final ExportParsingOutPort exportParsingOutPort = mock();
-    private final DmsOutPort dmsOutPort = mock();
-    @Spy
-    private final ProcessDmsExportUseCase processDmsExportUseCase = new ProcessDmsExportUseCase(
-            inboxMapper, userInformationOutPort, storeMatchingEntriesOutPort, exportParsingOutPort, dmsOutPort);
+    @MockitoBean
+    private UserInformationOutPort userInformationOutPort;
+    @MockitoBean
+    private StoreMatchingEntriesOutPort storeMatchingEntriesOutPort;
+    @MockitoBean
+    private ExportParsingOutPort exportParsingOutPort;
+    @MockitoBean
+    private DmsOutPort dmsOutPort;
+    @Autowired
+    private InboxMapper inboxMapper;
+    @MockitoSpyBean
+    @Autowired
+    private ProcessDmsExportUseCase processDmsExportUseCase;
 
     @Test
     void testProcess() {

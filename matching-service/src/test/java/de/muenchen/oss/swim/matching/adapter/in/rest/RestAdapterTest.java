@@ -63,4 +63,12 @@ class RestAdapterTest {
         // test use case call
         verify(processDmsExportInPort, times(1)).processExport(any());
     }
+
+    @Test
+    void testTriggerImportViaDmsSuccessful() throws CsvParsingException, IOException {
+        final ResponseEntity<ImportReport> response = restAdapter.triggerImportViaDms();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // test use case call
+        verify(processDmsExportInPort, times(1)).triggerProcessingViaDms();
+    }
 }

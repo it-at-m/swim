@@ -97,9 +97,7 @@ public class RestAdapter {
     @Operation(
             security = { @SecurityRequirement(name = "swim-matching-scheme") }
     )
-    @PostMapping(
-            value = "trigger-import-via-dms"
-    )
+    @PostMapping("trigger-import-via-dms")
     @ApiResponses(
         {
                 @ApiResponse(

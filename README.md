@@ -16,6 +16,7 @@ Following a list and short description of the different components:
 - [dispatch-service](./dispatch-service): Service for notifying other services (i.e. DMS) that a file is ready for further processing via Kafka.
 - [handler-core](./handler-core): Library with base components for building a new service for handling notifications from the `dispatch-service`.
 - [dms-service](./dms-service): Service for transferring files into DMS when notified by the `dispatch-service` via Kafka. Based on `handler-core`.
+- [scripts](./scripts): Helper scripts for maintenance tasks.
 
 ## Contributing
 

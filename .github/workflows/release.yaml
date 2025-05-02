@@ -55,7 +55,7 @@ jobs:
 
   build-image:
     if: ${{ inputs.module != 'handler-core' }}
-    needs: build-maven
+    needs: release-maven
     runs-on: ubuntu-latest
     steps:
       - name: Build and push image

@@ -26,7 +26,7 @@ public class PatternHelper {
      * @param metadata Parsed metadata file.
      * @return The result of the applied pattern.
      */
-    public String applyPattern(@NotBlank final String fullPattern, @NotBlank final String input, final Metadata metadata) {
+    public String applyPattern(final String fullPattern, @NotBlank final String input, final Metadata metadata) {
         if (Strings.isBlank(fullPattern)) {
             return input;
         }

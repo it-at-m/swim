@@ -12,7 +12,7 @@
     <groupId>de.muenchen.oss.swim</groupId>
     <artifactId>matching-service</artifactId>
     <name>matching-service</name>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.3.0</version>
     <description>Service for managing recipient matching data from SWIM</description>
     <url>https://github.com/it-at-m/swim</url>
 
@@ -460,7 +460,7 @@
         <url>https://github.com/it-at-m/swim.git</url>
         <connection>scm:git:https://github.com/it-at-m/swim.git</connection>
         <developerConnection>scm:git:https://github.com/it-at-m/swim.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>matching-service-1.3.0</tag>
     </scm>
     <licenses>
         <license>

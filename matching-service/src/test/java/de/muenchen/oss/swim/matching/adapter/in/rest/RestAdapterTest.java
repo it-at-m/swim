@@ -1,24 +1,20 @@
 package de.muenchen.oss.swim.matching.adapter.in.rest;
 
-import static de.muenchen.oss.swim.matching.TestConstants.GROUP_INBOX_1;
-import static de.muenchen.oss.swim.matching.TestConstants.USER_INBOX_1;
-import static de.muenchen.oss.swim.matching.TestConstants.USER_INBOX_2;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import de.muenchen.oss.swim.matching.application.port.in.ProcessDmsExportInPort;
-import de.muenchen.oss.swim.matching.domain.model.DmsInbox;
+import de.muenchen.oss.swim.matching.domain.exception.CsvParsingException;
 import de.muenchen.oss.swim.matching.domain.model.ImportReport;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -30,13 +26,9 @@ import org.springframework.web.server.ResponseStatusException;
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 class RestAdapterTest {
-    private final DmsExportMapper dmsExportMapper = new DmsExportMapperImpl();
     private final ProcessDmsExportInPort processDmsExportInPort = mock();
     @Spy
-    private final RestAdapter restAdapter = new RestAdapter(dmsExportMapper, processDmsExportInPort);
-
-    @Captor
-    private ArgumentCaptor<List<DmsInbox>> dmsInboxCaptor;
+    private final RestAdapter restAdapter = new RestAdapter(processDmsExportInPort);
 
     @Test
     void testUpdateFileIsEmpty() {
@@ -59,7 +51,7 @@ class RestAdapterTest {
     }
 
     @Test
-    void testUpdateSuccessfulProcessing() throws IOException {
+    void testUpdateSuccessfulProcessing() throws IOException, CsvParsingException {
         final ResponseEntity<ImportReport> response;
         try (InputStream csvInputStream = getClass().getResourceAsStream("/files/test.csv")) {
             final MultipartFile csvFile = new MockMultipartFile("file", "test.csv", "text/csv", csvInputStream);
@@ -69,11 +61,14 @@ class RestAdapterTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         // test use case call
-        verify(processDmsExportInPort, times(1)).process(dmsInboxCaptor.capture());
-        final List<DmsInbox> dmsInbox = dmsInboxCaptor.getValue();
-        assertEquals(3, dmsInbox.size());
-        assertEquals(USER_INBOX_1, dmsInbox.getFirst());
-        assertEquals(USER_INBOX_2, dmsInbox.get(1));
-        assertEquals(GROUP_INBOX_1, dmsInbox.get(2));
+        verify(processDmsExportInPort, times(1)).processExport(any());
+    }
+
+    @Test
+    void testTriggerImportViaDmsSuccessful() throws CsvParsingException, IOException {
+        final ResponseEntity<ImportReport> response = restAdapter.triggerImportViaDms();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // test use case call
+        verify(processDmsExportInPort, times(1)).triggerProcessingViaDms();
     }
 }

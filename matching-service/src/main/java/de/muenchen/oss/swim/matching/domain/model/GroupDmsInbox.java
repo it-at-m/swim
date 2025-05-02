@@ -16,9 +16,11 @@ public class GroupDmsInbox {
     @Pattern(regexp = "COO[\\d.]+]")
     private final String coo;
     @NotBlank
-    private final String username;
-    @NotBlank
     private final String name;
+    @NotBlank
+    private final String ownerLhmObjectId;
+    @NotBlank
+    private final String username;
     @NotBlank
     private final String ou;
     @NotBlank

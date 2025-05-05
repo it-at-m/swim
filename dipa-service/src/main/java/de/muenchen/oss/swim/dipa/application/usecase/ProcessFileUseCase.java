@@ -5,6 +5,7 @@ import de.muenchen.oss.swim.dipa.configuration.DipaMeter;
 import de.muenchen.oss.swim.dipa.configuration.SwimDipaProperties;
 import de.muenchen.oss.swim.dipa.domain.model.UseCase;
 import de.muenchen.oss.swim.dipa.domain.model.UseCaseSource;
+import de.muenchen.oss.swim.dipa.domain.model.UseCaseType;
 import de.muenchen.oss.swim.dipa.domain.model.dipa.ContentObjectRequest;
 import de.muenchen.oss.swim.dipa.domain.model.dipa.HrSubfileContext;
 import de.muenchen.oss.swim.dipa.domain.model.dipa.IncomingRequest;
@@ -53,12 +54,28 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         dipaMeter.incrementProcessed(useCase.getName(), useCase.getType().name());
     }
 
+    /**
+     * Process creation of Incoming with ContentObject inside HrSubfile.
+     * See {@link UseCaseType#HR_SUBFILE_INCOMING}.
+     *
+     * @param useCase UseCase to create the Incoming for.
+     * @param file File to create the Incoming for.
+     * @param fileContent Content of the ContentObject.
+     */
     protected void processHrSubfileIncoming(final UseCase useCase, final File file, final InputStream fileContent) {
         final HrSubfileContext requestContext = this.buildHrSubfileContext(useCase, file);
         final IncomingRequest request = this.buildIncomingRequest(useCase, file, fileContent);
         this.dipaOutPort.createHrSubfileIncoming(requestContext, request);
     }
 
+    /**
+     * Build request object for creating an Incoming with a ContentObject.
+     *
+     * @param useCase UseCase to create the Incoming for.
+     * @param file File to create the Incoming for.
+     * @param fileContent Content of the ContentObject to create.
+     * @return Built Incoming request.
+     */
     protected IncomingRequest buildIncomingRequest(final UseCase useCase, final File file, final InputStream fileContent) {
         final String incomingSubject = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingSubjPattern(), file.getFileNameWithoutExtension(),
                 null);
@@ -66,6 +83,14 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         return new IncomingRequest(incomingSubject, contentObject);
     }
 
+    /**
+     * Build request object for creating a ContentObject.
+     *
+     * @param useCase UseCase to create the ContentObject for.
+     * @param file File to create the ContentObject for.
+     * @param fileContent Content of the new ContentObject.
+     * @return Built ContentObject request.
+     */
     protected ContentObjectRequest buildContentObjectRequest(final UseCase useCase, final File file, final InputStream fileContent) {
         final String contentObjectName = String.format("%s.%s",
                 this.patternHelper.applyPattern(useCase.getContentObject().getFilenameOverwritePattern(), file.getFileNameWithoutExtension(), null),
@@ -73,6 +98,13 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         return new ContentObjectRequest(contentObjectName, fileContent);
     }
 
+    /**
+     * Build {@link HrSubfileContext}.
+     *
+     * @param useCase UseCase to build the context for.
+     * @param file File to build the context for. Used for patterns.
+     * @return The resolved context.
+     */
     protected HrSubfileContext buildHrSubfileContext(final UseCase useCase, final File file) {
         final UseCaseSource source = useCase.getCooSource();
         return switch (useCase.getCooSource().getType()) {

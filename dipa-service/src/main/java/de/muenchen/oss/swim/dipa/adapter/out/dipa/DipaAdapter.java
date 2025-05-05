@@ -42,7 +42,8 @@ public class DipaAdapter implements DipaOutPort {
         // create Incoming
         final CreateIncomingGIResponse response = soapClient.createIncomingGI(request);
         if (response.getStatus() != STATE_CODE_SUCCESSFUL) {
-            final String message = String.format("DiPa createHrSubfileIncoming request failed (Code: %d): %s", response.getStatus(), response.getErrormessage());
+            final String message = String.format("DiPa createHrSubfileIncoming request failed (Code: %d): %s", response.getStatus(),
+                    response.getErrormessage());
             throw new DipaException(message);
         }
         return response.getObjid();

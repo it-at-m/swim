@@ -20,7 +20,7 @@ class DipaConfiguration {
         ((BindingProvider) soapClient).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, properties.getEndpointUrl());
         ((BindingProvider) soapClient).getRequestContext().put(BindingProvider.USERNAME_PROPERTY, properties.getUsername());
         ((BindingProvider) soapClient).getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, properties.getPassword());
-        SOAPBinding binding = (SOAPBinding)((BindingProvider) soapClient).getBinding();
+        SOAPBinding binding = (SOAPBinding) ((BindingProvider) soapClient).getBinding();
         binding.setMTOMEnabled(true);
         return soapClient;
     }

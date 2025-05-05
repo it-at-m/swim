@@ -6,6 +6,5 @@ import java.io.InputStream;
 
 public record ContentObjectRequest(
         @NotBlank String name,
-        @NotNull InputStream content
-) {
+        @NotNull InputStream content) {
 }

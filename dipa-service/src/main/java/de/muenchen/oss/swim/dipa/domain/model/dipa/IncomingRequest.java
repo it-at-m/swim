@@ -6,6 +6,5 @@ import jakarta.validation.constraints.NotNull;
 
 public record IncomingRequest(
         @NotBlank String subject,
-        @NotNull @Valid ContentObjectRequest contentObject
-) {
+        @NotNull @Valid ContentObjectRequest contentObject) {
 }

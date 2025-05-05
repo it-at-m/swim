@@ -6,10 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record HrSubfileContext(
-        @NotNull @Valid
-        DipaRequestContext requestContext,
-        @NotBlank
-        String persNr,
-        @NotBlank
-        String category) {
+        @NotNull @Valid DipaRequestContext requestContext,
+        @NotBlank String persNr,
+        @NotBlank String category) {
 }

@@ -60,7 +60,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     }
 
     protected IncomingRequest buildIncomingRequest(final UseCase useCase, final File file, final InputStream fileContent) {
-        final String incomingSubject = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingSubjPattern(), file.getFileNameWithoutExtension(), null);
+        final String incomingSubject = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingSubjPattern(), file.getFileNameWithoutExtension(),
+                null);
         final ContentObjectRequest contentObject = this.buildContentObjectRequest(useCase, file, fileContent);
         return new IncomingRequest(incomingSubject, contentObject);
     }

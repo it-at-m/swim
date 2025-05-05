@@ -23,6 +23,9 @@ spring:
 
 swim:
   dipa:
+    endpoint-url:
+    username:
+    password:
   use-cases:
     - name: test-dipa
       type: hr_subfile_incoming

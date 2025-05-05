@@ -12,9 +12,9 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 class DipaProperties {
     @NotBlank
-    final String endpointUrl;
+    private String endpointUrl;
     @NotBlank
-    final String username;
+    private String username;
     @NotBlank
-    final String password;
+    private String password;
 }

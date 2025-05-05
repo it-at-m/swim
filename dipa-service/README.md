@@ -43,14 +43,16 @@ swim:
       type: # required, see section "Type"
       coo-source:
         type: # required, see section "Coo source"
-        target-coo: # for coo-source static
-        filename-coo-pattern: # for coo-source filename
+        static-pers-nr: # for coo-source static
+        static-category: # for coo-source static
+        filename-pers-nr-pattern: # for coo-source filename
+        filename-category-pattern: # for coo-source filename
+      incoming:
+        incoming-subject-pattern: # overwrite Incoming subject via Regex pattern, default: filename
+      content_object:
+        filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern, default: filename
       context:
         username: # user under which the DiPa action is executed
-      incoming:
-        incoming-subject-pattern: # overwrite Incoming subject via Regex pattern
-      content_object:
-        filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
 ```
 
 ### Pattern
@@ -69,5 +71,5 @@ The `type` attribute of a use case defines what type of resource is created in t
 
 The `coo-source.type` attribute of a use case defines how the target resource, under which the new resource is created, is resolved.
 
-- `static`: The target coo is defined statically via the `target-coo` use case attribute.
-- `filename`: The target coo is resolved via the Regex pattern under `filename-coo-pattern`.
+- `static`: The target PersNr and Category are defined statically via the `static-*` use case attributes.
+- `filename`: The target PersNr and Category are resolved via the Regex patterns under `filename-*-pattern`.

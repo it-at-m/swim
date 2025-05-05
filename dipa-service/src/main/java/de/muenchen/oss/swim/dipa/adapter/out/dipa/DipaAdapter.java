@@ -11,10 +11,12 @@ import de.muenchen.oss.swim.dipa.domain.model.dipa.HrSubfileContext;
 import de.muenchen.oss.swim.dipa.domain.model.dipa.IncomingRequest;
 import jakarta.activation.DataHandler;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DipaAdapter implements DipaOutPort {
     private static final String APPLICATION = "SWIM";
     private static final String EXTENSION_PDF = "pdf";
@@ -46,6 +48,8 @@ public class DipaAdapter implements DipaOutPort {
                     response.getErrormessage());
             throw new DipaException(message);
         }
+        final String id = response.getObjid();
+        log.info("Created Incoming (Id: {}) in HrSubfile (PersNr: {}, Category: {})", id, context.persNr(), context.category());
         return response.getObjid();
     }
 }

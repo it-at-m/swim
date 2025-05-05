@@ -143,6 +143,12 @@
             <artifactId>cxf-rt-bindings-soap</artifactId>
             <version>${cxf.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>jaxws-rt</artifactId>
+            <version>4.0.3</version>
+        </dependency>
+
 
         <!-- Validation -->
         <dependency>

@@ -69,7 +69,7 @@ public class UseCaseSource {
          */
         STATIC,
         /**
-         * Target is OU work queue of {@link DmsRequestContext#username}.
+         * Target is OU work queue of {@link DmsRequestContext#getUsername()}.
          * Can only be used with {@link UseCaseType#PROCEDURE_INCOMING}.
          */
         OU_WORK_QUEUE

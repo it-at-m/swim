@@ -1,0 +1,22 @@
+swim:
+  use-cases:
+    - name: hr_subfile_incoming-static
+      type: hr_subfile_incoming
+      coo-source:
+        type: static
+        static-category: staticCategory
+        static-pers-nr: staticPersNr
+      context:
+        username: staticUsername
+    - name: hr_subfile_incoming-filename
+      type: hr_subfile_incoming
+      coo-source:
+        type: filename
+        filename-pers-nr-pattern: "s/^(.+)_.+$/\\${1}/"
+        filename-category-pattern: "s/^.+_(.+)$/\\${1}/"
+      incoming:
+        incoming-subj-pattern: "s/^(.+)_.+$/\\${1}/"
+      content-object:
+        filename-overwrite-pattern: "s/^.+_(.+)$/\\${1}/"
+      context:
+        username: staticUsername

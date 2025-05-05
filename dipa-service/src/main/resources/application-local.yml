@@ -1,0 +1,26 @@
+server:
+  port: 39147
+spring:
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:29092
+          configuration:
+            security:
+              protocol: PLAINTEXT
+        bindings:
+          event-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: swim-dispatch-dlq-local
+      bindings:
+        event-in-0:
+          group: swim-dipa
+          destination: swim-dipa-local
+        finished-out:
+          destination: swim-finished-local
+
+swim:
+  dipa:
+  use-cases:

@@ -1,9 +1,7 @@
 package de.muenchen.oss.swim.matching.adapter.in.rest;
 
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.muenchen.oss.swim.matching.application.port.in.ProcessDmsExportInPort;
+import de.muenchen.oss.swim.matching.domain.exception.CsvParsingException;
 import de.muenchen.oss.swim.matching.domain.model.ImportReport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,24 +31,22 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/matching")
 @RequiredArgsConstructor
 public class RestAdapter {
-    private static final char CSV_DELIMITER = ';';
     private static final String CSV_EXTENSION = ".csv";
     private static final List<String> CSV_CONTENT_TYPES = List.of("text/csv", "application/vnd.ms-excel");
 
-    private final DmsExportMapper dmsExportMapper;
     private final ProcessDmsExportInPort processDmsExportInPort;
 
     /**
-     * Import a dms export for matching.
+     * Import an DMS export.
      *
-     * @param file The dms export as csv file.
+     * @param file The DMS export as csv file.
      * @return Report of the import.
      */
     @Operation(
             security = { @SecurityRequirement(name = "swim-matching-scheme") }
     )
     @PostMapping(
-            value = "dms-import",
+            value = "import-dms-export",
             consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }
     )
     @ApiResponses(
@@ -83,36 +79,52 @@ public class RestAdapter {
         }
 
         try {
-            // parse csv
-            final List<DmsInboxDTO> inputInboxDtos = parseCsv(file);
             // process input
-            final ImportReport importReport = processDmsExportInPort.process(dmsExportMapper.fromDtos(inputInboxDtos));
+            final ImportReport importReport = processDmsExportInPort.processExport(file.getInputStream());
 
             return ResponseEntity.ok(importReport);
-        } catch (final IOException | ConstraintViolationException e) {
+        } catch (final CsvParsingException | ConstraintViolationException | IOException e) {
             log.error("Error while parsing csv", e);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid input CSV file: " + e.getMessage(), e);
         }
     }
 
     /**
-     * Parse uploaded csv.
+     * Trigger import via DMS.
      *
-     * @param file The uploaded csv file.
-     * @return Parsed content of the csv.
-     * @throws IOException If parsing fails.
+     * @return Report of the import.
      */
-    private List<DmsInboxDTO> parseCsv(final MultipartFile file) throws IOException {
-        final CsvMapper csvMapper = new CsvMapper();
-        final CsvSchema schema = csvMapper.typedSchemaFor(DmsInboxDTO.class)
-                .withHeader()
-                .withColumnSeparator(CSV_DELIMITER)
-                .withColumnReordering(true);
-        try (MappingIterator<DmsInboxDTO> iterator = csvMapper
-                .readerFor(DmsInboxDTO.class)
-                .with(schema)
-                .readValues(file.getInputStream())) {
-            return iterator.readAll();
+    @Operation(
+            security = { @SecurityRequirement(name = "swim-matching-scheme") }
+    )
+    @PostMapping("trigger-import-via-dms")
+    @ApiResponses(
+        {
+                @ApiResponse(
+                        description = "Import via DMS successful",
+                        content = @Content(
+                                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                schema = @Schema(implementation = ImportReport.class)
+                        ),
+                        responseCode = "200"
+                ),
+                @ApiResponse(
+                        description = "CSV export file in DMS couldn't be parsed",
+                        content = @Content(
+                                mediaType = MediaType.APPLICATION_JSON_VALUE
+                        ),
+                        responseCode = "400"
+                )
+        }
+    )
+    @PreAuthorize("hasAuthority(T(de.muenchen.oss.swim.matching.security.Authorities).DMS_IMPORTER)")
+    public ResponseEntity<ImportReport> triggerImportViaDms() {
+        try {
+            final ImportReport importReport = processDmsExportInPort.triggerProcessingViaDms();
+            return ResponseEntity.ok(importReport);
+        } catch (final CsvParsingException | IOException e) {
+            log.error("Error while parsing CSV export in DMS", e);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error while parsing CSV export in DMS: " + e.getMessage(), e);
         }
     }
 }

@@ -12,7 +12,7 @@
     <groupId>de.muenchen.oss.swim</groupId>
     <artifactId>matching-service</artifactId>
     <name>matching-service</name>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
     <description>Service for managing recipient matching data from SWIM</description>
     <url>https://github.com/it-at-m/swim</url>
 
@@ -26,6 +26,7 @@
         <!-- Core Frameworks -->
         <spring-cloud-dependencies.version>2024.0.1</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
         <refarch-tools.version>1.1.0</refarch-tools.version>
+        <refarch-dms-integration-fabasoft-rest-api.version>1.4.1</refarch-dms-integration-fabasoft-rest-api.version>
 
         <!-- Logging -->
         <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
@@ -194,6 +195,11 @@
             <artifactId>spotbugs-annotations</artifactId>
             <version>${spotbugs-annotations.version}</version>
         </dependency>
+        <dependency>
+            <groupId>de.muenchen.refarch</groupId>
+            <artifactId>refarch-dms-integration-fabasoft-rest-api</artifactId>
+            <version>${refarch-dms-integration-fabasoft-rest-api.version}</version>
+        </dependency>
 
         <!-- Validation -->
         <dependency>
@@ -315,7 +321,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>@{argLine} -Dfile.encoding=${project.build.sourceEncoding}</argLine>
+                    <argLine>
+                        @{argLine} -Dfile.encoding=${project.build.sourceEncoding}
+                        -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                        -Xshare:off
+                    </argLine>
                 </configuration>
             </plugin>
             <plugin>
@@ -430,6 +440,7 @@
                 <version>${spotbugs-maven-plugin.version}</version>
                 <configuration>
                     <effort>Max</effort>
+                    <excludeFilterFile>spotbugs-exclude-rules.xml</excludeFilterFile>
                     <plugins>
                         <plugin>
                             <groupId>com.h3xstream.findsecbugs</groupId>

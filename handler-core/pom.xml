@@ -11,7 +11,7 @@
 
     <groupId>de.muenchen.oss.swim</groupId>
     <artifactId>handler-core</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
     <name>handler-core</name>
     <description>SWIM library with base componentes for building a new service for handling notifications from the dispatch-service</description>
     <url>https://github.com/it-at-m/swim</url>
@@ -45,6 +45,7 @@
 
         <!-- Utility -->
         <refarch-tools.version>1.1.0</refarch-tools.version>
+        <commons-text.version>1.13.0</commons-text.version>
 
         <!-- Additional required dependencies -->
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version> <!-- Needed to make MapStruct and Lombok work together -->
@@ -90,6 +91,13 @@
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
+        </dependency>
+
+        <!-- apache commons -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>${commons-text.version}</version>
         </dependency>
 
         <!-- Other -->
@@ -175,7 +183,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>@{argLine} -Dfile.encoding=${project.build.sourceEncoding}</argLine>
+                    <argLine>
+                        @{argLine} -Dfile.encoding=${project.build.sourceEncoding}
+                        -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                        -Xshare:off
+                    </argLine>
                 </configuration>
             </plugin>
             <plugin>

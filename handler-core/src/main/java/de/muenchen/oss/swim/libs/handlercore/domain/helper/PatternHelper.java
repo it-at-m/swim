@@ -1,4 +1,4 @@
-package de.muenchen.oss.swim.dms.domain.helper;
+package de.muenchen.oss.swim.libs.handlercore.domain.helper;
 
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import jakarta.validation.constraints.NotBlank;
@@ -26,7 +26,7 @@ public class PatternHelper {
      * @param metadata Parsed metadata file.
      * @return The result of the applied pattern.
      */
-    public String applyPattern(@NotBlank final String fullPattern, @NotBlank final String input, final Metadata metadata) {
+    public String applyPattern(final String fullPattern, @NotBlank final String input, final Metadata metadata) {
         if (Strings.isBlank(fullPattern)) {
             return input;
         }

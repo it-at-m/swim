@@ -88,24 +88,7 @@ swim:
 
 The `*-pattern`-fields require a specific syntax (inspired by the sed command and regex substitution).
 
-```
-s/<regex>/<substitution>/<options>
-```
-
-The pattern is applied as following:
-- `<regex>` is applied to input (filename without extension)
-  - The extension is re-added where required (e.g. for the ContentObject name, as that is used to determine the file type)
-- Build substitution values
-  - Matching groups of regex are available via name and index
-  - If option `m` is present metadata file is loaded
-    - Values from `IndexFields` are available as `${if.<Name>}`
-- Evaluate `<substitution>` and inject collected substitution values
-
-Example:
-- Filename: `Test-File.pdf` -> Input: `Test-File`
-- Pattern: `s/^(.+)-(.+)$/${1}_${if.CustomValue}_${2}/m`
-- Metadata file: `{"Document" : { "IndexFields" : [{ "Name": "CustomValue", "Value": "ExampleValue" }] } }`
-- Result: `Test_ExampleValue_File`
+See [Pattern](../handler-core/README.md#pattern).
 
 ### Type
 

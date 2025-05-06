@@ -6,7 +6,6 @@ import de.muenchen.oss.swim.dms.configuration.DmsMeter;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.helper.DmsMetadataHelper;
-import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
@@ -18,6 +17,7 @@ import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileSystemOutP
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
+import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;

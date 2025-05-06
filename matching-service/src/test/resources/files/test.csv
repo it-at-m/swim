@@ -1,4 +1,4 @@
 ;Externe ID;Adresse;Name;ACL für neue/importierte Schriftstücke;Organisationseinheit;Mandant
-1;123456789;COO.1234.1234.1.1234567;Test User Inbox;ACL für persönliche Daten des Eigentümers;DPF-123;DPF
+1;123456789;COO.1234.1234.1.1234567;Test User Inbox;;DPF-123;DPF
 2;987654321;COO.1234.1234.1.7654321;Test User Inbox 2;ACL für persönliche Daten des Eigentümers;DPS-123;DPS
 3;123456789;COO.1234.1234.2.1234567;Test Group Inbox;ACL für Schriftgutobjekte der Organisationseinheit;DPF-321;DPF

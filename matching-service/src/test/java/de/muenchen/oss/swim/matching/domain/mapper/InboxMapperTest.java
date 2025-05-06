@@ -3,7 +3,7 @@ package de.muenchen.oss.swim.matching.domain.mapper;
 import static de.muenchen.oss.swim.matching.TestConstants.GROUP_INBOX_1;
 import static de.muenchen.oss.swim.matching.TestConstants.USER_1;
 import static de.muenchen.oss.swim.matching.TestConstants.USER_INBOX_1;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import de.muenchen.oss.swim.matching.domain.model.GroupDmsInbox;
 import de.muenchen.oss.swim.matching.domain.model.UserDmsInbox;
@@ -41,6 +41,7 @@ class InboxMapperTest {
         // test
         assertEquals(GROUP_INBOX_1.getCoo(), groupDmsInbox.getCoo());
         assertEquals(USER_1.username(), groupDmsInbox.getUsername());
+        assertEquals(GROUP_INBOX_1.getOwnerLhmObjectId(), groupDmsInbox.getOwnerLhmObjectId());
         assertEquals(GROUP_INBOX_1.getName(), groupDmsInbox.getName());
         assertEquals(GROUP_INBOX_1.getOu(), groupDmsInbox.getOu());
         assertEquals(GROUP_INBOX_1.getDmsTenant(), groupDmsInbox.getDmsTenant());

@@ -1,6 +1,6 @@
 package de.muenchen.oss.swim.dms.domain.model;
 
-import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
+import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 

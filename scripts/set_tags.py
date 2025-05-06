@@ -41,8 +41,8 @@ def main():
     parser.add_argument("--access-key", type=str, help="AWS access key")
     parser.add_argument("--secret-key", type=str, help="AWS secret key")
     parser.add_argument("--bucket", type=str, required=True, help="S3 bucket name")
-    parser.add_argument("--prefix", type=str, required=True, help="key to tag objects under")
-    parser.add_argument("--tagging", type=str, required=True, help="tags in format '{\"key\":\"value\"}'")
+    parser.add_argument("--prefix", type=str, required=True, help="prefix to tag objects under. E.g. foo/bar/")
+    parser.add_argument("--tagging", type=str, required=True, help="tags in format of flat JSON map. E.g. '{\"key\":\"value\"}'")
 
     args = parser.parse_args()
 

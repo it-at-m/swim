@@ -28,12 +28,10 @@ def set_tags(s3, bucket: str, key: str, tags: Dict[str, str]) -> bool:
 def tag_files_recursive(s3: BaseClient, bucket: str, key: str, tags: Dict[str, str]):
     paginator = s3.get_paginator('list_objects_v2')
     page_iterator = paginator.paginate(Bucket=bucket, Prefix=key)
-    page_number = 0
-    for page in page_iterator:
-        page_number += 1
     total_tagged = 0
+    for page_number, page in enumerate(page_iterator):
         objects = [obj['Key'] for obj in page.get('Contents', []) if 'Size' in obj]
-        print(f"Page {page_number}, Size: {len(objects)}")
+        print(f"Page {page_number + 1}, Size: {len(objects)}")
         for key in objects:
             if set_tags(s3, bucket, key, tags):
                 total_tagged += 1

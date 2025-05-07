@@ -45,6 +45,7 @@ public class DipaAdapter implements DipaOutPort {
         if (response.getStatus() != STATE_CODE_SUCCESSFUL) {
             final String message = String.format("DiPa createHrSubfileIncoming request failed (Code: %d): %s", response.getStatus(),
                     response.getErrormessage());
+            log.error(message);
             throw new DipaException(message);
         }
         final String id = response.getObjid();

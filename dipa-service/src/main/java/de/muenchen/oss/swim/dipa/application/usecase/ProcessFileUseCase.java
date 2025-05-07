@@ -92,10 +92,10 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @return Built ContentObject request.
      */
     protected ContentObjectRequest buildContentObjectRequest(final UseCase useCase, final File file, final InputStream fileContent) {
-        final String contentObjectName = String.format("%s.%s",
-                this.patternHelper.applyPattern(useCase.getContentObject().getFilenameOverwritePattern(), file.getFileNameWithoutExtension(), null),
-                file.getFileExtension());
-        return new ContentObjectRequest(contentObjectName, fileContent);
+        final String contentObjectName = this.patternHelper.applyPattern(useCase.getContentObject().getFilenameOverwritePattern(),
+                file.getFileNameWithoutExtension(), null);
+        final String contentObjectExtension = file.getFileExtension();
+        return new ContentObjectRequest(contentObjectName, contentObjectExtension, fileContent);
     }
 
     /**

@@ -76,7 +76,7 @@ class ProcessFileUseCaseTest {
         // test
         verify(swimDipaProperties, times(1)).findUseCase(eq(useCaseName));
         final HrSubfileContext context = new HrSubfileContext(REQUEST_CONTEXT, "staticPersNr", "staticCategory");
-        final ContentObjectRequest contentObject = new ContentObjectRequest(FILE_NAME, null);
+        final ContentObjectRequest contentObject = new ContentObjectRequest(FILE_NAME_WITHOUT_EXTENSION, "pdf", null);
         final IncomingRequest request = new IncomingRequest(FILE_NAME_WITHOUT_EXTENSION, contentObject);
         verify(dipaOutPort, times(1)).createHrSubfileIncoming(eq(context), eq(request));
         verify(dipaMeter, times(1)).incrementProcessed(eq(useCaseName), eq("HR_SUBFILE_INCOMING"));
@@ -90,7 +90,7 @@ class ProcessFileUseCaseTest {
         // test
         verify(swimDipaProperties, times(1)).findUseCase(eq(useCaseName));
         final HrSubfileContext context = new HrSubfileContext(REQUEST_CONTEXT, "test", "asd");
-        final ContentObjectRequest contentObject = new ContentObjectRequest("asd.pdf", null);
+        final ContentObjectRequest contentObject = new ContentObjectRequest("asd", "pdf", null);
         final IncomingRequest request = new IncomingRequest("test", contentObject);
         verify(dipaOutPort, times(1)).createHrSubfileIncoming(eq(context), eq(request));
         verify(dipaMeter, times(1)).incrementProcessed(eq(useCaseName), eq("HR_SUBFILE_INCOMING"));

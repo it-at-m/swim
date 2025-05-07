@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class DipaAdapter implements DipaOutPort {
     private static final String APPLICATION = "SWIM";
-    private static final String EXTENSION_PDF = "pdf";
     private static final int STATE_CODE_SUCCESSFUL = 0;
 
     private final MUCSDIPABAI151700GIWSDSoap soapClient;
@@ -37,7 +36,7 @@ public class DipaAdapter implements DipaOutPort {
         final MUCSDIPABAI151700GIAttachmentType file = new MUCSDIPABAI151700GIAttachmentType();
         file.setMUCSDIPABAI151700Filename(incomingRequest.contentObject().name());
         file.setMUCSDIPABAI151700Filecontent(new DataHandler(new InputStreamDataSource(incomingRequest.contentObject().content())));
-        file.setMUCSDIPABAI151700Fileextension(EXTENSION_PDF);
+        file.setMUCSDIPABAI151700Fileextension(incomingRequest.contentObject().extension());
         final ArrayOfMUCSDIPABAI151700GIAttachmentType files = new ArrayOfMUCSDIPABAI151700GIAttachmentType();
         files.getMUCSDIPABAI151700GIAttachmentType().add(file);
         request.setGiattachmenttype(files);

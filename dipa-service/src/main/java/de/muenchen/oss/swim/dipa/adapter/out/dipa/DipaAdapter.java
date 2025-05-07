@@ -28,11 +28,11 @@ public class DipaAdapter implements DipaOutPort {
     public String createHrSubfileIncoming(final HrSubfileContext context, final IncomingRequest incomingRequest) {
         // build Incoming request
         final CreateIncomingGI request = new CreateIncomingGI();
-        request.setUserlogin(context.requestContext().username());
+        request.setUserlogin(context.getUsername());
         request.setFilesubj(incomingRequest.subject());
         request.setBusinessapp(APPLICATION);
-        request.setPersnum(context.persNr());
-        request.setCategory(context.category());
+        request.setPersnum(context.getPersNr());
+        request.setCategory(context.getCategory());
         // build and add ContentObject
         final MUCSDIPABAI151700GIAttachmentType file = new MUCSDIPABAI151700GIAttachmentType();
         file.setMUCSDIPABAI151700Filename(incomingRequest.contentObject().name());
@@ -49,7 +49,7 @@ public class DipaAdapter implements DipaOutPort {
             throw new DipaException(message);
         }
         final String id = response.getObjid();
-        log.info("Created Incoming (Id: {}) in HrSubfile (PersNr: {}, Category: {})", id, context.persNr(), context.category());
+        log.info("Created Incoming (Id: {}) in HrSubfile (PersNr: {}, Category: {})", id, context.getPersNr(), context.getCategory());
         return response.getObjid();
     }
 }

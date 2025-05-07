@@ -16,9 +16,14 @@ def get_s3_client(profile: Optional[str], endpoint_url: Optional[str], access_ke
     else:
         raise ValueError("You must provide either a profile or endpoint URL and access/secret key.")
 
-def set_tags(s3, bucket: str, key: str, tags: Dict[str, str]):
+def set_tags(s3, bucket: str, key: str, tags: Dict[str, str]) -> bool:
     tag_set = [{'Key': k, 'Value': v} for k, v in tags.items()]
-    s3.put_object_tagging(Bucket=bucket, Key=key, Tagging={'TagSet': tag_set})
+    try:
+        s3.put_object_tagging(Bucket=bucket, Key=key, Tagging={'TagSet': tag_set})
+        return True
+    except Exception as e:
+        print(f"Error tagging object {key}: {e}")
+        return False
 
 def tag_files_recursive(s3: BaseClient, bucket: str, key: str, tags: Dict[str, str]):
     paginator = s3.get_paginator('list_objects_v2')
@@ -26,10 +31,13 @@ def tag_files_recursive(s3: BaseClient, bucket: str, key: str, tags: Dict[str, s
     page_number = 0
     for page in page_iterator:
         page_number += 1
+    total_tagged = 0
         objects = [obj['Key'] for obj in page.get('Contents', []) if 'Size' in obj]
         print(f"Page {page_number}, Size: {len(objects)}")
         for key in objects:
-            set_tags(s3, bucket, key, tags)
+            if set_tags(s3, bucket, key, tags):
+                total_tagged += 1
+    return total_tagged
 
 def main():
     parser = argparse.ArgumentParser(
@@ -61,8 +69,8 @@ def main():
     # Tag objects
     print("Starting tagging...")
     s3 = get_s3_client(profile=args.profile, endpoint_url=args.endpoint_url, access_key=args.access_key, secret_key=args.secret_key)
-    tag_files_recursive(s3=s3, bucket=args.bucket, key=args.prefix, tags=tags)
-    print("Finished tagging")
+    tagged_files = tag_files_recursive(s3=s3, bucket=args.bucket, key=args.prefix, tags=tags)
+    print(f"Tagged {tagged_files} files")
 
 if __name__ == "__main__":
     main()

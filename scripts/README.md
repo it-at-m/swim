@@ -7,12 +7,12 @@ Helper scripts for SWIM maintenance tasks.
 - Requires Python 3
 - Install dependencies with `pip install -r requirements.txt`
 - Configure custom CA in `~/.aws/config` (if required)
-```
+```ini
 [default]
 ca_bundle = ~/root_cert.pem
 ```
 - (Optional) Configure profiles in `~/.aws/credentials` (Ensure security)
-```
+```ini
 [local]
 aws_access_key_id = minio
 aws_secret_access_key = Test1234

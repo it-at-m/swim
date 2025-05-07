@@ -26,7 +26,7 @@
         <!-- Core Frameworks -->
         <spring-cloud-dependencies.version>2024.0.1</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
         <refarch-dms-integration-fabasoft-rest-api.version>1.5.1</refarch-dms-integration-fabasoft-rest-api.version>
-        <swim-handler-core.version>0.3.0</swim-handler-core.version>
+        <swim-handler-core.version>0.4.0</swim-handler-core.version>
 
         <!-- Logging -->
         <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
@@ -247,7 +247,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>@{argLine} -Dfile.encoding=${project.build.sourceEncoding}</argLine>
+                    <argLine>
+                        @{argLine} -Dfile.encoding=${project.build.sourceEncoding}
+                        -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                        -Xshare:off
+                    </argLine>
                 </configuration>
             </plugin>
             <plugin>

@@ -106,8 +106,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @return The resolved context.
      */
     protected HrSubfileContext buildHrSubfileContext(final UseCase useCase, final File file) {
-        final UseCaseSource source = useCase.getCooSource();
-        return switch (useCase.getCooSource().getType()) {
+        final UseCaseSource source = useCase.getTargetSource();
+        return switch (useCase.getTargetSource().getType()) {
         case STATIC -> new HrSubfileContext(useCase.getContext(), source.getStaticPersNr(), source.getStaticCategory());
         case FILENAME -> {
             final String persNr = this.patternHelper.applyPattern(source.getFilenamePersNrPattern(), file.getFileNameWithoutExtension(), null);

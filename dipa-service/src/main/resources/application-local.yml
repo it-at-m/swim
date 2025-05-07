@@ -29,7 +29,7 @@ swim:
   use-cases:
     - name: test-dipa
       type: hr_subfile_incoming
-      coo-source:
+      target-source:
         type: static
         static-pers-nr: ""
         static-category: "Dokumente Dienstaufsicht - X03"

@@ -41,12 +41,12 @@ swim:
   use-cases:
     - name: # required
       type: # required, see section "Type"
-      coo-source:
-        type: # required, see section "Coo source"
-        static-pers-nr: # for coo-source static
-        static-category: # for coo-source static
-        filename-pers-nr-pattern: # for coo-source filename
-        filename-category-pattern: # for coo-source filename
+      target-source:
+        type: # required, see section "Target source"
+        static-pers-nr: # for target-source static
+        static-category: # for target-source static
+        filename-pers-nr-pattern: # for target-source filename
+        filename-category-pattern: # for target-source filename
       incoming:
         incoming-subject-pattern: # overwrite Incoming subject via Regex pattern, default: filename
       content_object:
@@ -67,9 +67,9 @@ The `type` attribute of a use case defines what type of resource is created in t
 
 - `hr_subfile_incoming`: Creates an Incoming inside a given HrSubfile.
 
-### Coo source
+### Target source
 
-The `coo-source.type` attribute of a use case defines how the target resource, under which the new resource is created, is resolved.
+The `target-source.type` attribute of a use case defines how the target resource, under which the new resource is created, is resolved.
 
 - `static`: The target PersNr and Category are defined statically via the `static-*` use case attributes.
 - `filename`: The target PersNr and Category are resolved via the Regex patterns under `filename-*-pattern`.

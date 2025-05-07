@@ -22,7 +22,7 @@ public class UseCase {
      */
     @NotNull
     @Valid
-    private UseCaseSource cooSource;
+    private UseCaseSource targetSource;
     /**
      * Properties for creating an Incoming.
      * Applies to {@link UseCaseType#getType()} being {@link DipaResourceType#INCOMING}.

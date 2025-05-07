@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 public class UseCaseContentObject {
     /**
-     * Regex pattern for overwriting filename in dms by providing regex pattern.
+     * Regex pattern for overwriting filename in DiPa by providing regex pattern.
      * Pattern is applied to S3 filename.
      * The filename is used as ContentObject name.
      */

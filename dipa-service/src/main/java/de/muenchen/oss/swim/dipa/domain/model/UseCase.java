@@ -18,7 +18,7 @@ public class UseCase {
     @NotNull
     private UseCaseType type;
     /**
-     * Defines how the target coo is gathered.
+     * Defines how the target is gathered.
      */
     @NotNull
     @Valid

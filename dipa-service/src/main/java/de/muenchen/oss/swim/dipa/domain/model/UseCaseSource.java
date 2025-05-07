@@ -6,12 +6,12 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 /**
- * Defines how the target PersNr and Category or COO are gathered.
+ * Defines how the target PersNr and Category are gathered.
  */
 @Data
 public class UseCaseSource {
     /**
-     * Defines how the target PersNr and Category or COO are gathered.
+     * Defines how the target PersNr and Category are gathered.
      */
     @NotNull
     private Type type;
@@ -40,11 +40,11 @@ public class UseCaseSource {
 
     public enum Type {
         /**
-         * Target PersNr and Category or COO are extracted from filename with regex.
+         * Target PersNr and Category are extracted from filename with regex.
          */
         FILENAME,
         /**
-         * Target PersNr and Category or COO are statically configured.
+         * Target PersNr and Category are statically configured.
          */
         STATIC
     }

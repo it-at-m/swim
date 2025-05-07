@@ -19,6 +19,8 @@ spring:
       bindings:
         dms-out:
           destination: swim-dms-local
+        dipa-out:
+          destination: swim-dipa-local
         invoice-out:
           destination: swim-invoice-local
         finished-in-0:
@@ -66,6 +68,13 @@ swim:
       destination-binding: invoice-out
       mail-addresses:
         - test-invoice@example.com
+    - name: test-dipa
+      bucket: swim-bucket
+      path: test-dipa
+      recursive: true
+      destination-binding: dipa-out
+      mail-addresses:
+        - test-dipa@example.com
   s3:
     url: http://localhost:9000
     access-key: minio

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<ruleset name="Overwrite Rules">
+    <description>Overwrite specific rules</description>
+    <rule ref="refarch-pmd-ruleset.xml" />
+    <rule ref="refarch-pmd-ruleset.xml/AvoidLiteralsInIfCondition">
+        <properties>
+            <property name="ignoreMagicNumbers" value="-1,0,1" />
+        </properties>
+    </rule>
+</ruleset>

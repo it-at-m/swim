@@ -48,7 +48,7 @@ swim:
         filename-pers-nr-pattern: # for target-source filename
         filename-category-pattern: # for target-source filename
       incoming:
-        incoming-subject-pattern: # overwrite Incoming subject via Regex pattern, default: filename
+        incoming-subject-pattern: # define Incoming subject via Regex pattern, default: null
       content_object:
         filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern, default: filename
       context:

@@ -10,8 +10,7 @@ import lombok.Data;
 @Data
 public class UseCaseIncoming {
     /**
-     * Regex pattern for defining a custom Incoming subject.
-     * If not defined overwritten filename is used.
+     * Regex pattern for defining an Incoming subject.
      */
     @Pattern(regexp = PatternHelper.RAW_PATTERN)
     private String incomingSubjPattern;

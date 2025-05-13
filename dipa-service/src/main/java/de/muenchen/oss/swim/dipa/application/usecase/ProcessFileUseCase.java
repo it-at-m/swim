@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -77,8 +78,13 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @return Built Incoming request.
      */
     protected IncomingRequest buildIncomingRequest(final UseCase useCase, final File file, final InputStream fileContent) {
-        final String incomingSubject = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingSubjPattern(), file.getFileNameWithoutExtension(),
-                null);
+        final String incomingSubject;
+        if (Strings.isNotBlank(useCase.getIncoming().getIncomingSubjPattern())) {
+            incomingSubject = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingSubjPattern(), file.getFileNameWithoutExtension(),
+                    null);
+        } else {
+            incomingSubject = null;
+        }
         final ContentObjectRequest contentObject = this.buildContentObjectRequest(useCase, file, fileContent);
         return new IncomingRequest(incomingSubject, contentObject);
     }

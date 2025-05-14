@@ -231,7 +231,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         if (useCase.getIncoming().isMetadataSubject()) {
             incomingSubject = this.subjectFromMetadata(metadata);
         } else {
-            incomingSubject = incomingName;
+            incomingSubject = null;
         }
         return new DmsIncomingRequest(incomingName, incomingSubject, contentObjectRequest);
     }

@@ -1,7 +1,6 @@
 package de.muenchen.oss.swim.dipa.domain.model.dipa;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -11,6 +10,6 @@ import jakarta.validation.constraints.NotNull;
  * @param contentObject The ContentObject to create inside the Incoming.
  */
 public record IncomingRequest(
-        @NotBlank String subject,
+        String subject,
         @NotNull @Valid ContentObjectRequest contentObject) {
 }

@@ -126,7 +126,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, FILE_NAME_WITHOUT_EXTENSION,
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, null,
                 new DmsContentObjectRequest(FILE_NAME, null));
         verify(dmsOutPort, times(1)).createIncomingInInbox(eq(STATIC_DMS_TARGET), eq(incomingRequest), eq(null));
     }
@@ -144,7 +144,7 @@ class ProcessFileUseCaseTest {
         verify(targetResolverHelper, times(1)).resolveTypeFromMetadataFile(any());
         verify(targetResolverHelper, times(1)).resolveTargetCoo(eq(UseCaseType.PROCEDURE_INCOMING), any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(1)).resolveIncomingDmsTarget(any());
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, FILE_NAME_WITHOUT_EXTENSION,
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, null,
                 new DmsContentObjectRequest(FILE_NAME, null));
         verify(dmsOutPort, times(1)).createProcedureIncoming(eq(METADATA_DMS_TARGET_INCOMING), eq(incomingRequest), eq(null));
     }
@@ -172,7 +172,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME);
+        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, null, FILE_NAME);
     }
 
     @Test
@@ -181,7 +181,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME);
+        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, null, FILE_NAME);
         // call catch all
         final String fileNameWithoutExtension = "asd";
         final String fileName = String.format("%s.pdf", fileNameWithoutExtension);
@@ -192,7 +192,7 @@ class ProcessFileUseCaseTest {
         processFileUseCase.processFile(new FileEvent(useCaseName, presignedUrl, null), file);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getContext());
         // test catche all
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(fileNameWithoutExtension, fileNameWithoutExtension,
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(fileNameWithoutExtension, null,
                 new DmsContentObjectRequest(fileName, null));
         verify(dmsOutPort, times(1)).createProcedureIncoming(eq(dmsTarget), eq(incomingRequest), eq(null));
     }
@@ -204,7 +204,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME);
+        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, null, FILE_NAME);
         verify(dmsOutPort, times(1)).findObjectsByName(eq(DmsResourceType.PROCEDURE), eq(PATTERN_VALUE_TEST), any());
     }
 
@@ -216,7 +216,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME_WITHOUT_EXTENSION, FILE_NAME);
+        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, null, FILE_NAME);
         verify(dmsOutPort, times(1)).getProcedureName(eq(FILENAME_DMS_TARGET));
         // setup failure
         when(dmsOutPort.getProcedureName(eq(FILENAME_DMS_TARGET))).thenReturn("asd");
@@ -233,7 +233,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, OVERWRITTEN_INCOMING_NAME, FILE_NAME);
+        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, null, FILE_NAME);
         verify(dmsOutPort, times(1)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME));
         // setup reuse
         when(dmsOutPort.getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME))).thenReturn(Optional.of("COO.321.321.321"));

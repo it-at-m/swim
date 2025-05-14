@@ -20,23 +20,27 @@ public class UseCase {
     /**
      * Defines how the target coo is gathered.
      */
-    @NotNull @Valid
+    @NotNull
+    @Valid
     private UseCaseSource cooSource;
     /**
      * Properties for creating an Incoming.
      * Applies to {@link UseCaseType#PROCEDURE_INCOMING}.
      */
-    @NotNull @Valid
+    @NotNull
+    @Valid
     private UseCaseIncoming incoming = new UseCaseIncoming();
     /**
      * Properties for creating a ContentObject.
      * Applies to {@link UseCaseType#PROCEDURE_INCOMING} and {@link UseCaseType#PROCEDURE_INCOMING}.
      */
-    @NotNull @Valid
+    @NotNull
+    @Valid
     private UseCaseContentObject contentObject = new UseCaseContentObject();
     /**
      * Context under which DMS requests are made.
      */
-    @NotNull @Valid
+    @NotNull
+    @Valid
     private DmsRequestContext context = new DmsRequestContext(null, null, null);
 }

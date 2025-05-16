@@ -6,12 +6,15 @@ changelog:
     - title: matching-service
       labels:
         - "Component: Matching"
-    - title: dispatch-service
-      labels:
-        - "Component: Dispatch"
     - title: handler-core
       labels:
         - "Component: Handler-Core"
+    - title: dipa-service
+      labels:
+        - "Component: DiPa"
+    - title: dispatch-service
+      labels:
+        - "Component: Dispatch"
     - title: dms-service
       labels:
         - "Component: DMS"

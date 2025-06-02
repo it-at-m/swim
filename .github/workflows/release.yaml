@@ -42,7 +42,7 @@ jobs:
     steps:
       - name: Maven build and release
         id: maven-release-step
-        uses: it-at-m/lhm_actions/action-templates/actions/action-maven-release@0f8ed45a5eb72bf1cc2fe1d3dbcbcfb852549c27 # v1.0.17
+        uses: it-at-m/lhm_actions/action-templates/actions/action-maven-release@9767179088fd2e344d1a24c17404ab809a60f1b6 # v1.0.20
         with:
           app-path: ${{ inputs.module }}
           releaseVersion: ${{ inputs.release-version }}
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build and push image
-        uses: it-at-m/lhm_actions/action-templates/actions/action-build-image@0f8ed45a5eb72bf1cc2fe1d3dbcbcfb852549c27 # v1.0.17
+        uses: it-at-m/lhm_actions/action-templates/actions/action-build-image@9767179088fd2e344d1a24c17404ab809a60f1b6 # v1.0.20
         with:
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}

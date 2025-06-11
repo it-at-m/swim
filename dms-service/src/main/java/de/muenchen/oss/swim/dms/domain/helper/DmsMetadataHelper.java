@@ -8,7 +8,7 @@ import de.muenchen.oss.swim.libs.handlercore.domain.helper.MetadataHelper;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -51,7 +51,7 @@ public class DmsMetadataHelper extends MetadataHelper {
         final String incomingOwner = indexFields.get(swimDmsProperties.getMetadataIncomingUserKey());
         final String incomingJoboe = indexFields.get(swimDmsProperties.getMetadataIncomingJoboeKey());
         final String incomingJobposition = indexFields.get(swimDmsProperties.getMetadataIncomingJobpositionKey());
-        return new DmsTarget(Strings.isNotBlank(incomingCoo) ? incomingCoo : null, incomingOwner, incomingJoboe, incomingJobposition);
+        return new DmsTarget(StringUtils.isNotBlank(incomingCoo) ? incomingCoo : null, incomingOwner, incomingJoboe, incomingJobposition);
     }
 
     /**
@@ -67,17 +67,17 @@ public class DmsMetadataHelper extends MetadataHelper {
     protected DmsTarget dmsTargetFromUserAndGroupInbox(final String userInboxCoo, final String userInboxOwner, final String groupInboxCoo,
             final String groupInboxOwner) throws MetadataException {
         // check if user and group metadata provided
-        final boolean hasUserValue = Strings.isNotBlank(userInboxCoo) || Strings.isNotBlank(userInboxOwner);
-        final boolean hasGroupValue = Strings.isNotBlank(groupInboxCoo) || Strings.isNotBlank(groupInboxOwner);
+        final boolean hasUserValue = StringUtils.isNotBlank(userInboxCoo) || StringUtils.isNotBlank(userInboxOwner);
+        final boolean hasGroupValue = StringUtils.isNotBlank(groupInboxCoo) || StringUtils.isNotBlank(groupInboxOwner);
         if (hasUserValue && hasGroupValue) {
             throw new MetadataException("User and group inbox metadata provided");
         }
         // user inbox
-        if (Strings.isNotBlank(userInboxCoo) && Strings.isNotBlank(userInboxOwner)) {
+        if (StringUtils.isNotBlank(userInboxCoo) && StringUtils.isNotBlank(userInboxOwner)) {
             return new DmsTarget(userInboxCoo, userInboxOwner, null, null);
         }
         // group inbox
-        if (Strings.isNotBlank(groupInboxCoo) && Strings.isNotBlank(groupInboxOwner)) {
+        if (StringUtils.isNotBlank(groupInboxCoo) && StringUtils.isNotBlank(groupInboxOwner)) {
             return new DmsTarget(groupInboxCoo, groupInboxOwner, null, null);
         }
         throw new MetadataException("Neither user nor group inbox metadata found");

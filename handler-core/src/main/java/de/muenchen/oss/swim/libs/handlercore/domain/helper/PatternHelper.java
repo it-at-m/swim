@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -27,7 +27,7 @@ public class PatternHelper {
      * @return The result of the applied pattern.
      */
     public String applyPattern(final String fullPattern, @NotBlank final String input, final Metadata metadata) {
-        if (Strings.isBlank(fullPattern)) {
+        if (StringUtils.isBlank(fullPattern)) {
             return input;
         }
         final Matcher patternMatcher = PATTERN.matcher(fullPattern);

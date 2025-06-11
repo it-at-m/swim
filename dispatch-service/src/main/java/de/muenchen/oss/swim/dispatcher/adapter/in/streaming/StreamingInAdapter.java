@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ public class StreamingInAdapter {
             final FileEventDTO fileFinishedDTO = fileFinishedEventDTOMessage.getPayload();
             try {
                 markFileFinishedInPort.markFileFinished(fileFinishedDTO.useCase(), fileFinishedDTO.presignedUrl());
-                if (Strings.isNotBlank(fileFinishedDTO.metadataPresignedUrl())) {
+                if (StringUtils.isNotBlank(fileFinishedDTO.metadataPresignedUrl())) {
                     markFileFinishedInPort.markFileFinished(fileFinishedDTO.useCase(), fileFinishedDTO.metadataPresignedUrl());
                 }
             } catch (PresignedUrlException | UseCaseException e) {

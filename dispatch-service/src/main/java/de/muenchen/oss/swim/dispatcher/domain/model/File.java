@@ -4,7 +4,7 @@ import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
 import java.net.URISyntaxException;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 
 public record File(@NotBlank String bucket, @NotBlank String path, Long size) {
     public String getFileName() {
@@ -31,7 +31,7 @@ public record File(@NotBlank String bucket, @NotBlank String path, Long size) {
 
     public static File fromPresignedUrl(final String presignedUrl) throws PresignedUrlException {
         // check input has content
-        if (Strings.isBlank(presignedUrl)) {
+        if (StringUtils.isBlank(presignedUrl)) {
             throw new PresignedUrlException("Empty presigned url can't be parsed");
         }
         // parse presigned url

@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -65,7 +65,7 @@ public class DmsAdapter implements DmsOutPort {
         log.debug("Putting ContentObject {} in inbox {}", contentObjectRequest.name(), dmsTarget);
         final CreateObjectAndImportToInboxDTO request = new CreateObjectAndImportToInboxDTO();
         request.setObjaddress(dmsTarget.getCoo());
-        if (Strings.isNotBlank(contentObjectRequest.subject())) {
+        if (StringUtils.isNotBlank(contentObjectRequest.subject())) {
             request.setFilesubj(List.of(List.of(contentObjectRequest.subject())));
         }
         try {

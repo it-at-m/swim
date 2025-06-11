@@ -27,7 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -222,7 +222,7 @@ public class DispatcherUseCase implements DispatcherInPort {
             try (InputStream metadataFileStream = this.fileSystemOutPort.readFile(file.bucket(), file.getMetadataFilePath())) {
                 final Metadata metadata = metadataHelper.parseMetadataFile(metadataFileStream);
                 final String value = metadata.indexFields().get(swimDispatcherProperties.getMetadataDispatchBindingKey());
-                if (Strings.isNotBlank(value)) {
+                if (StringUtils.isNotBlank(value)) {
                     return value;
                 }
             } catch (final FileSystemAccessException | IOException e) {

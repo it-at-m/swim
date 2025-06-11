@@ -175,9 +175,9 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 .sorted(Map.Entry.comparingByKey())
                 // build subject string
                 .map(i -> String.format(
-                        "%s: %s",
-                        i.getKey().replaceFirst("^" + swimDmsProperties.getMetadataSubjectPrefix(), ""),
-                        i.getValue()))
+                        "%s (%s)",
+                        i.getValue(),
+                        i.getKey().replaceFirst("^" + swimDmsProperties.getMetadataSubjectPrefix(), "")))
                 .collect(Collectors.joining("\n"));
     }
 

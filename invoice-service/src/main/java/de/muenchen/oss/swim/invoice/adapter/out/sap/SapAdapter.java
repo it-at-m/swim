@@ -18,7 +18,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -106,7 +106,7 @@ public class SapAdapter implements InvoiceServiceOutPort {
                 matcher.group(3),
                 matcher.group(4));
         // document type RBU requires barcode
-        if (parsedFilename.getDocumentType() == ParsedFilename.DocumentType.RBU && Strings.isBlank(parsedFilename.getBarcode())) {
+        if (parsedFilename.getDocumentType() == ParsedFilename.DocumentType.RBU && StringUtils.isBlank(parsedFilename.getBarcode())) {
             throw new InvoiceException("RBU but no barcode in filename: " + filename);
         }
         return parsedFilename;

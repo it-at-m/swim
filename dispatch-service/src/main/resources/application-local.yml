@@ -54,6 +54,16 @@ swim:
       destination-binding: dms-out
       mail-addresses:
         - test-meta@example.com
+    - name: test-inbox-incoming
+      bucket: swim-bucket
+      path: test-inbox-incoming
+      required-tags:
+        SWIM_State: processed
+      requires-metadata: true
+      recursive: true
+      destination-binding: dms-out
+      mail-addresses:
+        - test@example.com
     - name: test
       bucket: swim-bucket
       path: test

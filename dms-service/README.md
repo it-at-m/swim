@@ -118,8 +118,8 @@ The metadata file is used for following different functions:
     - The dms target can be resolved via metadata file, see [Coo source](#coo-source) `metadata_file`
     - A valid metadata file in this case requires either personal `PPK_` or group `GPK_` inbox values defined (empty values are ignored) for `type: inbox` or `VG_` values for incoming or coo work queue. See [Configuration](#configuration).
 - Subject
-  - Values starting with `PdE_` (default) could be set as subject (see [Configuration](#configuration) `metadata-subject: true` and `metadata-subject-prefix`).
-  - The below example would lead to a subject `ExampleKey1: Example Value 1\nExampleKey2: Example Value 2`.
+  - Values starting with `FdE_` (default) could be set as subject (see [Configuration](#configuration) `metadata-subject: true` and `metadata-subject-prefix`).
+  - The below example would lead to a subject `Example Value 1 (ExampleKey1)\nExample Value 2 (ExampleKey2)`.
 - Target type
   - The target resource type is resolved via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Type](#type) `metadata_file`.
   - Allowed values in metadata file are all use case [Types](#type) except `metadata_file` (e.g. `inbox_content_object`).
@@ -167,11 +167,11 @@ If a metadata file is required but missing or is invalid (syntax, value combinat
         "Value": ""
       },
       {
-        "Name": "PdE_ExampleKey1",
+        "Name": "FdE_ExampleKey1",
         "Value": "Example Value 1"
       },
       {
-        "Name": "PdE_ExampleKey2",
+        "Name": "FdE_ExampleKey2",
         "Value": "Example Value 2"
       }
     ]

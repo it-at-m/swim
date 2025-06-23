@@ -29,6 +29,13 @@ swim:
       type: inbox_content_object
       coo-source:
         type: metadata_file
+    - name: test-inbox-incoming
+      type: inbox_incoming
+      coo-source:
+        type: metadata_file
+      incoming:
+        incoming-name-pattern: "s/^(.*)$/\\${if.Klassifikation}/m"
+        metadata-subject: true
 #    - name: test
 #      type: incoming_object
 #      coo-source: filename_name

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.4</version>
+        <version>3.5.3</version>
         <relativePath />
     </parent>
 
@@ -24,7 +24,7 @@
         <maven.compiler.release>${java.version}</maven.compiler.release>
 
         <!-- Core Frameworks -->
-        <spring-cloud-dependencies.version>2024.0.1</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
+        <spring-cloud-dependencies.version>2025.0.0</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
         <swim-handler-core.version>0.2.0</swim-handler-core.version>
 
         <!-- Logging -->
@@ -46,12 +46,12 @@
         <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
 
         <!-- Utility -->
-        <commons-text.version>1.13.0</commons-text.version>
+        <commons-text.version>1.13.1</commons-text.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <refarch-tools.version>1.1.0</refarch-tools.version>
 
         <!-- cxf/WSDL -->
-        <cxf.version>4.1.1</cxf.version>
+        <cxf.version>4.1.2</cxf.version>
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
         <jaxws-rt.version>4.0.3</jaxws-rt.version>
 

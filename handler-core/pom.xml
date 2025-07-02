@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.4</version>
+        <version>3.5.3</version>
         <relativePath />
     </parent>
 
@@ -24,7 +24,7 @@
         <maven.compiler.release>${java.version}</maven.compiler.release>
 
         <!-- Core Frameworks -->
-        <spring-cloud-dependencies.version>2024.0.1</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
+        <spring-cloud-dependencies.version>2025.0.0</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
 
         <!-- Linting & Formatting -->
         <spotless-maven-plugin.version>2.44.5</spotless-maven-plugin.version>
@@ -45,7 +45,7 @@
 
         <!-- Utility -->
         <refarch-tools.version>1.1.0</refarch-tools.version>
-        <commons-text.version>1.13.0</commons-text.version>
+        <commons-text.version>1.13.1</commons-text.version>
 
         <!-- Additional required dependencies -->
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version> <!-- Needed to make MapStruct and Lombok work together -->

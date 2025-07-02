@@ -146,8 +146,6 @@ public class DispatcherUseCase implements DispatcherInPort {
             // use destination binding as actionName for more specific metrics
             actionName = destinationBinding;
             break;
-        default:
-            throw new IllegalStateException(String.format("Unknown dispatch action '%s' for file '%s'", action, file.path()));
         }
         // update metric
         dispatchMeter.incrementDispatched(useCase.getName(), actionName);

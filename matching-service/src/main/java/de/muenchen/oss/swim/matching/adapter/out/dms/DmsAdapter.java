@@ -16,7 +16,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("PMD.CouplingBetweenObjects")
 public class DmsAdapter implements DmsOutPort {
     public static final String DMS_EXCEPTION_MESSAGE = "Dms request failed with message: %s";
     private final ContentObjectsApi contentObjectsApi;

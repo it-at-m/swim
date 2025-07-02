@@ -38,7 +38,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
-@SuppressWarnings("PMD.UnitTestShouldIncludeAssert")
 class ProcessFileUseCaseTest {
     @MockitoSpyBean
     @Autowired

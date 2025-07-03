@@ -73,7 +73,7 @@ jobs:
 
   create-github-release:
     if: ${{ !failure() && !cancelled() }}
-    needs: "build-image"
+    needs: ["release-maven", "build-image"]
     runs-on: ubuntu-latest
     steps:
       - name: Create GitHub Release

@@ -1,12 +1,11 @@
-name: Docker Compose Healthcheck
+name: stack-healthcheck
 
 on:
   # Runs on pull requests
   pull_request:
 
 jobs:
-  docker-compose-healthcheck-dispatch:
-    name: Run docker compose healthcheck
+  dispatch:
     runs-on: ubuntu-latest
     steps:
       - name: Check dispatch-service stack
@@ -15,8 +14,7 @@ jobs:
           skip-exited: true # required for init containers
           compose-file-path: "./dispatch-service/stack/"
 
-  docker-compose-healthcheck-matching:
-    name: Run docker compose healthcheck
+  matching:
     needs: []
     runs-on: ubuntu-latest
     steps:

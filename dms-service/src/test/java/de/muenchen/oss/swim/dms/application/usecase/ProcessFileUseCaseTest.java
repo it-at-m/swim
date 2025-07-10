@@ -183,9 +183,9 @@ class ProcessFileUseCaseTest {
         // test
         testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, null, FILE_NAME);
         // call catch all
-        final String fileNameWithoutExtension = "asd";
+        final String fileNameWithoutExtension = "äasd";
         final String fileName = String.format("%s.pdf", fileNameWithoutExtension);
-        final String filePath = "test/asd.pdf";
+        final String filePath = String.format("test/%s", fileName);
         final File file = new File(BUCKET, filePath);
         final String presignedUrl = String.format("http://localhost:9001/%s/%s", BUCKET, filePath);
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);

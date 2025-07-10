@@ -69,7 +69,10 @@ public class TargetResolverHelper {
         case FILENAME_MAP -> {
             // find first matching target coo from map
             final String targetCoo = useCase.getCooSource().getFilenameToCoo().entrySet().stream()
-                    .filter(i -> Pattern.compile(i.getKey(), Pattern.CASE_INSENSITIVE).matcher(file.getFileName()).find())
+                    .filter(i -> Pattern.compile(
+                            i.getKey(),
+                            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE)
+                            .matcher(file.getFileName()).find())
                     .findFirst()
                     .map(Map.Entry::getValue)
                     .orElseThrow(() -> new IllegalStateException("No matching filename map entry configured."));

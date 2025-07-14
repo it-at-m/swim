@@ -36,6 +36,19 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class ProcessFileUseCase implements ProcessFileInPort {
+    /**
+     * Replacements for {@link UseCase#isDecodeGermanChars()}.
+     * Requires {@link SwimDmsProperties#getDecodeGermanCharsPrefix()} as prefix.
+     */
+    private static final Map<String, String> UMLAUT_REPLACEMENTS = Map.of(
+            "a", "ä",
+            "u", "ü",
+            "o", "ö",
+            "s", "ß",
+            "A", "Ä",
+            "U", "Ü",
+            "O", "Ö");
+
     private final SwimDmsProperties swimDmsProperties;
     private final FileSystemOutPort fileSystemOutPort;
     private final DmsOutPort dmsOutPort;
@@ -51,6 +64,13 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         log.info("Processing file {} for use case {}", file, event.useCase());
         final UseCase useCase = swimDmsProperties.findUseCase(event.useCase());
         log.debug("Resolved use case: {}", useCase);
+        // decode umlauts if enabled
+        final File decodedFile;
+        if (useCase.isDecodeGermanChars()) {
+            decodedFile = this.decodeGermanChars(file);
+        } else {
+            decodedFile = file;
+        }
         // load file
         try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(event.presignedUrl())) {
             // parse metadata file if present
@@ -60,21 +80,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                     metadata = dmsMetadataHelper.parseMetadataFile(metadataFileStream);
                 }
             }
-            // resolve target resource type
-            final UseCaseType targetResource = this.targetResolverHelper.resolveUseCaseType(useCase, metadata);
-            // get target coo
-            final DmsTarget dmsTarget = this.targetResolverHelper.resolveTargetCoo(targetResource, metadata, useCase, file);
-            log.debug("Resolved dms target: {}", dmsTarget);
-            // transfer to dms
-            switch (targetResource) {
-            // ContentObject in Inbox
-            case INBOX_CONTENT_OBJECT -> this.processInboxContentObject(file, useCase, dmsTarget, fileStream, metadata);
-            // Incoming in Inbox
-            case INBOX_INCOMING -> this.processInboxIncoming(file, useCase, dmsTarget, fileStream, metadata);
-            // Incoming in Procedure
-            case PROCEDURE_INCOMING -> this.processProcedureIncoming(file, useCase, dmsTarget, fileStream, metadata);
-            case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
-            }
+            // resolve and create dms resource
+            this.processDmsResource(decodedFile, useCase, metadata, fileStream);
         } catch (final IOException e) {
             throw new PresignedUrlException("Error while handling file InputStream", e);
         }
@@ -83,6 +90,32 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         log.info("File {} in use case {} finished", file, useCase.getName());
         // update metric
         dmsMeter.incrementProcessed(useCase.getName(), useCase.getType().name());
+    }
+
+    /**
+     * Resolve target dms resource type and process.
+     *
+     * @param file The file to process.
+     * @param useCase The use case of the file.
+     * @param fileStream The content of the file.
+     * @param metadata Parsed metadata file.
+     */
+    private void processDmsResource(final File file, final UseCase useCase, final Metadata metadata, final InputStream fileStream) throws MetadataException {
+        // resolve target resource type
+        final UseCaseType targetResource = this.targetResolverHelper.resolveUseCaseType(useCase, metadata);
+        // get target coo
+        final DmsTarget dmsTarget = this.targetResolverHelper.resolveTargetCoo(targetResource, metadata, useCase, file);
+        log.debug("Resolved dms target: {}", dmsTarget);
+        // transfer to dms
+        switch (targetResource) {
+        // ContentObject in Inbox
+        case INBOX_CONTENT_OBJECT -> this.processInboxContentObject(file, useCase, dmsTarget, fileStream, metadata);
+        // Incoming in Inbox
+        case INBOX_INCOMING -> this.processInboxIncoming(file, useCase, dmsTarget, fileStream, metadata);
+        // Incoming in Procedure
+        case PROCEDURE_INCOMING -> this.processProcedureIncoming(file, useCase, dmsTarget, fileStream, metadata);
+        case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
+        }
     }
 
     /**
@@ -153,6 +186,26 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata);
         // create Incoming
         this.dmsOutPort.createIncomingInInbox(dmsTarget, incomingRequest, fileStream);
+    }
+
+    /**
+     * Decode german special chars in path of a {@link File}.
+     * See {@link #UMLAUT_REPLACEMENTS} and {@link SwimDmsProperties#getDecodeGermanCharsPrefix()} for
+     * replacements.
+     *
+     * @param file The file to decode the path in.
+     * @return The file with the decoded path.
+     */
+    private File decodeGermanChars(final File file) {
+        String decodedPath = file.path();
+        for (final Map.Entry<String, String> entry : UMLAUT_REPLACEMENTS.entrySet()) {
+            decodedPath = decodedPath.replace(
+                    swimDmsProperties.getDecodeGermanCharsPrefix() + entry.getKey(),
+                    entry.getValue());
+        }
+        return new File(
+                file.bucket(),
+                decodedPath);
     }
 
     /**

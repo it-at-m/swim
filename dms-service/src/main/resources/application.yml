@@ -84,6 +84,7 @@ info:
     spring-cloud.version: @spring-cloud-dependencies.version@
 
 swim:
+  decode-german-chars-prefix: '#'
   metadata-dms-target-key: "SWIM_DMS_Target"
   metadata-subject-prefix: "FdE_"
   metadata-user-inbox-coo-key: "PPK_COO"

@@ -232,7 +232,10 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         }
         // resolve subject for Incoming
         final String incomingSubject;
-        if (useCase.getIncoming().isMetadataSubject()) {
+        if (StringUtils.isNotBlank(useCase.getIncoming().getIncomingSubjectPattern())) {
+            incomingSubject = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingSubjectPattern(),
+                    file.getFileNameWithoutExtension(), metadata);
+        } else if (useCase.getIncoming().isMetadataSubject()) {
             incomingSubject = this.subjectFromMetadata(metadata);
         } else {
             incomingSubject = null;

@@ -24,6 +24,7 @@ swim:
         username: staticUsername
         joboe: staticJobOe
         jobposition: staticJobPosition
+      decode-german-chars: true
     - name: metadata-metadata
       type: metadata_file
       coo-source:

@@ -71,6 +71,11 @@ public class SwimDmsProperties {
      */
     @NotBlank
     private String metadataSubjectPrefix;
+    /**
+     * Prefix for {@link UseCase#isDecodeGermanChars()}.
+     */
+    @NotBlank
+    private String decodeGermanCharsPrefix;
 
     /**
      * Resolve use case via name.

@@ -135,6 +135,20 @@ class ProcessFileUseCaseTest {
     }
 
     @Test
+    void testProcessFile_DecodeGermanChars() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
+        final String useCaseName = "static-inbox-incoming";
+        final String fileNameWithoutExtension = "test#a#o#u#s#A#O#Utest";
+        final String fileName = String.format("%s.pdf", fileNameWithoutExtension);
+        final String filePath = String.format("test/%s", fileName);
+        final File fileIn = new File(BUCKET, filePath);
+        final File fileDecoded = new File(BUCKET, filePath.replaceFirst(fileNameWithoutExtension, "testäöüßÄÖÜtest"));
+        // call
+        processFileUseCase.processFile(buildFileEvent(useCaseName, null), fileIn);
+        // test
+        verify(processFileUseCase).processInboxIncoming(eq(fileDecoded), any(), any(), any(), any());
+    }
+
+    @Test
     void testProcessFile_MetadataViaMetadata() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "metadata-metadata";
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);

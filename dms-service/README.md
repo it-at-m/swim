@@ -49,6 +49,7 @@ swim:
     base-url:
     username:
     password:
+  decode-german-chars-prefix: '#' # prefix for <use case>.decode-german-chars
   # metadata keys (default values)
   metadata-subject-prefix: "FdE_" # prefix to build subject from metadata file, see Metadata
   metadata-dms-target-key: "SWIM_DMS_Target" # key to use for resolving dms target type, see Type metadata_file
@@ -83,6 +84,7 @@ swim:
       content_object:
         subject-pattern: # pattern for subject of new ContentObject, currently only works inside Inbox
         filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
+      decode-german-chars: # if german special chars should be decoded, default false. See section "Decode german chars"
 ```
 
 ### Pattern
@@ -179,3 +181,17 @@ If a metadata file is required but missing or is invalid (syntax, value combinat
   }
 }
 ```
+
+### Decode german chars
+
+Some german special chars/umlauts (e.g. üß) can lead to problems in different programms (e.g. Word barcodes).
+For this a simple encoding was introduced which replaces the configured prefix (see `swim.decode-german-chars-prefix`)
+joined with the simple form of a character to the special char. Needs to be enabled per use case via `decode-german-chars`.
+
+- `#a` -> `ä`
+- `#o` -> `ö`
+- `#u` -> `ü`
+- `#s` -> `ß`
+- `#A` -> `Ä`
+- `#O` -> `Ö`
+- `#U` -> `Ü`

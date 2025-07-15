@@ -224,9 +224,13 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             incomingName = contentObjectRequest.getNameWithoutExtension();
         } else {
             // else apply pattern to original filename
-            incomingName = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingNamePattern(), file.getFileNameWithoutExtension(), metadata);
+            final String patternIncomingName = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingNamePattern(),
+                    file.getFileNameWithoutExtension(), metadata);
+            incomingName = StringUtils.isNotBlank(patternIncomingName) ? patternIncomingName :
+            // fallback to default if empty name via pattern
+                    contentObjectRequest.getNameWithoutExtension();
         }
-        // resolve subject for Incoming;
+        // resolve subject for Incoming
         final String incomingSubject;
         if (StringUtils.isNotBlank(useCase.getIncoming().getIncomingSubjectPattern())) {
             incomingSubject = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingSubjectPattern(),

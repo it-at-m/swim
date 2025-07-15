@@ -23,6 +23,7 @@ import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
+import de.muenchen.oss.swim.dms.domain.model.UseCaseIncoming;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseType;
 import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileEventOutPort;
 import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileSystemOutPort;
@@ -32,7 +33,9 @@ import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseExce
 import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -245,6 +248,24 @@ class ProcessFileUseCaseTest {
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getContext());
         verify(dmsOutPort, times(1)).createContentObject(eq(dmsTarget), eq(new DmsContentObjectRequest(FILE_NAME, null)), eq(null));
+    }
+
+    @Test
+    void testResolveIncomingParameters_emptyPatternResult() throws MetadataException {
+        // setup
+        final UseCase useCase = new UseCase();
+        final UseCaseIncoming useCaseIncoming = new UseCaseIncoming();
+        useCaseIncoming.setIncomingNamePattern("s/^(.+)-(.*)$/${2}/");
+        useCase.setIncoming(useCaseIncoming);
+        final File file = new File(BUCKET, "test-asd.txt");
+        final File fileEmpty = new File(BUCKET, "test-.txt");
+        final Metadata metadata = new Metadata(null, Map.of());
+        // call
+        final DmsIncomingRequest response = processFileUseCase.resolveIncomingParameters(file, useCase, metadata);
+        final DmsIncomingRequest responseEmpty = processFileUseCase.resolveIncomingParameters(fileEmpty, useCase, metadata);
+        // test
+        assertEquals("asd", response.name());
+        assertEquals("test-", responseEmpty.name());
     }
 
     private void testDefaults(final String useCaseName, final UseCaseType targetType, final DmsTarget dmsTarget, final String incomingName,

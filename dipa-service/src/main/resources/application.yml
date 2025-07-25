@@ -82,3 +82,7 @@ info:
   build:
     java.version: @java.version@
     spring-cloud.version: @spring-cloud-dependencies.version@
+
+swim:
+  dipa:
+    send-timeout: 5m

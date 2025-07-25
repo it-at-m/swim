@@ -33,6 +33,7 @@ class DipaConfiguration {
         final HTTPConduit conduit = (HTTPConduit) client.getConduit();
         final HTTPClientPolicy policy = conduit.getClient();
         policy.setAllowChunking(true);
+        policy.setReceiveTimeout(properties.getSendTimeout().toMillis());
         return soapClient;
     }
 }

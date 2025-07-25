@@ -28,9 +28,10 @@ class DipaConfiguration {
         final SOAPBinding binding = (SOAPBinding) ((BindingProvider) soapClient).getBinding();
         binding.setMTOMEnabled(true);
         // enable chunking
+        @SuppressWarnings("PMD.CloseResource")
         final Client client = ClientProxy.getClient(soapClient);
-        HTTPConduit conduit = (HTTPConduit) client.getConduit();
-        HTTPClientPolicy policy = conduit.getClient();
+        final HTTPConduit conduit = (HTTPConduit) client.getConduit();
+        final HTTPClientPolicy policy = conduit.getClient();
         policy.setAllowChunking(true);
         return soapClient;
     }

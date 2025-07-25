@@ -32,7 +32,7 @@
                     <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_filename" type="xs:string"/>
                     <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_fileextension" type="xs:string"/>
                     <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_filecontent"
-                                type="xs:base64Binary" xmime:expectedContentTypes="application/pdf"/>
+                                type="xs:base64Binary" xmime:expectedContentTypes="application/octet-stream"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="ArrayOfMUCSDIPABAI_15_1700_GIAttachmentType">

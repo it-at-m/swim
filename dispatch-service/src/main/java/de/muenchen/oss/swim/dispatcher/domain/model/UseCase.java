@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import org.springframework.util.unit.DataSize;
 
 @Data
 public class UseCase {
@@ -28,6 +29,11 @@ public class UseCase {
      * If to look recursive for files.
      */
     private boolean recursive = false;
+    /**
+     * Max size files can have that they are dispatched.
+     * Default: 90MB (IEC)
+     */
+    private DataSize maxFileSize = DataSize.ofMegabytes(90);
     /**
      * If filename contains sensitive data and should not be logged.
      */

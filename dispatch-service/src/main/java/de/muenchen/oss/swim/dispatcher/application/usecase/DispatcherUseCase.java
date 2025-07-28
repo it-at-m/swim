@@ -118,15 +118,15 @@ public class DispatcherUseCase implements DispatcherInPort {
      * @param useCase The use case the file was found for.
      * @param file The file to be processed.
      * @throws FileSizeException If file is above configured
-     *             {@link SwimDispatcherProperties#getMaxFileSize()}
+     *             {@link UseCase#getMaxFileSize()}
      * @throws MetadataException If metadata file required but could not be loaded
      * @throws UseCaseException If use case can't be resolved in reroute action.
      */
     protected void processFile(final UseCase useCase, final File file, final Map<String, String> tags)
             throws FileSizeException, MetadataException, UseCaseException {
         // check file size
-        if (file.size() > swimDispatcherProperties.getMaxFileSize()) {
-            final String message = String.format("File %s too large. %d > %d", file.path(), file.size(), swimDispatcherProperties.getMaxFileSize());
+        if (file.size() > useCase.getMaxFileSize().toBytes()) {
+            final String message = String.format("File %s too large. %d > %d", file.path(), file.size(), useCase.getMaxFileSize().toBytes());
             throw new FileSizeException(message);
         }
         // resolve action

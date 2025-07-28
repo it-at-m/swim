@@ -31,9 +31,9 @@ public class UseCase {
     private boolean recursive = false;
     /**
      * Max size files can have that they are dispatched.
-     * Default: 100MiB
+     * Default: 90MB (IEC)
      */
-    private DataSize maxFileSize = DataSize.ofMegabytes(100);
+    private DataSize maxFileSize = DataSize.ofMegabytes(90);
     /**
      * If filename contains sensitive data and should not be logged.
      */

@@ -51,7 +51,7 @@ swim:
       bucket: # bucket to look for new files in
       path: # path to look for new files under
       recursive: # if the file lookup should be recursive (optional, default: false)
-      max-file-size: # max size files can have that they are dispatched (optional, default: 100 MiB)
+      max-file-size: # max size files can have that they are dispatched (optional, default: 90MB (IEC) -> 90*1024*1024B, example: 1GB)
       required-tags: # map of tags required on files to be dispatched (optional, default: {})
       requires-metadata: # if a metadata file is required (optional, default: false)
       destination-binding: # the target destination binding, see section "Adding additional target"

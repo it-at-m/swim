@@ -88,11 +88,6 @@ public class SwimDispatcherProperties {
     @NotEmpty
     private String fallbackMail;
     /**
-     * Max size files can have that they are dispatched.
-     * Default: 100MiB
-     */
-    private Long maxFileSize = 100 * 1024 * 1024L;
-    /**
      * Folder name where finished files are moved to.
      */
     @NotBlank

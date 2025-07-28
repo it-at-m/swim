@@ -152,7 +152,7 @@ class DispatcherUseCaseTest {
     void testProcessFile_FileSizeException() {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         assertThrows(FileSizeException.class,
-                () -> dispatcherUseCase.processFile(useCase, new File(BUCKET, "test.pdf", swimDispatcherProperties.getMaxFileSize() + 1), TAGS));
+                () -> dispatcherUseCase.processFile(useCase, new File(BUCKET, "test.pdf", useCase.getMaxFileSize().toBytes() + 1), TAGS));
     }
 
     @Test

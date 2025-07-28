@@ -25,7 +25,7 @@
 
         <!-- Core Frameworks -->
         <spring-cloud-dependencies.version>2025.0.0</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
-        <refarch-dms-integration-fabasoft-rest-api.version>2.0.1</refarch-dms-integration-fabasoft-rest-api.version>
+        <refarch-dms-integration-fabasoft-rest-api.version>2.1.0</refarch-dms-integration-fabasoft-rest-api.version>
         <swim-handler-core.version>0.5.0</swim-handler-core.version>
 
         <!-- Logging -->

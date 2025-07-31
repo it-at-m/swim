@@ -185,6 +185,9 @@ public class DmsAdapter implements DmsOutPort {
                 if (matchingIncomings.size() > 1) {
                     log.warn("Using first of multiple matching Incomings with prefix {} for {}", incomingNamePrefix, dmsTarget);
                 }
+                if (matchingIncomings.isEmpty()) {
+                    return Optional.empty();
+                }
                 return Optional.ofNullable(matchingIncomings.getFirst().getObjaddress());
             } else {
                 throw new DmsException("Response or content null while looking up procedure objects");

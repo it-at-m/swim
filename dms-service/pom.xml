@@ -11,7 +11,7 @@
 
     <groupId>de.muenchen.oss.swim</groupId>
     <artifactId>dms-service</artifactId>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>0.7.1</version>
     <name>dms-service</name>
     <description>SWIM service for transferring files into DMS when notified by dispatch-service via Apache Kafka</description>
     <url>https://github.com/it-at-m/swim</url>
@@ -386,7 +386,7 @@
         <url>https://github.com/it-at-m/swim.git</url>
         <connection>scm:git:https://github.com/it-at-m/swim.git</connection>
         <developerConnection>scm:git:https://github.com/it-at-m/swim.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>dms-service-0.7.1</tag>
     </scm>
     <licenses>
         <license>

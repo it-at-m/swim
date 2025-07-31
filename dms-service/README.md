@@ -79,7 +79,7 @@ swim:
         incoming-name-pattern: # overwrite Incoming name via Regex pattern, if result is empty falls back to default filename without extension
         incoming-subject-pattern: # pattern for subject of new Incoming; if this is defined metadata-subject needs to be false
         metadata-subject: # enables Incoming subject be built from metadata file, default false
-        reuse-incoming: # if already existing Incoming (based on name) should be reused, when existing only ContentObject is created inside
+        reuse-incoming: # if already existing Incoming (based on name) should be reused, when existing only ContentObject is created inside first matching
         verify-procedure-name-pattern: # verifies target procedure name matches this pattern, only applies to type procedure_incoming
       content_object:
         subject-pattern: # pattern for subject of new ContentObject, currently only works inside Inbox

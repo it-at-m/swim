@@ -179,8 +179,13 @@ public class DmsAdapter implements DmsOutPort {
                     dmsTarget.getJoboe(),
                     dmsTarget.getJobposition()).block();
             if (response != null && response.getGiobjecttype() != null) {
-                return response.getGiobjecttype().stream().filter(
-                        i -> i.getObjname() != null && i.getObjname().startsWith(incomingNamePrefix)).findFirst().map(Objektreferenz::getObjaddress);
+                final List<Objektreferenz> matchingIncomings = response.getGiobjecttype().stream().filter(
+                        i -> i.getObjname() != null && i.getObjname().startsWith(incomingNamePrefix))
+                        .toList();
+                if (matchingIncomings.size() > 1) {
+                    log.warn("Using first of multiple matching Incomings with prefix {} for {}", incomingNamePrefix, dmsTarget);
+                }
+                return Optional.ofNullable(matchingIncomings.getFirst().getObjaddress());
             } else {
                 throw new DmsException("Response or content null while looking up procedure objects");
             }

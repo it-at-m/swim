@@ -100,8 +100,10 @@ swim:
   dispatched-state-tag-value: sentToKafka
   dispatch-file-finished-tag-value: finished
   dispatch-action-tag-key: SWIM_Action
+  dispatch-action-destination-tag-key: SWIM_Reroute_Destination
   protocol-state-tag-key: CSV_State
   protocol-match-tag-key: CSV_Match
   protocol-processed-state-tag-value: finished
+  error-state-value: error
   error-class-tag-key: errorClass
   error-message-tag-key: errorMessage

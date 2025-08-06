@@ -3,12 +3,12 @@ package de.muenchen.oss.swim.dms.application.usecase.helper;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.helper.DmsMetadataHelper;
-import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseType;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
+import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -60,7 +60,7 @@ public class TargetResolverHelper {
         return switch (useCase.getCooSource().getType()) {
         case METADATA_FILE -> this.resolveMetadataTargetCoo(resourceType, metadata, useCase);
         case FILENAME -> {
-            if (Strings.isBlank(useCase.getCooSource().getFilenameCooPattern())) {
+            if (StringUtils.isBlank(useCase.getCooSource().getFilenameCooPattern())) {
                 throw new IllegalArgumentException("Filename coo pattern is required");
             }
             final String targetCoo = this.patternHelper.applyPattern(useCase.getCooSource().getFilenameCooPattern(), file.getFileName(), metadata);
@@ -69,7 +69,10 @@ public class TargetResolverHelper {
         case FILENAME_MAP -> {
             // find first matching target coo from map
             final String targetCoo = useCase.getCooSource().getFilenameToCoo().entrySet().stream()
-                    .filter(i -> Pattern.compile(i.getKey(), Pattern.CASE_INSENSITIVE).matcher(file.getFileName()).find())
+                    .filter(i -> Pattern.compile(
+                            i.getKey(),
+                            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE)
+                            .matcher(file.getFileName()).find())
                     .findFirst()
                     .map(Map.Entry::getValue)
                     .orElseThrow(() -> new IllegalStateException("No matching filename map entry configured."));
@@ -115,10 +118,10 @@ public class TargetResolverHelper {
      */
     protected DmsTarget resolveTargetCooViaName(final DmsResourceType resourceType, final Metadata metadata, final UseCase useCase, final File file) {
         // validate required use case properties
-        if (Strings.isBlank(useCase.getCooSource().getFilenameNamePattern())) {
+        if (StringUtils.isBlank(useCase.getCooSource().getFilenameNamePattern())) {
             throw new IllegalArgumentException("DMS target coo via object name: Filename name pattern is required");
         }
-        if (Strings.isBlank(useCase.getContext().getUsername())) {
+        if (StringUtils.isBlank(useCase.getContext().getUsername())) {
             throw new IllegalStateException("DMS target coo via object name: Username is required");
         }
         // resolve lookup name
@@ -144,13 +147,13 @@ public class TargetResolverHelper {
      */
     protected DmsTarget combineDmsTargetWithUseCase(final DmsTarget dmsTarget, final UseCase useCase) {
         // username
-        final String username = Strings.isNotBlank(dmsTarget.getUsername()) ? dmsTarget.getUsername() : useCase.getContext().getUsername();
-        if (Strings.isBlank(username)) {
+        final String username = StringUtils.isNotBlank(dmsTarget.getUsername()) ? dmsTarget.getUsername() : useCase.getContext().getUsername();
+        if (StringUtils.isBlank(username)) {
             throw new IllegalStateException("Resolve dms target: Username neither defined via target nor use case but is required");
         }
         // joboe and jobposition
-        final String joboe = Strings.isNotBlank(dmsTarget.getJoboe()) ? dmsTarget.getJoboe() : useCase.getContext().getJoboe();
-        final String jobposition = Strings.isNotBlank(dmsTarget.getJobposition()) ? dmsTarget.getJobposition() : useCase.getContext().getJobposition();
+        final String joboe = StringUtils.isNotBlank(dmsTarget.getJoboe()) ? dmsTarget.getJoboe() : useCase.getContext().getJoboe();
+        final String jobposition = StringUtils.isNotBlank(dmsTarget.getJobposition()) ? dmsTarget.getJobposition() : useCase.getContext().getJobposition();
         // return merged
         return new DmsTarget(dmsTarget.getCoo(), username, joboe, jobposition);
     }

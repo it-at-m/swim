@@ -1,0 +1,755 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  MUCSDIPABAI@15.1700:GIWSD
+  ============================================================================
+  Copyright © Fabasoft Austria GmbH, A-4020 Linz, 1995-2025.
+
+  Alle Rechte vorbehalten. Alle verwendeten Hard- und Softwarenamen sind
+  Handelsnamen und/oder Marken der jeweiligen Hersteller.
+
+  Der Nutzer des Computerprogramms anerkennt, dass der oben stehende
+  Copyright-Vermerk im Sinn des Welturheberrechtsabkommens an der vom
+  Urheber festgelegten Stelle in der Funktion des Computerprogramms
+  angebracht bleibt, um den Vorbehalt des Urheberrechtes genügend zum
+  Ausdruck zu bringen. Dieser Urheberrechtsvermerk darf weder vom Kunden,
+  Nutzer und/oder von Dritten entfernt, verändert oder disloziert werden.
+  ============================================================================
+-->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                  xmlns:fsc-svc="http://schemas.fabasoft.com/websvc/MUCSDIPABAI_15_1700_GIWSD/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                  xmlns:stk="http://schemas.microsoft.com/soap-toolkit/wsdl-extension"
+                  xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
+                  targetNamespace="http://schemas.fabasoft.com/websvc/MUCSDIPABAI_15_1700_GIWSD/">
+    <wsdl:types>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns:tns="http://schemas.fabasoft.com/websvc/MUCSDIPABAI_15_1700_GIWSD/"
+                   targetNamespace="http://schemas.fabasoft.com/websvc/MUCSDIPABAI_15_1700_GIWSD/"
+                   elementFormDefault="qualified">
+            <xs:complexType name="MUCSDIPABAI_15_1700_GIAttachmentType">
+                <xs:sequence>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_filename" type="xs:string"/>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_fileextension" type="xs:string"/>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_filecontent"
+                                type="xs:base64Binary" xmime:expectedContentTypes="application/octet-stream"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ArrayOfMUCSDIPABAI_15_1700_GIAttachmentType">
+                <xs:sequence>
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="MUCSDIPABAI_15_1700_GIAttachmentType"
+                                type="tns:MUCSDIPABAI_15_1700_GIAttachmentType"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="CreateObjectAndImportToInboxGI">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userlogin" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="objaddress" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="giattachmenttype"
+                                    type="tns:ArrayOfMUCSDIPABAI_15_1700_GIAttachmentType"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="CreateObjectAndImportToInboxGIResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="status" type="xs:int"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="errormessage" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:complexType name="ArrayOfstring">
+                <xs:sequence>
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="string" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="MUCSDIPABAI_15_1700_GIMetadataType">
+                <xs:sequence>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_objaddress" type="xs:string"/>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_filename" type="xs:string"/>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_fileextension" type="xs:string"/>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_objclass" type="xs:string"/>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_contsize" type="xs:string"/>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_objcreatedby"
+                                type="tns:ArrayOfstring"/>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_objcreatedat" type="xs:dateTime"/>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_objchangedby"
+                                type="tns:ArrayOfstring"/>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_objmodifiedat"
+                                type="xs:dateTime"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ArrayOfMUCSDIPABAI_15_1700_GIMetadataType">
+                <xs:sequence>
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="MUCSDIPABAI_15_1700_GIMetadataType"
+                                type="tns:MUCSDIPABAI_15_1700_GIMetadataType"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="ReadInboxGIObjects">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userlogin" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="objaddress" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ReadInboxGIObjectsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="status" type="xs:int"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="errormessage" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="gimetadatatype"
+                                    type="tns:ArrayOfMUCSDIPABAI_15_1700_GIMetadataType"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="CreateIncomingFromInboxGI">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userlogin" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="inboxid" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="contentid" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="persnum" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="category" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="filesubj" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="objterms" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="docregistersheet" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="delivery" type="xs:dateTime"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="filenotice" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="presealeddocument" type="xs:boolean"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="CreateIncomingFromInboxGIResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="status" type="xs:int"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="errormessage" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="objid" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="objname" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="gimetadatatype"
+                                    type="tns:ArrayOfMUCSDIPABAI_15_1700_GIMetadataType"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:complexType name="MUCSDIPABAI_15_1700_GIObjectType">
+                <xs:sequence>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_objname" type="xs:string"/>
+                    <xs:element minOccurs="0" maxOccurs="1" name="MUCSDIPABAI_15_1700_objaddress" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ArrayOfMUCSDIPABAI_15_1700_GIObjectType">
+                <xs:sequence>
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="MUCSDIPABAI_15_1700_GIObjectType"
+                                type="tns:MUCSDIPABAI_15_1700_GIObjectType"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="CreateIncomingGI">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userlogin" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="persnum" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="category" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="giattachmenttype"
+                                    type="tns:ArrayOfMUCSDIPABAI_15_1700_GIAttachmentType"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="filesubj" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="objterms" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="docregistersheet" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="delivery" type="xs:dateTime"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="filenotice" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="presealeddocument" type="xs:boolean"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="CreateIncomingGIResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="status" type="xs:int"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="errormessage" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="objid" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="objname" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="giobjecttype"
+                                    type="tns:ArrayOfMUCSDIPABAI_15_1700_GIObjectType"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ReadHRSubFileGIObjects">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userlogin" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="persnum" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="hrsubfile" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ReadHRSubFileGIObjectsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="status" type="xs:int"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="errormessage" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="giobjecttype"
+                                    type="tns:ArrayOfMUCSDIPABAI_15_1700_GIObjectType"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="CreateRegisterSheetGI">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userlogin" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="persnum" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="hrsubfile" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="regsheetname" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="CreateRegisterSheetGIResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="status" type="xs:int"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="errormessage" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="objid" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="objname" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ReadRegisterSheetsGI">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userlogin" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="persnum" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="hrsubfile" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ReadRegisterSheetsGIResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="status" type="xs:int"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="errormessage" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="registersheets"
+                                    type="tns:ArrayOfMUCSDIPABAI_15_1700_GIObjectType"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="SealDocumentGI">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userlogin" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="objaddress" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="SealDocumentGIResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="status" type="xs:int"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="errormessage" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="DeleteDocumentGI">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userlogin" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="objaddress" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="DeleteDocumentGIResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="status" type="xs:int"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="errormessage" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="objid" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="objname" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ReadDeletionDate">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userlogin" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="objaddress" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ReadDeletionDateResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="status" type="xs:int"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="errormessage" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="deletionat" type="xs:dateTime"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="SetDeletionDateGI">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userlogin" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="objaddress" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="deletiondateproposed" type="xs:dateTime"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="deletiondatetoconfirmby" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="deletionremark" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="SetDeletionDateGIResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="status" type="xs:int"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="errormessage" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="RemoveDeletionDateGI">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userlogin" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="objaddress" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="deletiondatetoconfirmby" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="deletionremark" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="RemoveDeletionDateGIResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="status" type="xs:int"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="errormessage" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="businessapp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="CreateObjectAndImportToInboxGISoapIn">
+        <wsdl:part name="parameters" element="fsc-svc:CreateObjectAndImportToInboxGI"/>
+    </wsdl:message>
+    <wsdl:message name="CreateObjectAndImportToInboxGISoapOut">
+        <wsdl:part name="parameters" element="fsc-svc:CreateObjectAndImportToInboxGIResponse"/>
+    </wsdl:message>
+    <wsdl:message name="ReadInboxGIObjectsSoapIn">
+        <wsdl:part name="parameters" element="fsc-svc:ReadInboxGIObjects"/>
+    </wsdl:message>
+    <wsdl:message name="ReadInboxGIObjectsSoapOut">
+        <wsdl:part name="parameters" element="fsc-svc:ReadInboxGIObjectsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="CreateIncomingFromInboxGISoapIn">
+        <wsdl:part name="parameters" element="fsc-svc:CreateIncomingFromInboxGI"/>
+    </wsdl:message>
+    <wsdl:message name="CreateIncomingFromInboxGISoapOut">
+        <wsdl:part name="parameters" element="fsc-svc:CreateIncomingFromInboxGIResponse"/>
+    </wsdl:message>
+    <wsdl:message name="CreateIncomingGISoapIn">
+        <wsdl:part name="parameters" element="fsc-svc:CreateIncomingGI"/>
+    </wsdl:message>
+    <wsdl:message name="CreateIncomingGISoapOut">
+        <wsdl:part name="parameters" element="fsc-svc:CreateIncomingGIResponse"/>
+    </wsdl:message>
+    <wsdl:message name="ReadHRSubFileGIObjectsSoapIn">
+        <wsdl:part name="parameters" element="fsc-svc:ReadHRSubFileGIObjects"/>
+    </wsdl:message>
+    <wsdl:message name="ReadHRSubFileGIObjectsSoapOut">
+        <wsdl:part name="parameters" element="fsc-svc:ReadHRSubFileGIObjectsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="CreateRegisterSheetGISoapIn">
+        <wsdl:part name="parameters" element="fsc-svc:CreateRegisterSheetGI"/>
+    </wsdl:message>
+    <wsdl:message name="CreateRegisterSheetGISoapOut">
+        <wsdl:part name="parameters" element="fsc-svc:CreateRegisterSheetGIResponse"/>
+    </wsdl:message>
+    <wsdl:message name="ReadRegisterSheetsGISoapIn">
+        <wsdl:part name="parameters" element="fsc-svc:ReadRegisterSheetsGI"/>
+    </wsdl:message>
+    <wsdl:message name="ReadRegisterSheetsGISoapOut">
+        <wsdl:part name="parameters" element="fsc-svc:ReadRegisterSheetsGIResponse"/>
+    </wsdl:message>
+    <wsdl:message name="SealDocumentGISoapIn">
+        <wsdl:part name="parameters" element="fsc-svc:SealDocumentGI"/>
+    </wsdl:message>
+    <wsdl:message name="SealDocumentGISoapOut">
+        <wsdl:part name="parameters" element="fsc-svc:SealDocumentGIResponse"/>
+    </wsdl:message>
+    <wsdl:message name="DeleteDocumentGISoapIn">
+        <wsdl:part name="parameters" element="fsc-svc:DeleteDocumentGI"/>
+    </wsdl:message>
+    <wsdl:message name="DeleteDocumentGISoapOut">
+        <wsdl:part name="parameters" element="fsc-svc:DeleteDocumentGIResponse"/>
+    </wsdl:message>
+    <wsdl:message name="ReadDeletionDateSoapIn">
+        <wsdl:part name="parameters" element="fsc-svc:ReadDeletionDate"/>
+    </wsdl:message>
+    <wsdl:message name="ReadDeletionDateSoapOut">
+        <wsdl:part name="parameters" element="fsc-svc:ReadDeletionDateResponse"/>
+    </wsdl:message>
+    <wsdl:message name="SetDeletionDateGISoapIn">
+        <wsdl:part name="parameters" element="fsc-svc:SetDeletionDateGI"/>
+    </wsdl:message>
+    <wsdl:message name="SetDeletionDateGISoapOut">
+        <wsdl:part name="parameters" element="fsc-svc:SetDeletionDateGIResponse"/>
+    </wsdl:message>
+    <wsdl:message name="RemoveDeletionDateGISoapIn">
+        <wsdl:part name="parameters" element="fsc-svc:RemoveDeletionDateGI"/>
+    </wsdl:message>
+    <wsdl:message name="RemoveDeletionDateGISoapOut">
+        <wsdl:part name="parameters" element="fsc-svc:RemoveDeletionDateGIResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="MUCSDIPABAI_15_1700_GIWSDSoap">
+        <wsdl:operation name="CreateObjectAndImportToInboxGI">
+            <wsdl:input message="fsc-svc:CreateObjectAndImportToInboxGISoapIn"/>
+            <wsdl:output message="fsc-svc:CreateObjectAndImportToInboxGISoapOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="ReadInboxGIObjects">
+            <wsdl:input message="fsc-svc:ReadInboxGIObjectsSoapIn"/>
+            <wsdl:output message="fsc-svc:ReadInboxGIObjectsSoapOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="CreateIncomingFromInboxGI">
+            <wsdl:input message="fsc-svc:CreateIncomingFromInboxGISoapIn"/>
+            <wsdl:output message="fsc-svc:CreateIncomingFromInboxGISoapOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="CreateIncomingGI">
+            <wsdl:input message="fsc-svc:CreateIncomingGISoapIn"/>
+            <wsdl:output message="fsc-svc:CreateIncomingGISoapOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="ReadHRSubFileGIObjects">
+            <wsdl:input message="fsc-svc:ReadHRSubFileGIObjectsSoapIn"/>
+            <wsdl:output message="fsc-svc:ReadHRSubFileGIObjectsSoapOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="CreateRegisterSheetGI">
+            <wsdl:input message="fsc-svc:CreateRegisterSheetGISoapIn"/>
+            <wsdl:output message="fsc-svc:CreateRegisterSheetGISoapOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="ReadRegisterSheetsGI">
+            <wsdl:input message="fsc-svc:ReadRegisterSheetsGISoapIn"/>
+            <wsdl:output message="fsc-svc:ReadRegisterSheetsGISoapOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="SealDocumentGI">
+            <wsdl:input message="fsc-svc:SealDocumentGISoapIn"/>
+            <wsdl:output message="fsc-svc:SealDocumentGISoapOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="DeleteDocumentGI">
+            <wsdl:input message="fsc-svc:DeleteDocumentGISoapIn"/>
+            <wsdl:output message="fsc-svc:DeleteDocumentGISoapOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="ReadDeletionDate">
+            <wsdl:input message="fsc-svc:ReadDeletionDateSoapIn"/>
+            <wsdl:output message="fsc-svc:ReadDeletionDateSoapOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="SetDeletionDateGI">
+            <wsdl:input message="fsc-svc:SetDeletionDateGISoapIn"/>
+            <wsdl:output message="fsc-svc:SetDeletionDateGISoapOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="RemoveDeletionDateGI">
+            <wsdl:input message="fsc-svc:RemoveDeletionDateGISoapIn"/>
+            <wsdl:output message="fsc-svc:RemoveDeletionDateGISoapOut"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="MUCSDIPABAI_15_1700_GIWSDSoap" type="fsc-svc:MUCSDIPABAI_15_1700_GIWSDSoap">
+        <stk:binding xmlns:stk="http://schemas.microsoft.com/soap-toolkit/wsdl-extension" preferredEncoding="UTF-8"/>
+        <soap:binding xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                      transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="CreateObjectAndImportToInboxGI">
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                            soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_CreateObjectAndImportToInboxGI"
+                            style="document"/>
+            <wsdl:input>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ReadInboxGIObjects">
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                            soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_ReadInboxGIObjects"
+                            style="document"/>
+            <wsdl:input>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CreateIncomingFromInboxGI">
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                            soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_CreateIncomingFromInboxGI"
+                            style="document"/>
+            <wsdl:input>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CreateIncomingGI">
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                            soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_CreateIncomingGI"
+                            style="document"/>
+            <wsdl:input>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ReadHRSubFileGIObjects">
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                            soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_ReadHRSubFileGIObjects"
+                            style="document"/>
+            <wsdl:input>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CreateRegisterSheetGI">
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                            soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_CreateRegisterSheetGI"
+                            style="document"/>
+            <wsdl:input>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ReadRegisterSheetsGI">
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                            soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_ReadRegisterSheetsGI"
+                            style="document"/>
+            <wsdl:input>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="SealDocumentGI">
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                            soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_SealDocumentGI"
+                            style="document"/>
+            <wsdl:input>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="DeleteDocumentGI">
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                            soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_DeleteDocumentGI"
+                            style="document"/>
+            <wsdl:input>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ReadDeletionDate">
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                            soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_ReadDeletionDate"
+                            style="document"/>
+            <wsdl:input>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="SetDeletionDateGI">
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                            soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_SetDeletionDateGI"
+                            style="document"/>
+            <wsdl:input>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="RemoveDeletionDateGI">
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                            soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_RemoveDeletionDateGI"
+                            style="document"/>
+            <wsdl:input>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="MUCSDIPABAI_15_1700_GIWSDSoap12" type="fsc-svc:MUCSDIPABAI_15_1700_GIWSDSoap">
+        <stk:binding xmlns:stk="http://schemas.microsoft.com/soap-toolkit/wsdl-extension" preferredEncoding="UTF-8"/>
+        <soap12:binding xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                        transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="CreateObjectAndImportToInboxGI">
+            <soap12:operation xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                              soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_CreateObjectAndImportToInboxGI"
+                              style="document"/>
+            <wsdl:input>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ReadInboxGIObjects">
+            <soap12:operation xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                              soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_ReadInboxGIObjects"
+                              style="document"/>
+            <wsdl:input>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CreateIncomingFromInboxGI">
+            <soap12:operation xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                              soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_CreateIncomingFromInboxGI"
+                              style="document"/>
+            <wsdl:input>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CreateIncomingGI">
+            <soap12:operation xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                              soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_CreateIncomingGI"
+                              style="document"/>
+            <wsdl:input>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ReadHRSubFileGIObjects">
+            <soap12:operation xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                              soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_ReadHRSubFileGIObjects"
+                              style="document"/>
+            <wsdl:input>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CreateRegisterSheetGI">
+            <soap12:operation xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                              soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_CreateRegisterSheetGI"
+                              style="document"/>
+            <wsdl:input>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ReadRegisterSheetsGI">
+            <soap12:operation xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                              soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_ReadRegisterSheetsGI"
+                              style="document"/>
+            <wsdl:input>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="SealDocumentGI">
+            <soap12:operation xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                              soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_SealDocumentGI"
+                              style="document"/>
+            <wsdl:input>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="DeleteDocumentGI">
+            <soap12:operation xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                              soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_DeleteDocumentGI"
+                              style="document"/>
+            <wsdl:input>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ReadDeletionDate">
+            <soap12:operation xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                              soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_ReadDeletionDate"
+                              style="document"/>
+            <wsdl:input>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="SetDeletionDateGI">
+            <soap12:operation xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                              soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_SetDeletionDateGI"
+                              style="document"/>
+            <wsdl:input>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="RemoveDeletionDateGI">
+            <soap12:operation xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                              soapAction="http://schemas.fabasoft.com/object/MUCSDIPABAI_15_1700_RemoveDeletionDateGI"
+                              style="document"/>
+            <wsdl:input>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="MUCSDIPABAI_15_1700_GIWSD">
+        <wsdl:port name="MUCSDIPABAI_15_1700_GIWSDSoap" binding="fsc-svc:MUCSDIPABAI_15_1700_GIWSDSoap">
+            <soap:address xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                          location="https://dipa23-k.muenchen.de/fsc/fscdav/wsdl?WEBSVC=MUCSDIPABAI_15_1700_GIWSD"/>
+        </wsdl:port>
+        <wsdl:port name="MUCSDIPABAI_15_1700_GIWSDSoap12" binding="fsc-svc:MUCSDIPABAI_15_1700_GIWSDSoap12">
+            <soap12:address xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                            location="https://dipa23-k.muenchen.de/fsc/fscdav/wsdl?WEBSVC=MUCSDIPABAI_15_1700_GIWSD"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

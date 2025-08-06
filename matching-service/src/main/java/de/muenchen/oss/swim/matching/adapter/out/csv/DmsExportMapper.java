@@ -1,4 +1,4 @@
-package de.muenchen.oss.swim.matching.adapter.in.rest;
+package de.muenchen.oss.swim.matching.adapter.out.csv;
 
 import de.muenchen.oss.swim.matching.domain.model.DmsInbox;
 import java.util.List;

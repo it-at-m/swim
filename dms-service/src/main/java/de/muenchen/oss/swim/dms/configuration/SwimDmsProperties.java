@@ -1,6 +1,7 @@
 package de.muenchen.oss.swim.dms.configuration;
 
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
+import de.muenchen.oss.swim.dms.domain.model.UseCaseIncoming;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -66,10 +67,15 @@ public class SwimDmsProperties {
     private String metadataDmsTargetKey;
     /**
      * Prefix of metadata index fields which should be put into subject.
-     * See {@link UseCase#isMetadataSubject()}.
+     * See {@link UseCaseIncoming#isMetadataSubject()}.
      */
     @NotBlank
     private String metadataSubjectPrefix;
+    /**
+     * Prefix for {@link UseCase#isDecodeGermanChars()}.
+     */
+    @NotBlank
+    private String decodeGermanCharsPrefix;
 
     /**
      * Resolve use case via name.

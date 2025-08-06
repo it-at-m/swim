@@ -58,7 +58,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-@SuppressWarnings({ "PMD.CouplingBetweenObjects", "PMD.GodClass" })
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     /**
      * Response code from S3 storage when an object cannot be found.
@@ -328,7 +328,13 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .object(objectName)
                 .build();
         try {
-            return new HashMap<>(s3Properties.getClient(tenant).getObjectTags(getObjectTagsArgs).get());
+            final Map<String, String> tags = s3Properties.getClient(tenant).getObjectTags(getObjectTagsArgs).get();
+            // workaround: convert null value to empty string
+            return tags.entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            entry -> entry.getValue() == null ? "" : entry.getValue()));
         } catch (final ErrorResponseException e) {
             // handle exception which indicates file doesn't exist
             if (ERROR_CODE_NO_SUCH_KEY.equals(e.errorResponse().code())) {

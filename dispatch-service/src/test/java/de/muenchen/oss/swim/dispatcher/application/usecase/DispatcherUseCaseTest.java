@@ -151,7 +151,7 @@ class DispatcherUseCaseTest {
     void testProcessFile_FileSizeException() {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         assertThrows(FileSizeException.class,
-                () -> dispatcherUseCase.processFile(useCase, new File(TENANT, BUCKET, "example.pdf", swimDispatcherProperties.getMaxFileSize() + 1), TAGS));
+                () -> dispatcherUseCase.processFile(useCase, new File(TENANT, BUCKET, "example.pdf", useCase.getMaxFileSize().toBytes() + 1), TAGS));
     }
 
     @Test
@@ -188,7 +188,7 @@ class DispatcherUseCaseTest {
         final Map<String, String> tags = Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue(),
                 swimDispatcherProperties.getDispatchActionTagKey(), "reroute",
-                DispatcherUseCase.ACTION_REROUTE_DESTINATION_TAG_KEY, "test2");
+                "SWIM_Reroute_Destination", "test2");
         // call
         dispatcherUseCase.processFile(useCase, FILE1, tags);
         // test

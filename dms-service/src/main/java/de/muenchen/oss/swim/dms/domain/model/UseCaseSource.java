@@ -1,6 +1,6 @@
 package de.muenchen.oss.swim.dms.domain.model;
 
-import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
+import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.util.Map;
@@ -69,7 +69,7 @@ public class UseCaseSource {
          */
         STATIC,
         /**
-         * Target is OU work queue of {@link DmsRequestContext#username}.
+         * Target is OU work queue of {@link DmsRequestContext#getUsername()}.
          * Can only be used with {@link UseCaseType#PROCEDURE_INCOMING}.
          */
         OU_WORK_QUEUE

@@ -49,6 +49,7 @@ swim:
     base-url:
     username:
     password:
+  decode-german-chars-prefix: '#' # prefix for <use case>.decode-german-chars
   # metadata keys (default values)
   metadata-subject-prefix: "FdE_" # prefix to build subject from metadata file, see Metadata
   metadata-dms-target-key: "SWIM_DMS_Target" # key to use for resolving dms target type, see Type metadata_file
@@ -75,37 +76,22 @@ swim:
         joboe: # used to resolve user role under which the DMS action is executed, default role if not defined
         jobposition: # used to resolve user role under which the DMS action is executed, default role if not defined
       incoming:
-        incoming-name-pattern: # overwrite Incoming name via Regex pattern
-        reuse-incoming: # if already existing Incoming (based on name) should be reused, when existing only ContentObject is created inside
+        incoming-name-pattern: # overwrite Incoming name via Regex pattern, if result is empty falls back to default filename without extension
+        incoming-subject-pattern: # pattern for subject of new Incoming; if this is defined metadata-subject needs to be false
+        metadata-subject: # enables Incoming subject be built from metadata file, default false
+        reuse-incoming: # if already existing Incoming (based on name) should be reused, when existing only ContentObject is created inside first matching
         verify-procedure-name-pattern: # verifies target procedure name matches this pattern, only applies to type procedure_incoming
-        metadata-subject: # enables Incoming subject be built from metadata file
       content_object:
         subject-pattern: # pattern for subject of new ContentObject, currently only works inside Inbox
         filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
+      decode-german-chars: # if german special chars should be decoded, default false. See section "Decode german chars"
 ```
 
 ### Pattern
 
 The `*-pattern`-fields require a specific syntax (inspired by the sed command and regex substitution).
 
-```
-s/<regex>/<substitution>/<options>
-```
-
-The pattern is applied as following:
-- `<regex>` is applied to input (filename without extension)
-  - The extension is re-added where required (e.g. for the ContentObject name, as that is used to determine the file type)
-- Build substitution values
-  - Matching groups of regex are available via name and index
-  - If option `m` is present metadata file is loaded
-    - Values from `IndexFields` are available as `${if.<Name>}`
-- Evaluate `<substitution>` and inject collected substitution values
-
-Example:
-- Filename: `Test-File.pdf` -> Input: `Test-File`
-- Pattern: `s/^(.+)-(.+)$/${1}_${if.CustomValue}_${2}/m`
-- Metadata file: `{"Document" : { "IndexFields" : [{ "Name": "CustomValue", "Value": "ExampleValue" }] } }`
-- Result: `Test_ExampleValue_File`
+See [Pattern](../handler-core/README.md#pattern).
 
 ### Type
 
@@ -135,8 +121,8 @@ The metadata file is used for following different functions:
     - The dms target can be resolved via metadata file, see [Coo source](#coo-source) `metadata_file`
     - A valid metadata file in this case requires either personal `PPK_` or group `GPK_` inbox values defined (empty values are ignored) for `type: inbox` or `VG_` values for incoming or coo work queue. See [Configuration](#configuration).
 - Subject
-  - Values starting with `PdE_` (default) could be set as subject (see [Configuration](#configuration) `metadata-subject: true` and `metadata-subject-prefix`).
-  - The below example would lead to a subject `ExampleKey1: Example Value 1\nExampleKey2: Example Value 2`.
+  - Values starting with `FdE_` (default) could be set as subject (see [Configuration](#configuration) `metadata-subject: true` and `metadata-subject-prefix`).
+  - The below example would lead to a subject `Example Value 1 (ExampleKey1)\nExample Value 2 (ExampleKey2)`.
 - Target type
   - The target resource type is resolved via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Type](#type) `metadata_file`.
   - Allowed values in metadata file are all use case [Types](#type) except `metadata_file` (e.g. `inbox_content_object`).
@@ -184,14 +170,28 @@ If a metadata file is required but missing or is invalid (syntax, value combinat
         "Value": ""
       },
       {
-        "Name": "PdE_ExampleKey1",
+        "Name": "FdE_ExampleKey1",
         "Value": "Example Value 1"
       },
       {
-        "Name": "PdE_ExampleKey2",
+        "Name": "FdE_ExampleKey2",
         "Value": "Example Value 2"
       }
     ]
   }
 }
 ```
+
+### Decode german chars
+
+Some german special chars/umlauts (e.g. üß) can lead to problems in different programms (e.g. Word barcodes).
+For this a simple encoding was introduced which replaces the configured prefix (see `swim.decode-german-chars-prefix`)
+joined with the simple form of a character to the special char. Needs to be enabled per use case via `decode-german-chars`.
+
+- `#a` -> `ä`
+- `#o` -> `ö`
+- `#u` -> `ü`
+- `#s` -> `ß`
+- `#A` -> `Ä`
+- `#O` -> `Ö`
+- `#U` -> `Ü`

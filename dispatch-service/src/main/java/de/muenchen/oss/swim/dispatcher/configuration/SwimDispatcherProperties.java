@@ -28,12 +28,18 @@ public class SwimDispatcherProperties {
     @NotBlank
     private String dispatchActionTagKey;
     /**
+     * Tag key used for resolving rerouting destination.
+     * See {@link de.muenchen.oss.swim.dispatcher.domain.model.DispatchAction}.
+     */
+    @NotBlank
+    private String dispatchActionDestinationTagKey;
+    /**
      * Tag key used for protocol state.
      */
     @NotBlank
     private String protocolStateTagKey;
     /**
-     * Tag key used for protocol match state.
+     * Tag key used for protocol match state (e.g. match, missingInProtocolAndFiles).
      */
     @NotBlank
     private String protocolMatchTagKey;
@@ -67,7 +73,7 @@ public class SwimDispatcherProperties {
      * Tag value for error occurred.
      */
     @NotBlank
-    private String errorStateValue = "error";
+    private String errorStateValue;
     // ########### use cases ###########
     /**
      * Use cases which are processed.
@@ -89,11 +95,6 @@ public class SwimDispatcherProperties {
      */
     @NotEmpty
     private String fallbackMail;
-    /**
-     * Max size files can have that they are dispatched.
-     * Default: 100MiB
-     */
-    private Long maxFileSize = 100 * 1024 * 1024L;
     /**
      * Folder name where finished files are moved to.
      */

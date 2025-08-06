@@ -6,7 +6,6 @@ import de.muenchen.oss.swim.dms.configuration.DmsMeter;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.helper.DmsMetadataHelper;
-import de.muenchen.oss.swim.dms.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
@@ -18,6 +17,7 @@ import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileSystemOutP
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
+import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
@@ -29,13 +29,26 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ProcessFileUseCase implements ProcessFileInPort {
+    /**
+     * Replacements for {@link UseCase#isDecodeGermanChars()}.
+     * Requires {@link SwimDmsProperties#getDecodeGermanCharsPrefix()} as prefix.
+     */
+    private static final Map<String, String> UMLAUT_REPLACEMENTS = Map.of(
+            "a", "ä",
+            "u", "ü",
+            "o", "ö",
+            "s", "ß",
+            "A", "Ä",
+            "U", "Ü",
+            "O", "Ö");
+
     private final SwimDmsProperties swimDmsProperties;
     private final FileSystemOutPort fileSystemOutPort;
     private final DmsOutPort dmsOutPort;
@@ -51,30 +64,24 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         log.info("Processing file {} for use case {}", file, event.useCase());
         final UseCase useCase = swimDmsProperties.findUseCase(event.useCase());
         log.debug("Resolved use case: {}", useCase);
+        // decode umlauts if enabled
+        final File decodedFile;
+        if (useCase.isDecodeGermanChars()) {
+            decodedFile = this.decodeGermanChars(file);
+        } else {
+            decodedFile = file;
+        }
         // load file
         try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(event.presignedUrl())) {
             // parse metadata file if present
             Metadata metadata = null;
-            if (Strings.isNotBlank(event.metadataPresignedUrl())) {
+            if (StringUtils.isNotBlank(event.metadataPresignedUrl())) {
                 try (InputStream metadataFileStream = fileSystemOutPort.getPresignedUrlFile(event.metadataPresignedUrl())) {
                     metadata = dmsMetadataHelper.parseMetadataFile(metadataFileStream);
                 }
             }
-            // resolve target resource type
-            final UseCaseType targetResource = this.targetResolverHelper.resolveUseCaseType(useCase, metadata);
-            // get target coo
-            final DmsTarget dmsTarget = this.targetResolverHelper.resolveTargetCoo(targetResource, metadata, useCase, file);
-            log.debug("Resolved dms target: {}", dmsTarget);
-            // transfer to dms
-            switch (targetResource) {
-            // ContentObject in Inbox
-            case INBOX_CONTENT_OBJECT -> this.processInboxContentObject(file, useCase, dmsTarget, fileStream, metadata);
-            // Incoming in Inbox
-            case INBOX_INCOMING -> this.processInboxIncoming(file, useCase, dmsTarget, fileStream, metadata);
-            // Incoming in Procedure
-            case PROCEDURE_INCOMING -> this.processProcedureIncoming(file, useCase, dmsTarget, fileStream, metadata);
-            case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
-            }
+            // resolve and create dms resource
+            this.processDmsResource(decodedFile, useCase, metadata, fileStream);
         } catch (final IOException e) {
             throw new PresignedUrlException("Error while handling file InputStream", e);
         }
@@ -83,6 +90,32 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         log.info("File {} in use case {} finished", file, useCase.getName());
         // update metric
         dmsMeter.incrementProcessed(useCase.getName(), useCase.getType().name());
+    }
+
+    /**
+     * Resolve target dms resource type and process.
+     *
+     * @param file The file to process.
+     * @param useCase The use case of the file.
+     * @param fileStream The content of the file.
+     * @param metadata Parsed metadata file.
+     */
+    private void processDmsResource(final File file, final UseCase useCase, final Metadata metadata, final InputStream fileStream) throws MetadataException {
+        // resolve target resource type
+        final UseCaseType targetResource = this.targetResolverHelper.resolveUseCaseType(useCase, metadata);
+        // get target coo
+        final DmsTarget dmsTarget = this.targetResolverHelper.resolveTargetCoo(targetResource, metadata, useCase, file);
+        log.debug("Resolved dms target: {}", dmsTarget);
+        // transfer to dms
+        switch (targetResource) {
+        // ContentObject in Inbox
+        case INBOX_CONTENT_OBJECT -> this.processInboxContentObject(file, useCase, dmsTarget, fileStream, metadata);
+        // Incoming in Inbox
+        case INBOX_INCOMING -> this.processInboxIncoming(file, useCase, dmsTarget, fileStream, metadata);
+        // Incoming in Procedure
+        case PROCEDURE_INCOMING -> this.processProcedureIncoming(file, useCase, dmsTarget, fileStream, metadata);
+        case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
+        }
     }
 
     /**
@@ -97,7 +130,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     protected void processProcedureIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget,
             final InputStream fileStream, final Metadata metadata) throws MetadataException {
         // check target procedure name
-        if (Strings.isNotBlank(useCase.getIncoming().getVerifyProcedureNamePattern())) {
+        if (StringUtils.isNotBlank(useCase.getIncoming().getVerifyProcedureNamePattern())) {
             final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);
             final String resolvedPattern = this.patternHelper.applyPattern(useCase.getIncoming().getVerifyProcedureNamePattern(),
                     file.getFileNameWithoutExtension(),
@@ -156,6 +189,26 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     }
 
     /**
+     * Decode german special chars in path of a {@link File}.
+     * See {@link #UMLAUT_REPLACEMENTS} and {@link SwimDmsProperties#getDecodeGermanCharsPrefix()} for
+     * replacements.
+     *
+     * @param file The file to decode the path in.
+     * @return The file with the decoded path.
+     */
+    private File decodeGermanChars(final File file) {
+        String decodedPath = file.path();
+        for (final Map.Entry<String, String> entry : UMLAUT_REPLACEMENTS.entrySet()) {
+            decodedPath = decodedPath.replace(
+                    swimDmsProperties.getDecodeGermanCharsPrefix() + entry.getKey(),
+                    entry.getValue());
+        }
+        return new File(
+                file.bucket(),
+                decodedPath);
+    }
+
+    /**
      * Build subject from metadata file.
      *
      * @param metadata Parsed metadata file.
@@ -175,9 +228,9 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 .sorted(Map.Entry.comparingByKey())
                 // build subject string
                 .map(i -> String.format(
-                        "%s: %s",
-                        i.getKey().replaceFirst("^" + swimDmsProperties.getMetadataSubjectPrefix(), ""),
-                        i.getValue()))
+                        "%s (%s)",
+                        i.getValue(),
+                        i.getKey().replaceFirst("^" + swimDmsProperties.getMetadataSubjectPrefix(), "")))
                 .collect(Collectors.joining("\n"));
     }
 
@@ -197,7 +250,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 file.getFileExtension());
         // resolve ContentObject subject
         final String contentObjectSubjectPattern = useCase.getContentObject().getSubjectPattern();
-        final String contentObjectSubject = Strings.isNotBlank(contentObjectSubjectPattern)
+        final String contentObjectSubject = StringUtils.isNotBlank(contentObjectSubjectPattern)
                 ? this.patternHelper.applyPattern(contentObjectSubjectPattern, file.getFileNameWithoutExtension(), metadata)
                 : null;
         return new DmsContentObjectRequest(contentObjectName, contentObjectSubject);
@@ -217,21 +270,28 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         final DmsContentObjectRequest contentObjectRequest = this.resolveContentObjectParameters(file, useCase, metadata);
         // resolve name for Incoming
         final String incomingName;
-        if (Strings.isBlank(useCase.getIncoming().getIncomingNamePattern())) {
+        if (StringUtils.isBlank(useCase.getIncoming().getIncomingNamePattern())) {
             // use resolved ContentObject name (filename) if no pattern for Incoming name is defined
             // resolved in this case means the UseCase#filenameOverwritePattern is applied first
             // extension is removed
             incomingName = contentObjectRequest.getNameWithoutExtension();
         } else {
             // else apply pattern to original filename
-            incomingName = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingNamePattern(), file.getFileNameWithoutExtension(), metadata);
+            final String patternIncomingName = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingNamePattern(),
+                    file.getFileNameWithoutExtension(), metadata);
+            incomingName = StringUtils.isNotBlank(patternIncomingName) ? patternIncomingName :
+            // fallback to default if empty name via pattern
+                    contentObjectRequest.getNameWithoutExtension();
         }
-        // resolve subject for Incoming;
+        // resolve subject for Incoming
         final String incomingSubject;
-        if (useCase.getIncoming().isMetadataSubject()) {
+        if (StringUtils.isNotBlank(useCase.getIncoming().getIncomingSubjectPattern())) {
+            incomingSubject = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingSubjectPattern(),
+                    file.getFileNameWithoutExtension(), metadata);
+        } else if (useCase.getIncoming().isMetadataSubject()) {
             incomingSubject = this.subjectFromMetadata(metadata);
         } else {
-            incomingSubject = incomingName;
+            incomingSubject = null;
         }
         return new DmsIncomingRequest(incomingName, incomingSubject, contentObjectRequest);
     }

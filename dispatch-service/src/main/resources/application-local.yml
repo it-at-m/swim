@@ -19,6 +19,8 @@ spring:
       bindings:
         dms-out:
           destination: swim-dms-local
+        dipa-out:
+          destination: swim-dipa-local
         invoice-out:
           destination: swim-invoice-local
         finished-in-0:
@@ -62,6 +64,16 @@ swim:
       destination-binding: dms-out
       mail-addresses:
         - test-meta@example.com
+    - name: test-inbox-incoming
+      bucket: swim-bucket
+      path: test-inbox-incoming
+      required-tags:
+        SWIM_State: processed
+      requires-metadata: true
+      recursive: true
+      destination-binding: dms-out
+      mail-addresses:
+        - test@example.com
     - name: test
       tenant: local
       bucket: swim-bucket
@@ -78,3 +90,11 @@ swim:
       destination-binding: invoice-out
       mail-addresses:
         - test-invoice@example.com
+    - name: test-dipa
+      bucket: swim-bucket
+      path: test-dipa
+      recursive: true
+      max-file-size: 1GB
+      destination-binding: dipa-out
+      mail-addresses:
+        - test-dipa@example.com

@@ -15,11 +15,6 @@ spring:
             ack-mode: record
         binder:
           auto-create-topics: false
-          producerProperties:
-            value:
-              serializer: org.springframework.kafka.support.serializer.JsonSerializer
-            key:
-              serializer: org.springframework.kafka.support.serializer.JsonSerializer
           consumerProperties:
             max:
               poll:
@@ -27,10 +22,6 @@ spring:
             auto:
               offset:
                 reset: latest
-            key:
-              deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-            value:
-              deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
   kafka:
     consumer:
       properties:

@@ -28,6 +28,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
+    public static final String MATCH_MISSING_IN_PROTOCOL_AND_FILES = "missingInProtocolAndFiles";
+    public static final String MATCH_MISSING_IN_PROTOCOL = "missingInProtocol";
+    public static final String MATCH_MISSING_FILES = "missingFiles";
+    public static final String MATCH_CORRECT = "correct";
+
     private final SwimDispatcherProperties swimDispatcherProperties;
     private final FileSystemOutPort fileSystemOutPort;
     private final ReadProtocolOutPort readProtocolOutPort;
@@ -107,13 +112,13 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
             // tag protocol as processed
             final String matchState;
             if (isMissingInProtocol && isMissingFiles) {
-                matchState = "missingInProtocolAndFiles";
+                matchState = MATCH_MISSING_IN_PROTOCOL_AND_FILES;
             } else if (isMissingInProtocol) {
-                matchState = "missingInProtocol";
+                matchState = MATCH_MISSING_IN_PROTOCOL;
             } else if (isMissingFiles) {
-                matchState = "missingFiles";
+                matchState = MATCH_MISSING_FILES;
             } else {
-                matchState = "correct";
+                matchState = MATCH_CORRECT;
             }
             fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
                     swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTagValue(),

@@ -189,7 +189,7 @@ class DispatcherUseCaseTest {
         final Map<String, String> tags = Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue(),
                 swimDispatcherProperties.getDispatchActionTagKey(), "reroute",
-                DispatcherUseCase.ACTION_REROUTE_DESTINATION_TAG_KEY, "test2");
+                "SWIM_Reroute_Destination", "test2");
         // call
         dispatcherUseCase.processFile(useCase, FILE1, tags);
         // test

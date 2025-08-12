@@ -12,6 +12,7 @@ import de.muenchen.oss.swim.dispatcher.domain.exception.FileSystemAccessExceptio
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.ProtocolException;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
+import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import de.muenchen.oss.swim.dispatcher.domain.model.protocol.ProtocolEntry;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.minio.CopyObjectArgs;
@@ -21,7 +22,6 @@ import io.minio.GetObjectArgs;
 import io.minio.GetObjectTagsArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.ListObjectsArgs;
-import io.minio.MinioClient;
 import io.minio.RemoveObjectArgs;
 import io.minio.Result;
 import io.minio.SetObjectTagsArgs;
@@ -30,6 +30,8 @@ import io.minio.errors.ErrorResponseException;
 import io.minio.errors.MinioException;
 import io.minio.http.Method;
 import io.minio.messages.Item;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,6 +51,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -64,7 +67,6 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     private static final char PROTOCOL_DELIMITER = '|';
     private static final int PROTOCOL_SKIP_ROWS = 1;
 
-    private final MinioClient minioClient;
     private final ProtocolMapper protocolMapper;
     private final S3Properties s3Properties;
     private final SwimDispatcherProperties swimDispatcherProperties;
@@ -73,15 +75,13 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
             @Autowired final SwimDispatcherProperties swimDispatcherProperties) {
         this.protocolMapper = protocolMapper;
         this.s3Properties = s3Properties;
-        this.minioClient = MinioClient.builder()
-                .endpoint(s3Properties.getUrl())
-                .credentials(s3Properties.getAccessKey(), s3Properties.getSecretKey())
-                .build();
         this.swimDispatcherProperties = swimDispatcherProperties;
     }
 
     @Override
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
     public Map<File, Map<String, String>> getMatchingFilesWithTags(
+            final String tenant,
             final String bucket,
             final String pathPrefix,
             final boolean recursive,
@@ -89,18 +89,18 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
             final Map<String, String> requiredTags,
             final Map<String, List<String>> excludeTags) {
         final String suffix = String.format(".%s", extension);
-        return getObjectsInPath(bucket, pathPrefix, recursive).stream()
+        return getObjectsInPath(tenant, bucket, pathPrefix, recursive).stream()
                 // filter out dirs
                 .filter(i -> !i.isDir())
                 // map to file
-                .map(i -> new File(bucket, i.objectName(), i.size()))
+                .map(i -> new File(tenant, bucket, i.objectName(), i.size()))
                 // filter extension
                 .filter(i -> i.path().toLowerCase(Locale.ROOT).endsWith(suffix))
                 // map tags to each file
                 .map(i -> {
                     Map<String, String> tags = null;
                     try {
-                        tags = getTagsOfFile(bucket, i.path());
+                        tags = getTagsOfFile(tenant, bucket, i.path());
                     } catch (final FileNotFoundException ignored) {
                         // could occur if file was moved between getObjectsInPath and this tag load
                         log.trace("File not found while getting tags for file list: {} in {}", i.path(), i.bucket());
@@ -115,20 +115,20 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     @Override
-    public List<String> getSubDirectories(final String bucket, final String pathPrefix) {
+    public List<String> getSubDirectories(final String tenant, final String bucket, final String pathPrefix) {
         // ensure prefix is handled as specific dir
         final String escapedPathPrefix = pathPrefix.endsWith("/") ? pathPrefix : pathPrefix + "/";
         // build s3 list request
-        return this.getObjectsInPath(bucket, escapedPathPrefix, false).stream()
+        return this.getObjectsInPath(tenant, bucket, escapedPathPrefix, false).stream()
                 .filter(Item::isDir)
                 .map(Item::objectName).toList();
     }
 
     @Override
-    public void tagFile(final String bucket, final String path, final Map<String, String> tags) {
+    public void tagFile(final String tenant, final String bucket, final String path, final Map<String, String> tags) {
         try {
             // get current tags
-            final Map<String, String> currentTags = getTagsOfFile(bucket, path);
+            final Map<String, String> currentTags = getTagsOfFile(tenant, bucket, path);
             // clear errors
             currentTags.remove(swimDispatcherProperties.getErrorClassTagKey());
             currentTags.remove(swimDispatcherProperties.getErrorMessageTagKey());
@@ -142,7 +142,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                     .tags(newTags)
                     .build();
             // set tags
-            minioClient.setObjectTags(setObjectTagsArgs);
+            s3Properties.getClient(tenant).setObjectTags(setObjectTagsArgs);
         } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException | FileNotFoundException e) {
             final String message = String.format("Error while tagging s3 file for bucket %s in path %s", bucket, path);
             log.error(message, e);
@@ -151,13 +151,13 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     @Override
-    public boolean fileExists(final String bucket, final String path) {
+    public boolean fileExists(final String tenant, final String bucket, final String path) {
         final StatObjectArgs statObjectArgs = StatObjectArgs.builder()
                 .bucket(bucket)
                 .object(path)
                 .build();
         try {
-            minioClient.statObject(statObjectArgs);
+            s3Properties.getClient(tenant).statObject(statObjectArgs);
             return true;
         } catch (final ErrorResponseException e) {
             // handle exception which indicates file doesn't exist
@@ -176,13 +176,13 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     @Override
-    public InputStream readFile(final String bucket, final String path) {
+    public InputStream readFile(final String tenant, final String bucket, final String path) {
         final GetObjectArgs getObjectArgs = GetObjectArgs.builder()
                 .bucket(bucket)
                 .object(path)
                 .build();
         try {
-            return minioClient.getObject(getObjectArgs);
+            return s3Properties.getClient(tenant).getObject(getObjectArgs);
         } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
             final String message = String.format("Error while downloading file %s from bucket %s", path, bucket);
             log.error(message, e);
@@ -191,7 +191,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     }
 
     @Override
-    public String getPresignedUrl(final String bucket, final String path) {
+    public String getPresignedUrl(final String tenant, final String bucket, final String path) {
         final GetPresignedObjectUrlArgs getPresignedObjectUrlArgs = GetPresignedObjectUrlArgs.builder()
                 .bucket(bucket)
                 .object(path)
@@ -199,7 +199,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .expiry(s3Properties.getPresignedUrlExpiry())
                 .build();
         try {
-            return minioClient.getPresignedObjectUrl(getPresignedObjectUrlArgs);
+            return s3Properties.getClient(tenant).getPresignedObjectUrl(getPresignedObjectUrlArgs);
         } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
             final String message = String.format("Error while getting presigned url for bucket %s in path %s", bucket, path);
             log.error(message, e);
@@ -209,7 +209,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
 
     @Override
     @SuppressFBWarnings("URLCONNECTION_SSRF_FD")
-    public boolean verifyPresignedUrl(final String presignedUrl) throws PresignedUrlException {
+    public File verifyAndResolvePresignedUrl(final UseCase useCase, final String presignedUrl) throws PresignedUrlException {
         try {
             final URI uri = new URI(presignedUrl);
             final HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
@@ -219,14 +219,18 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
             connection.setRequestProperty("Range", "bytes=0-0");
 
             final HttpStatusCode responseCode = HttpStatusCode.valueOf(connection.getResponseCode());
-            return responseCode.is2xxSuccessful();
+            if (responseCode.is2xxSuccessful()) {
+                return this.fileFromPresignedUrl(useCase, presignedUrl);
+            }
+            throw new PresignedUrlException("Presigned URL verification failed with non 200 status code");
         } catch (final IOException | URISyntaxException e) {
-            throw new PresignedUrlException("Presigned url verification failed", e);
+            throw new PresignedUrlException("Presigned URL verification failed", e);
         }
     }
 
     @Override
-    public void moveFile(final String bucket, final String srcPath, final String destPath) {
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
+    public void moveFile(final String tenant, final String bucket, final String srcPath, final String destPath) {
         try {
             // copy file
             final CopySource copySource = CopySource.builder()
@@ -237,11 +241,11 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                     .bucket(bucket)
                     .source(copySource)
                     .object(destPath).build();
-            this.minioClient.copyObject(copyObjectArgs);
+            this.s3Properties.getClient(tenant).copyObject(copyObjectArgs);
             // delete file
             final RemoveObjectArgs removeObjectArgs = RemoveObjectArgs.builder()
                     .bucket(bucket).object(srcPath).build();
-            this.minioClient.removeObject(removeObjectArgs);
+            this.s3Properties.getClient(tenant).removeObject(removeObjectArgs);
             log.info("Moved file in bucket {} from {} to {}", bucket, srcPath, destPath);
         } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
             final String message = String.format("Error while moving s3 object for bucket %s from path %s to %s", bucket, srcPath, destPath);
@@ -252,7 +256,8 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
 
     @Override
     @SuppressWarnings("PMD.UseObjectForClearerAPI")
-    public void copyFile(final String srcBucket, final String srcPath, final String destBucket, final String destPath, final boolean clearTags) {
+    public void copyFile(final String tenant, final String srcBucket, final String srcPath, final String destBucket, final String destPath,
+            final boolean clearTags) {
         try {
             final CopySource copySource = CopySource.builder()
                     .bucket(srcBucket)
@@ -268,7 +273,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 copyObjectArgs.extraHeaders(Map.of(
                         "x-amz-tagging", ""));
             }
-            this.minioClient.copyObject(copyObjectArgs.build());
+            this.s3Properties.getClient(tenant).copyObject(copyObjectArgs.build());
             log.info("Copied file {} from bucket {} to {} in bucket {}", srcPath, srcBucket, destPath, destBucket);
         } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
             final String message = String.format("Error while copying s3 object %s from bucket %s to %s in bucket %s", srcPath, srcBucket, destPath,
@@ -286,7 +291,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
      * @param recursive If searching recursive or only direct in the path.
      * @return Objects in the path.
      */
-    protected List<Item> getObjectsInPath(final String bucket, final String pathPrefix, final boolean recursive) {
+    protected List<Item> getObjectsInPath(final String tenant, final String bucket, final String pathPrefix, final boolean recursive) {
         // ensure prefix is handled as specific dir
         final String escapedPathPrefix = pathPrefix.endsWith("/") ? pathPrefix : pathPrefix + "/";
         // build s3 list request
@@ -295,7 +300,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .prefix(escapedPathPrefix)
                 .recursive(recursive).build();
         // list objects
-        final List<Result<Item>> listResult = IteratorUtils.toList(minioClient.listObjects(listObjectsArgs).iterator());
+        final List<Result<Item>> listResult = IteratorUtils.toList(s3Properties.getClient(tenant).listObjects(listObjectsArgs).iterator());
         try {
             final List<Item> objects = new ArrayList<>();
             for (final Result<Item> resultItem : listResult) {
@@ -317,13 +322,13 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
      * @return Tags the file has.
      * @throws FileNotFoundException If key can't be found in S3.
      */
-    protected Map<String, String> getTagsOfFile(final String bucket, final String objectName) throws FileNotFoundException {
+    protected Map<String, String> getTagsOfFile(final String tenant, final String bucket, final String objectName) throws FileNotFoundException {
         final GetObjectTagsArgs getObjectTagsArgs = GetObjectTagsArgs.builder()
                 .bucket(bucket)
                 .object(objectName)
                 .build();
         try {
-            final Map<String, String> tags = minioClient.getObjectTags(getObjectTagsArgs).get();
+            final Map<String, String> tags = s3Properties.getClient(tenant).getObjectTags(getObjectTagsArgs).get();
             // workaround: convert null value to empty string
             return tags.entrySet()
                     .stream()
@@ -377,8 +382,68 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         return true;
     }
 
+    /**
+     * Resolves a File from a presigned URL.
+     * Needs to be formated as: {@code <tenant url>/<bucket>/<path>}
+     *
+     * @param presignedUrl The presigned URL to resolve.
+     * @return The resolved File.
+     * @throws PresignedUrlException If the presigned URL can't be parsed.
+     */
+    protected File fileFromPresignedUrl(@NotNull final UseCase useCase, @NotBlank final String presignedUrl) throws PresignedUrlException {
+        // check input has content
+        if (Strings.isBlank(presignedUrl)) {
+            throw new PresignedUrlException("Empty presigned url can't be parsed");
+        }
+        // parse presigned url
+        final URI uri;
+        try {
+            uri = new URI(presignedUrl);
+        } catch (final URISyntaxException e) {
+            throw new PresignedUrlException("Presigned url could not be parsed", e);
+        }
+        // create File object from presigned url
+        final String tenantUrl = String.format("%s://%s%s", uri.getScheme(), uri.getHost(), uri.getPort() == -1 ? "" : ":" + uri.getPort());
+        final String uriPath = uri.getPath().replaceFirst("^/", "");
+        final int slashIndex = uriPath.indexOf('/');
+        final String bucket = uriPath.substring(0, slashIndex);
+        final String filePath = uriPath.substring(slashIndex + 1);
+        // compare with UseCase
+        this.verifyPresignedUrlForUseCase(useCase, tenantUrl, bucket, filePath);
+        return new File(useCase.getTenant(), useCase.getBucket(), filePath, null);
+    }
+
+    /**
+     * Verify the given presigned URL is valid for a UseCase.
+     *
+     * @param useCase The UseCase the presigned URL should be for.
+     * @param tenantUrl The resolved tenant URL from the presigned URL.
+     * @param bucket The resolved bucket from the presigned URL.
+     * @param filePath The resolved filePath URL from the presigned URL.
+     * @throws PresignedUrlException If the presigned URL is not valid for the UseCase.
+     */
+    protected void verifyPresignedUrlForUseCase(final UseCase useCase, final String tenantUrl, final String bucket, final String filePath)
+            throws PresignedUrlException {
+        // tenant
+        final S3Properties.ConnectionOptions tenantOptions = this.s3Properties.getTenants().get(useCase.getTenant());
+        if (!tenantOptions.getUrl().startsWith(tenantUrl) && !tenantUrl.startsWith(tenantOptions.getUrl())) {
+            throw new PresignedUrlException(String.format("Presigned URL: UseCase %s tenant URL %s doesn't match presigned URL %s",
+                    useCase.getName(), tenantOptions.getUrl(), tenantUrl));
+        }
+        // bucket
+        if (!useCase.getBucket().equals(bucket)) {
+            throw new PresignedUrlException(String.format("Presigned URL: Bucket %s from UseCase %s doesn't match bucket from presigned URL %s",
+                    useCase.getBucket(), useCase.getName(), bucket));
+        }
+        // path
+        if (!filePath.startsWith(useCase.getPath())) {
+            throw new PresignedUrlException(
+                    String.format("Presigned URL: Filepath %s isn't in UseCase %s path %s", filePath, useCase.getName(), useCase.getPath()));
+        }
+    }
+
     @Override
-    public List<ProtocolEntry> loadProtocol(final String bucket, final String path) {
+    public List<ProtocolEntry> loadProtocol(final String tenant, final String bucket, final String path) {
         // build csv schema
         final CsvMapper csvMapper = new CsvMapper();
         final CsvSchema schema = csvMapper.typedSchemaFor(CsvProtocolEntry.class)
@@ -386,7 +451,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .withColumnSeparator(PROTOCOL_DELIMITER)
                 .withColumnReordering(true);
         // parse csv
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(this.readFile(bucket, path), StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(this.readFile(tenant, bucket, path), StandardCharsets.UTF_8))) {
             // skip n rows
             for (int i = 0; i < PROTOCOL_SKIP_ROWS; i++) {
                 reader.readLine();

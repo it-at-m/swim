@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.dispatcher.configuration;
 
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
@@ -78,6 +79,7 @@ public class SwimDispatcherProperties {
      * Use cases which are processed.
      */
     @NotEmpty
+    @Valid
     private List<UseCase> useCases = List.of();
     // ########### metadata ###########
     /**

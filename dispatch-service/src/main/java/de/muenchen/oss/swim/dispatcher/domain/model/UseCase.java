@@ -16,6 +16,11 @@ public class UseCase {
     @NotBlank
     private String name;
     /**
+     * The s3 tenant to look for files in.
+     */
+    @NotBlank
+    private String tenant;
+    /**
      * The s3 bucket to look for files in.
      */
     @NotBlank

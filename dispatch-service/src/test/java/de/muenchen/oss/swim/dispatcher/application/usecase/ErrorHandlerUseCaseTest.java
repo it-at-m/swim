@@ -1,5 +1,7 @@
 package de.muenchen.oss.swim.dispatcher.application.usecase;
 
+import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE1;
+import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_FILE_EVENT;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL_PATH;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE;
@@ -7,12 +9,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import de.muenchen.oss.swim.dispatcher.TestConstants;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.NotificationOutPort;
 import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
+import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import org.junit.jupiter.api.Test;
@@ -47,14 +51,16 @@ class ErrorHandlerUseCaseTest {
             "Error stacktrace");
 
     @Test
-    void handleError_Success() {
+    void handleError_Success() throws PresignedUrlException {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
+        // setup
+        when(fileSystemOutPort.verifyAndResolvePresignedUrl(eq(useCase), eq(TEST_PRESIGNED_URL))).thenReturn(FILE1);
         // call
-        errorHandlerUseCase.handleError(USE_CASE, TEST_PRESIGNED_URL, null, TEST_ERROR_DETAILS);
+        errorHandlerUseCase.handleError(TEST_FILE_EVENT, TEST_ERROR_DETAILS);
         // test
         verify(notificationOutPort, times(1)).sendFileError(eq(useCase.getMailAddresses()), eq(USE_CASE), eq(TEST_PRESIGNED_URL_PATH),
                 eq(TEST_ERROR_DETAILS));
-        verify(fileSystemOutPort, times(1)).tagFile(any(), any(), any());
+        verify(fileSystemOutPort, times(1)).tagFile(any(), any(), any(), any());
         verify(notificationOutPort, times(0)).sendFileError(any(), any(), any(), any(), any());
         verify(dispatchMeter, times(1)).incrementError(eq(USE_CASE), eq(TEST_ERROR_DETAILS.source()));
     }
@@ -63,7 +69,7 @@ class ErrorHandlerUseCaseTest {
     void handleError_PresignedUrlException() {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         // call
-        errorHandlerUseCase.handleError(USE_CASE, null, null, TEST_ERROR_DETAILS);
+        errorHandlerUseCase.handleError(TEST_FILE_EVENT, TEST_ERROR_DETAILS);
         // test
         verify(notificationOutPort, times(0)).sendFileError(any(), any(), any(), any());
         verify(notificationOutPort, times(0)).sendFileError(eq(useCase.getMailAddresses()), eq(USE_CASE), eq(TEST_PRESIGNED_URL_PATH),

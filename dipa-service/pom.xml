@@ -11,7 +11,7 @@
 
     <groupId>de.muenchen.oss.swim</groupId>
     <artifactId>dipa-service</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
     <name>dipa-service</name>
     <description>SWIM service for transferring files into DiPa when notified by dispatch-service via Apache Kafka</description>
     <url>https://github.com/it-at-m/swim</url>

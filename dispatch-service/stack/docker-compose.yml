@@ -169,7 +169,7 @@ services:
   # ============= Mail =============
   #
   mailpit:
-    image: axllent/mailpit:v1.20.6@sha256:777080b355ef30e99b23007e4d043b452cf84fd4dcb378ef30da5a0aa316c33d
+    image: axllent/mailpit:v1.27.9@sha256:b004cc0672d0692f097ba8ab9e5956ae08eeafee3d0a6bf2ab239750101ac538
     ports:
       - '1025:1025' # SMTP Server
       - '8025:8025' # UI

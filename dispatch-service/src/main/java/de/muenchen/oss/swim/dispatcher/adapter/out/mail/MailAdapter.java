@@ -25,13 +25,11 @@ public class MailAdapter implements NotificationOutPort {
     private final JavaMailSender mailSender;
     private final MessageSource messageSource;
 
-    private final static String MAIL_ADDRESS_DELIMITER = ";";
     private final static String SUBJECT_OK = "OK";
     private final static String SUBJECT_ERROR = "ERROR";
 
     @Override
     public void sendDispatchErrors(final List<String> recipients, final String useCase, final Map<String, Throwable> errors) {
-        final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
         final String subject = this.buildSubject(true, String.format(this.getMessage("dispatchErrors.subject"), useCase));
         final String body = String.format(
                 this.getMessage("dispatchErrors.message"),
@@ -39,13 +37,12 @@ public class MailAdapter implements NotificationOutPort {
                 errors.entrySet().stream()
                         .map(e -> String.format("- %s: %s", e.getKey(), e.getValue().getMessage()))
                         .reduce((a, b) -> String.format("%s%n%s", a, b)).orElse(""));
-        this.sendMail(parsedRecipients, subject, body, Map.of());
+        this.sendMail(recipients, subject, body, Map.of());
     }
 
     @Override
     public void sendProtocol(final List<String> recipients, final String useCase, final String protocolName, final InputStream protocol,
             final List<String> missingFiles, final List<String> missingInProtocol) {
-        final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
         final boolean missmatch = !missingFiles.isEmpty() || !missingInProtocol.isEmpty();
         final String subject = this.buildSubject(missmatch, String.format(this.getMessage("protocol.subject"), protocolName, useCase));
         final String body = String.format(
@@ -59,40 +56,37 @@ public class MailAdapter implements NotificationOutPort {
         if (!missingInProtocol.isEmpty()) {
             attachments.put("missing_in_protocol.txt", fileListToInputStream(missingInProtocol));
         }
-        this.sendMail(parsedRecipients, subject, body, attachments);
+        this.sendMail(recipients, subject, body, attachments);
     }
 
     @Override
     public void sendProtocolError(final List<String> recipients, final String useCase, final String protocolPath, final Throwable error) {
-        final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
         final String subject = this.buildSubject(true, String.format(this.getMessage("protocolError.subject"), protocolPath, useCase));
         final String body = String.format(
                 this.getMessage("protocolError.message"),
                 useCase, protocolPath, error.getClass(), error.getMessage());
-        this.sendMail(parsedRecipients, subject, body, Map.of());
+        this.sendMail(recipients, subject, body, Map.of());
     }
 
     @Override
     public void sendFileError(final List<String> recipients, final String useCase, final String filePath, final ErrorDetails inputError,
             final Throwable error) {
-        final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
         final String subject = this.buildSubject(true, String.format(this.getMessage("fileErrorHandlerError.subject"), filePath, useCase));
         final String body = String.format(
                 this.getMessage("fileErrorHandlerError.message"),
                 useCase, filePath, inputError.source(),
                 error.getClass(), error.getMessage(),
                 inputError.className(), inputError.message(), inputError.stacktrace());
-        this.sendMail(parsedRecipients, subject, body, Map.of());
+        this.sendMail(recipients, subject, body, Map.of());
     }
 
     @Override
     public void sendFileError(final List<String> recipients, final String useCase, final String filePath, final ErrorDetails error) {
-        final String parsedRecipients = String.join(MAIL_ADDRESS_DELIMITER, recipients);
         final String subject = this.buildSubject(true, String.format(this.getMessage("fileError.subject"), filePath, useCase));
         final String body = String.format(
                 this.getMessage("fileError.message"),
                 useCase, filePath, error.source(), error.className(), error.message(), error.stacktrace());
-        this.sendMail(parsedRecipients, subject, body, Map.of());
+        this.sendMail(recipients, subject, body, Map.of());
     }
 
     /**
@@ -103,12 +97,12 @@ public class MailAdapter implements NotificationOutPort {
      * @param body Body of the mail.
      * @param attachments Map of filename and InputStreams of attachments for the mail.
      */
-    protected void sendMail(final String recipients, final String subject, final String body, final Map<String, InputStream> attachments) {
+    protected void sendMail(final List<String> recipients, final String subject, final String body, final Map<String, InputStream> attachments) {
         final MimeMessage message = mailSender.createMimeMessage();
         try {
             final MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setFrom(mailProperties.getFromAddress());
-            helper.setTo(recipients);
+            helper.setTo(recipients.toArray(new String[0]));
             helper.setSubject(subject);
             helper.setText(body);
             for (final Map.Entry<String, InputStream> attachment : attachments.entrySet()) {

@@ -92,7 +92,7 @@ public class MailAdapter implements NotificationOutPort {
     /**
      * Send a mail.
      *
-     * @param recipients Recipients the mail should be sent to. Multiple can be separated by ";".
+     * @param recipients List of recipient email addresses the mail should be sent to.
      * @param subject Subject of the mail.
      * @param body Body of the mail.
      * @param attachments Map of filename and InputStreams of attachments for the mail.

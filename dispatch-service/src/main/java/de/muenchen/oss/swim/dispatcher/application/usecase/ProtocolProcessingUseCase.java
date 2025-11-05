@@ -46,6 +46,7 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
         for (final UseCase useCase : swimDispatcherProperties.getUseCases()) {
             // get protocols not already processed
             final Map<File, Map<String, String>> protocolFiles = fileSystemOutPort.getMatchingFilesWithTags(
+                    useCase.getTenant(),
                     useCase.getBucket(),
                     useCase.getDispatchPath(swimDispatcherProperties),
                     useCase.isRecursive(),
@@ -82,15 +83,16 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
     protected void processProtocolFile(final UseCase useCase, final File file) {
         try {
             // load protocol
-            final List<ProtocolEntry> protocolEntries = readProtocolOutPort.loadProtocol(file.bucket(), file.path());
+            final List<ProtocolEntry> protocolEntries = readProtocolOutPort.loadProtocol(file.tenant(), file.bucket(), file.path());
             final List<String> protocolFileNames = protocolEntries.stream().map(ProtocolEntry::fileName).toList();
             // load files in folder
             final List<File> folderFiles = new ArrayList<>(
-                    fileSystemOutPort.getMatchingFilesWithTags(file.bucket(), file.getParentPath(), false, FILE_EXTENSION_PDF, Map.of(),
+                    fileSystemOutPort.getMatchingFilesWithTags(file.tenant(), file.bucket(), file.getParentPath(), false, FILE_EXTENSION_PDF, Map.of(),
                             Map.of()).keySet());
             // load files in finished folder
             final String finishedPath = useCase.getFinishedPath(swimDispatcherProperties, file.getParentPath());
-            folderFiles.addAll(fileSystemOutPort.getMatchingFilesWithTags(file.bucket(), finishedPath, false, FILE_EXTENSION_PDF, Map.of(), Map.of()).keySet());
+            folderFiles.addAll(fileSystemOutPort
+                    .getMatchingFilesWithTags(file.tenant(), file.bucket(), finishedPath, false, FILE_EXTENSION_PDF, Map.of(), Map.of()).keySet());
             // parse files
             final Set<String> folderFileNames = folderFiles.stream().map(File::getFileName).collect(Collectors.toSet());
             // compare files with protocol
@@ -105,7 +107,7 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
             storeProtocolOutPort.deleteProtocol(useCase.getName(), protocolName);
             storeProtocolOutPort.storeProtocol(useCase.getName(), protocolName, protocolEntries);
             // send protocol
-            try (InputStream inputStream = fileSystemOutPort.readFile(file.bucket(), file.path())) {
+            try (InputStream inputStream = fileSystemOutPort.readFile(file.tenant(), file.bucket(), file.path())) {
                 notificationOutPort.sendProtocol(useCase.getMailAddresses(), useCase.getName(), protocolName, inputStream, missingFiles,
                         missingInProtocol);
             }
@@ -120,12 +122,12 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
             } else {
                 matchState = MATCH_CORRECT;
             }
-            fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
+            fileSystemOutPort.tagFile(file.tenant(), file.bucket(), file.path(), Map.of(
                     swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTagValue(),
                     swimDispatcherProperties.getProtocolMatchTagKey(), matchState));
             // move protocol
             final String destPath = useCase.getFinishedProtocolPath(swimDispatcherProperties, file.path());
-            fileSystemOutPort.moveFile(file.bucket(), file.path(), destPath);
+            fileSystemOutPort.moveFile(file.tenant(), file.bucket(), file.path(), destPath);
         } catch (final IOException | RuntimeException e) {
             log.warn("Error file processing {} for use case {}", file.path(), useCase.getName(), e);
             fileHandlingHelper.markFileError(file, swimDispatcherProperties.getProtocolStateTagKey(), e);

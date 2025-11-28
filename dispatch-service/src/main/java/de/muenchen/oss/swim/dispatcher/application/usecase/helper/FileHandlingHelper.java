@@ -51,13 +51,13 @@ public class FileHandlingHelper {
      * @param path Path of the file.
      */
     public void finishFile(final UseCase useCase, final String bucket, final String path) {
-        // tag file as finished
-        fileSystemOutPort.tagFile(bucket, path, Map.of(
-                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchFileFinishedTagValue()));
         // move file
         final String destPath = useCase.getFinishedPath(swimDispatcherProperties, path);
         fileSystemOutPort.moveFile(bucket, path, destPath);
         log.info("Finished file {} in use case {}", path, useCase.getName());
+        // tag file in finished folder as finished
+        fileSystemOutPort.tagFile(bucket, destPath, Map.of(
+                swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchFileFinishedTagValue()));
         // update metric
         dispatchMeter.incrementFinished(useCase.getName());
     }

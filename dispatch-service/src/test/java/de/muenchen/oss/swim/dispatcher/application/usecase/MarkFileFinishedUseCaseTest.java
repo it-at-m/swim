@@ -45,9 +45,9 @@ class MarkFileFinishedUseCaseTest {
         when(fileSystemOutPort.verifyPresignedUrl(any())).thenReturn(true);
         markFileFinishedUseCase.markFileFinished(USE_CASE, TEST_PRESIGNED_URL);
         verify(fileSystemOutPort, times(1)).verifyPresignedUrl(TEST_PRESIGNED_URL);
-        verify(fileSystemOutPort, times(1)).tagFile(eq("test-bucket"), eq("test/inProcess/path/example.pdf"), eq(Map.of(
-                "SWIM_State", "finished")));
         verify(fileSystemOutPort, times(1)).moveFile(eq("test-bucket"), eq("test/inProcess/path/example.pdf"), eq("test/finished/path/example.pdf"));
+        verify(fileSystemOutPort, times(1)).tagFile(eq("test-bucket"), eq("test/finished/path/example.pdf"), eq(Map.of(
+                "SWIM_State", "finished")));
         verify(dispatchMeter, times(1)).incrementFinished(eq(USE_CASE));
     }
 

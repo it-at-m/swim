@@ -1,10 +1,16 @@
 package de.muenchen.oss.swim.dispatcher.application.usecase.helper;
 
+import static de.muenchen.oss.swim.dispatcher.TestConstants.BUCKET;
+import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE1;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+
 import de.muenchen.oss.swim.dispatcher.TestConstants;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -15,18 +21,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-import java.util.Map;
-
-import static de.muenchen.oss.swim.dispatcher.TestConstants.BUCKET;
-import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE1;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-
 @SpringBootTest(classes = { SwimDispatcherProperties.class, FileHandlingHelper.class })
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
-public class FileHandlingHelperTest {
+class FileHandlingHelperTest {
 
     @MockitoBean
     private DispatchMeter dispatchMeter;

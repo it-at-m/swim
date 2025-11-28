@@ -23,6 +23,7 @@ import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
+import de.muenchen.oss.swim.dms.domain.model.UseCaseIncoming;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseType;
 import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileEventOutPort;
 import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileSystemOutPort;
@@ -32,7 +33,9 @@ import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseExce
 import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -132,6 +135,20 @@ class ProcessFileUseCaseTest {
     }
 
     @Test
+    void testProcessFile_DecodeGermanChars() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
+        final String useCaseName = "static-inbox-incoming";
+        final String fileNameWithoutExtension = "test#a#o#u#s#A#O#Utest";
+        final String fileName = String.format("%s.pdf", fileNameWithoutExtension);
+        final String filePath = String.format("test/%s", fileName);
+        final File fileIn = new File(BUCKET, filePath);
+        final File fileDecoded = new File(BUCKET, filePath.replaceFirst(fileNameWithoutExtension, "testäöüßÄÖÜtest"));
+        // call
+        processFileUseCase.processFile(buildFileEvent(useCaseName, null), fileIn);
+        // test
+        verify(processFileUseCase).processInboxIncoming(eq(fileDecoded), any(), any(), any(), any());
+    }
+
+    @Test
     void testProcessFile_MetadataViaMetadata() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "metadata-metadata";
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
@@ -183,9 +200,9 @@ class ProcessFileUseCaseTest {
         // test
         testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, null, FILE_NAME);
         // call catch all
-        final String fileNameWithoutExtension = "asd";
+        final String fileNameWithoutExtension = "äasd";
         final String fileName = String.format("%s.pdf", fileNameWithoutExtension);
-        final String filePath = "test/asd.pdf";
+        final String filePath = String.format("test/%s", fileName);
         final File file = new File(BUCKET, filePath);
         final String presignedUrl = String.format("http://localhost:9001/%s/%s", BUCKET, filePath);
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
@@ -204,7 +221,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
         // test
-        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, null, FILE_NAME);
+        testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, "test", FILE_NAME);
         verify(dmsOutPort, times(1)).findObjectsByName(eq(DmsResourceType.PROCEDURE), eq(PATTERN_VALUE_TEST), any());
     }
 
@@ -245,6 +262,24 @@ class ProcessFileUseCaseTest {
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getContext());
         verify(dmsOutPort, times(1)).createContentObject(eq(dmsTarget), eq(new DmsContentObjectRequest(FILE_NAME, null)), eq(null));
+    }
+
+    @Test
+    void testResolveIncomingParameters_emptyPatternResult() throws MetadataException {
+        // setup
+        final UseCase useCase = new UseCase();
+        final UseCaseIncoming useCaseIncoming = new UseCaseIncoming();
+        useCaseIncoming.setIncomingNamePattern("s/^(.+)-(.*)$/${2}/");
+        useCase.setIncoming(useCaseIncoming);
+        final File file = new File(BUCKET, "test-asd.txt");
+        final File fileEmpty = new File(BUCKET, "test-.txt");
+        final Metadata metadata = new Metadata(null, Map.of());
+        // call
+        final DmsIncomingRequest response = processFileUseCase.resolveIncomingParameters(file, useCase, metadata);
+        final DmsIncomingRequest responseEmpty = processFileUseCase.resolveIncomingParameters(fileEmpty, useCase, metadata);
+        // test
+        assertEquals("asd", response.name());
+        assertEquals("test-", responseEmpty.name());
     }
 
     private void testDefaults(final String useCaseName, final UseCaseType targetType, final DmsTarget dmsTarget, final String incomingName,

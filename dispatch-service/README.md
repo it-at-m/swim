@@ -45,12 +45,31 @@ swim:
     url:
     access-key:
     secret-key:
+  # dirs
+  dispatch-folder: inProcess # subfolder to search for files to process under
+  finished-folder: finished # subfolder to move finished files to
+  protocol-finished-folder: finishedProtocols # subfolder to move finished protocols to
+  # metadata
+  metadata-dispatch-binding-key: SWIM_Dispatch_Target # see Section "Rerouting"
+  # s3 tags
+  dispatch-state-tag-key: SWIM_State # tag to use for processing state
+  dispatched-state-tag-value: sentToKafka # state if a file was processed and sent to kafka
+  dispatch-file-finished-tag-value: finished # state if a file is finished
+  dispatch-action-tag-key: SWIM_Action # see Section "Rerouting"
+  dispatch-action-destination-tag-key: SWIM_Reroute_Destination # see Section "Rerouting"
+  protocol-state-tag-key: CSV_State # tag to use for processing state of protocol CSVs
+  protocol-match-tag-key: CSV_Match # tag to mark how a protocol matches the files (correct, missingFiles, missingInProtocol, missingInProtocolAndFiles)
+  protocol-processed-state-tag-value: finished # state if a protocol file was finished
+  error-state-value: error # state if error occurred
+  error-class-tag-key: errorClass # tag for error class
+  error-message-tag-key: errorMessage # tag for error message
   # list of use cases
   use-cases:
     - name: # name of the use case
       bucket: # bucket to look for new files in
       path: # path to look for new files under
       recursive: # if the file lookup should be recursive (optional, default: false)
+      max-file-size: # max size files can have that they are dispatched (optional, default: 90MB (IEC) -> 90*1024*1024B, example: 1GB)
       required-tags: # map of tags required on files to be dispatched (optional, default: {})
       requires-metadata: # if a metadata file is required (optional, default: false)
       destination-binding: # the target destination binding, see section "Adding additional target"
@@ -74,3 +93,11 @@ spring:
 ```
 
 The binding key (in the above example `example-out`) can then be used as use case destination.
+
+## Rerouting
+
+To allow a preceding system to change the routing behaviour there is the property `swim.dispatch-action-tag-key`, which supports following values:
+
+- `dispatch` (default if action tag not set): Default routing behaviour
+- `reroute`: Reroute a message to another use case. Target use case is resolved via `swim.dispatch-action-destination-tag-key`
+- `delete`, `ignore`: File is marked as finished without further processing

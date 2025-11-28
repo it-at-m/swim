@@ -35,8 +35,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class DispatcherUseCase implements DispatcherInPort {
-    protected static final String ACTION_REROUTE_DESTINATION_TAG_KEY = "SWIM_Reroute_Destination";
-
     private final SwimDispatcherProperties swimDispatcherProperties;
     private final FileSystemOutPort fileSystemOutPort;
     private final FileDispatchingOutPort fileDispatchingOutPort;
@@ -118,15 +116,15 @@ public class DispatcherUseCase implements DispatcherInPort {
      * @param useCase The use case the file was found for.
      * @param file The file to be processed.
      * @throws FileSizeException If file is above configured
-     *             {@link SwimDispatcherProperties#getMaxFileSize()}
+     *             {@link UseCase#getMaxFileSize()}
      * @throws MetadataException If metadata file required but could not be loaded
      * @throws UseCaseException If use case can't be resolved in reroute action.
      */
     protected void processFile(final UseCase useCase, final File file, final Map<String, String> tags)
             throws FileSizeException, MetadataException, UseCaseException {
         // check file size
-        if (file.size() > swimDispatcherProperties.getMaxFileSize()) {
-            final String message = String.format("File %s too large. %d > %d", file.path(), file.size(), swimDispatcherProperties.getMaxFileSize());
+        if (file.size() > useCase.getMaxFileSize().toBytes()) {
+            final String message = String.format("File %s too large. %d > %d", file.path(), file.size(), useCase.getMaxFileSize().toBytes());
             throw new FileSizeException(message);
         }
         // resolve action
@@ -256,10 +254,10 @@ public class DispatcherUseCase implements DispatcherInPort {
      */
     protected void rerouteFileToUseCase(final UseCase useCase, final File file, final Map<String, String> tags) throws UseCaseException {
         // resolve target use case
-        final String targetUseCaseName = tags.get(ACTION_REROUTE_DESTINATION_TAG_KEY);
+        final String targetUseCaseName = tags.get(swimDispatcherProperties.getDispatchActionDestinationTagKey());
         if (targetUseCaseName == null) {
             final String message = String.format("Reroute action failed: No target use case specified in tag '%s' for file %s in use case %s",
-                    ACTION_REROUTE_DESTINATION_TAG_KEY, file.path(), useCase.getName());
+                    swimDispatcherProperties.getDispatchActionDestinationTagKey(), file.path(), useCase.getName());
             throw new IllegalStateException(message);
         }
         if (useCase.getName().equals(targetUseCaseName)) {

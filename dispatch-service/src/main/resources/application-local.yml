@@ -82,6 +82,7 @@ swim:
       bucket: swim-bucket
       path: test-dipa
       recursive: true
+      max-file-size: 1GB
       destination-binding: dipa-out
       mail-addresses:
         - test-dipa@example.com

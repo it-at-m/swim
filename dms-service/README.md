@@ -49,6 +49,7 @@ swim:
     base-url:
     username:
     password:
+  decode-german-chars-prefix: '#' # prefix for <use case>.decode-german-chars
   # metadata keys (default values)
   metadata-subject-prefix: "FdE_" # prefix to build subject from metadata file, see Metadata
   metadata-dms-target-key: "SWIM_DMS_Target" # key to use for resolving dms target type, see Type metadata_file
@@ -75,13 +76,15 @@ swim:
         joboe: # used to resolve user role under which the DMS action is executed, default role if not defined
         jobposition: # used to resolve user role under which the DMS action is executed, default role if not defined
       incoming:
-        incoming-name-pattern: # overwrite Incoming name via Regex pattern
-        reuse-incoming: # if already existing Incoming (based on name) should be reused, when existing only ContentObject is created inside
+        incoming-name-pattern: # overwrite Incoming name via Regex pattern, if result is empty falls back to default filename without extension
+        incoming-subject-pattern: # pattern for subject of new Incoming; if this is defined metadata-subject needs to be false
+        metadata-subject: # enables Incoming subject be built from metadata file, default false
+        reuse-incoming: # if already existing Incoming (based on name) should be reused, when existing only ContentObject is created inside first matching
         verify-procedure-name-pattern: # verifies target procedure name matches this pattern, only applies to type procedure_incoming
-        metadata-subject: # enables Incoming subject be built from metadata file
       content_object:
         subject-pattern: # pattern for subject of new ContentObject, currently only works inside Inbox
         filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
+      decode-german-chars: # if german special chars should be decoded, default false. See section "Decode german chars"
 ```
 
 ### Pattern
@@ -178,3 +181,17 @@ If a metadata file is required but missing or is invalid (syntax, value combinat
   }
 }
 ```
+
+### Decode german chars
+
+Some german special chars/umlauts (e.g. üß) can lead to problems in different programms (e.g. Word barcodes).
+For this a simple encoding was introduced which replaces the configured prefix (see `swim.decode-german-chars-prefix`)
+joined with the simple form of a character to the special char. Needs to be enabled per use case via `decode-german-chars`.
+
+- `#a` -> `ä`
+- `#o` -> `ö`
+- `#u` -> `ü`
+- `#s` -> `ß`
+- `#A` -> `Ä`
+- `#O` -> `Ö`
+- `#U` -> `Ü`

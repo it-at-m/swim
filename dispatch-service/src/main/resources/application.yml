@@ -15,11 +15,6 @@ spring:
             ack-mode: record
         binder:
           auto-create-topics: false
-          producerProperties:
-            value:
-              serializer: org.springframework.kafka.support.serializer.JsonSerializer
-            key:
-              serializer: org.springframework.kafka.support.serializer.JsonSerializer
           consumerProperties:
             max:
               poll:
@@ -27,10 +22,6 @@ spring:
             auto:
               offset:
                 reset: latest
-            key:
-              deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-            value:
-              deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
   kafka:
     consumer:
       properties:
@@ -100,8 +91,10 @@ swim:
   dispatched-state-tag-value: sentToKafka
   dispatch-file-finished-tag-value: finished
   dispatch-action-tag-key: SWIM_Action
+  dispatch-action-destination-tag-key: SWIM_Reroute_Destination
   protocol-state-tag-key: CSV_State
   protocol-match-tag-key: CSV_Match
   protocol-processed-state-tag-value: finished
+  error-state-value: error
   error-class-tag-key: errorClass
   error-message-tag-key: errorMessage

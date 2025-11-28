@@ -179,8 +179,16 @@ public class DmsAdapter implements DmsOutPort {
                     dmsTarget.getJoboe(),
                     dmsTarget.getJobposition()).block();
             if (response != null && response.getGiobjecttype() != null) {
-                return response.getGiobjecttype().stream().filter(
-                        i -> i.getName() != null && i.getName().startsWith(incomingNamePrefix)).findFirst().map(Objektreferenz::getId);
+                final List<Objektreferenz> matchingIncomings = response.getGiobjecttype().stream().filter(
+                        i -> i.getObjname() != null && i.getObjname().startsWith(incomingNamePrefix))
+                        .toList();
+                if (matchingIncomings.size() > 1) {
+                    log.warn("Using first of multiple matching Incomings with prefix {} for {}", incomingNamePrefix, dmsTarget);
+                }
+                if (matchingIncomings.isEmpty()) {
+                    return Optional.empty();
+                }
+                return Optional.ofNullable(matchingIncomings.getFirst().getObjaddress());
             } else {
                 throw new DmsException("Response or content null while looking up procedure objects");
             }
@@ -231,7 +239,7 @@ public class DmsAdapter implements DmsOutPort {
                     requestContext.getJoboe(),
                     requestContext.getJobposition()).block();
             if (response != null && response.getGiobjecttype() != null) {
-                final List<String> coos = response.getGiobjecttype().stream().map(Objektreferenz::getId).toList();
+                final List<String> coos = response.getGiobjecttype().stream().map(Objektreferenz::getObjaddress).toList();
                 log.info("Found following coos for {}: {}", objectName, coos);
                 return coos;
             } else {

@@ -11,7 +11,7 @@
 
     <groupId>de.muenchen.oss.swim</groupId>
     <artifactId>dipa-service</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
     <name>dipa-service</name>
     <description>SWIM service for transferring files into DiPa when notified by dispatch-service via Apache Kafka</description>
     <url>https://github.com/it-at-m/swim</url>
@@ -31,7 +31,7 @@
         <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
 
         <!-- Linting & Formatting -->
-        <spotless-maven-plugin.version>2.44.5</spotless-maven-plugin.version>
+        <spotless-maven-plugin.version>2.45.0</spotless-maven-plugin.version>
         <itm-java-codeformat.version>1.0.10</itm-java-codeformat.version>
         <pmd-maven-plugin.version>3.27.0</pmd-maven-plugin.version>
         <spotbugs-maven-plugin.version>4.9.3.2</spotbugs-maven-plugin.version>
@@ -137,6 +137,16 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-bindings-soap</artifactId>
+            <version>${cxf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-transports-http</artifactId>
+            <version>${cxf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxws</artifactId>
             <version>${cxf.version}</version>
         </dependency>
         <dependency>

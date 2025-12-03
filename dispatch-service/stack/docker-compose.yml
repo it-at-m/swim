@@ -50,7 +50,7 @@ services:
   # ============= Kafka =============
   #
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.8.3
+    image: confluentinc/cp-zookeeper:7.8.6@sha256:b93c9edcdf05de005063ba26f72eda4611d40c530828bb8847c8f848189d9adc
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000

@@ -28,7 +28,7 @@ jobs:
           - app-path: dipa-service
             build-image: true
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - if: ${{ hashFiles(format('./{0}/package.json', matrix.app-path)) != null }}
         id: node
         uses: it-at-m/lhm_actions/action-templates/actions/action-npm-build@12966547963631f8429d42bab860485b413003c2 # v1.0.22

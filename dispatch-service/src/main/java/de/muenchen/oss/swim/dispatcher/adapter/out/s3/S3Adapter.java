@@ -273,7 +273,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                     .bucket(bucket).object(path).build();
             this.minioClient.removeObject(removeObjectArgs);
             log.info("Deleted file in bucket {} with path {}", bucket, path);
-        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IOException e) {
+        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
             final String message = String.format("Error while deleting s3 object in bucket %s with path %s", bucket, path);
             log.error(message, e);
             throw new FileSystemAccessException(message, e);

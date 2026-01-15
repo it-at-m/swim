@@ -22,6 +22,14 @@ spring:
         finished-out:
           destination: swim-finished-local
 
+logging:
+  include-application-group: false # disabled because application group is only relevant when deployed
+  structured:
+    format:
+      console: # set to empty to disable structured logging for testing
+  level:
+    "de.muenchen.swim.dipa": debug
+
 swim:
   dipa:
     endpoint-url:

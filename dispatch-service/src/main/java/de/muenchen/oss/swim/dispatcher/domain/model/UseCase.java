@@ -43,7 +43,8 @@ public class UseCase {
      */
     private boolean requiresMetadata = false;
     /**
-     * Pattern of filenames which are ignored while protocol processing (e.g. for files which were spawned from another file).
+     * Pattern of filenames which are ignored while protocol processing (e.g. for files which were
+     * spawned from another file).
      * See {@link de.muenchen.oss.swim.dispatcher.application.usecase.ProtocolProcessingUseCase}.
      */
     private String protocolIgnorePattern;

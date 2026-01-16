@@ -76,6 +76,7 @@ swim:
       overwrite-destination-via-metadata: # if the destination binding should be resolved via the metadata file (optional, default: false, fallback to destination-binding)
       mail-addresses: # list of mail addresses used for sending notifications
       sensitive-filename: # if the filename is sensitive, if true it isn't logged (optional, default: false)
+      protocol-ignore-pattern: # pattern of filenames which are ignored while protocol processing (e.g. for files which were spawned from another file).
 ```
 
 ### Adding additional target

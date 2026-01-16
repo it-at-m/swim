@@ -19,9 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -92,7 +94,21 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
             final String finishedPath = useCase.getFinishedPath(swimDispatcherProperties, file.getParentPath());
             folderFiles.addAll(fileSystemOutPort.getMatchingFilesWithTags(file.bucket(), finishedPath, false, FILE_EXTENSION_PDF, Map.of(), Map.of()).keySet());
             // parse files
-            final Set<String> folderFileNames = folderFiles.stream().map(File::getFileName).collect(Collectors.toSet());
+            final Pattern filenameIgnorePattern = StringUtils.isNotBlank(useCase.getProtocolIgnorePattern())
+                    ? Pattern.compile(useCase.getProtocolIgnorePattern())
+                    : null;
+            final Set<String> folderFileNames = folderFiles.stream()
+                    // filter ignored files
+                    .filter(i -> {
+                        // filter out files if pattern is set
+                        if (filenameIgnorePattern != null) {
+                            final String fileNameWithoutExtension = i.getFileNameWithoutExtension();
+                            return !filenameIgnorePattern.matcher(fileNameWithoutExtension).matches();
+                        }
+                        return true;
+                    })
+                    // map to filename
+                    .map(File::getFileName).collect(Collectors.toSet());
             // compare files with protocol
             final List<String> missingInProtocol = new ArrayList<>(folderFileNames);
             missingInProtocol.removeAll(protocolFileNames);

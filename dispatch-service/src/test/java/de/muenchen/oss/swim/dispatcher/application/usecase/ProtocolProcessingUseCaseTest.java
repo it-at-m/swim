@@ -24,6 +24,7 @@ import de.muenchen.oss.swim.dispatcher.application.port.out.StoreProtocolOutPort
 import de.muenchen.oss.swim.dispatcher.application.usecase.helper.FileHandlingHelper;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.ProtocolException;
+import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.File;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import de.muenchen.oss.swim.dispatcher.domain.model.protocol.ProtocolEntry;
@@ -148,5 +149,31 @@ class ProtocolProcessingUseCaseTest {
         // test
         verify(fileHandlingHelper, times(1)).markFileError(eq(PROTOCOL_FILE), eq(swimDispatcherProperties.getProtocolStateTagKey()), eq(e));
         verify(notificationOutPort, times(1)).sendProtocolError(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_FILE.path()), eq(e));
+    }
+
+    @Test
+    @SuppressWarnings("PMD.CloseResource")
+    void testProcessProtocolFile_IgnorePattern() throws UseCaseException {
+        final UseCase useCase = swimDispatcherProperties.findUseCase("test-meta-dest");
+        final File protocolFile = new File(BUCKET, "test3/inProcess/path/path.csv", 0L);
+        // setup
+        when(readProtocolOutPort.loadProtocol(eq(protocolFile.bucket()), eq(protocolFile.path()))).thenReturn(List.of(
+                new ProtocolEntry("test.pdf", 1, null, null, null, null, null, Map.of())));
+        when(fileSystemOutPort.getMatchingFilesWithTags(any(), any(), anyBoolean(), any(), any(), anyMap())).thenReturn(Map.of(
+                new File(BUCKET, "test3/inProcess/path/test.pdf", 0L), TAGS,
+                new File(BUCKET, "test3/inProcess/path/test-1v1.pdf", 0L), TAGS,
+                new File(BUCKET, "test3/inProcess/path/test-1v1-wrong.pdf", 0L), TAGS));
+        final InputStream protocolStream = getClass().getResourceAsStream("files/protocol.csv");
+        when(fileSystemOutPort.readFile(eq(protocolFile.bucket()), eq(protocolFile.path()))).thenReturn(protocolStream);
+        // call
+        protocolProcessingUseCase.processProtocolFile(useCase, protocolFile);
+        // test
+        verify(notificationOutPort, times(1)).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(useCase.getName()), eq(PROTOCOL_RAW_PATH), eq(protocolStream),
+                eq(List.of()), eq(List.of("test-1v1-wrong.pdf")));
+        verify(fileSystemOutPort, times(1)).tagFile(eq(protocolFile.bucket()), eq(protocolFile.path()), eq(Map.of(
+                swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTagValue(),
+                swimDispatcherProperties.getProtocolMatchTagKey(), "missingInProtocol")));
+        verify(fileHandlingHelper, times(0)).markFileError(any(), any(), any());
+        verify(notificationOutPort, times(0)).sendProtocolError(any(), any(), any(), any());
     }
 }

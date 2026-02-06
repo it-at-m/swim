@@ -47,11 +47,11 @@ public class DispatcherUseCase implements DispatcherInPort {
     public void triggerDispatching() {
         log.info("Starting dispatching");
         for (final UseCase useCase : swimDispatcherProperties.getUseCases()) {
+            final Map<String, Throwable> errors = new HashMap<>();
             try {
                 // handle files directly in directory
                 final String dispatchPath = useCase.getDispatchPath(swimDispatcherProperties);
-                final Map<String, Throwable> errors = new HashMap<>(
-                        this.processDirectory(useCase, dispatchPath, false));
+                errors.putAll(this.processDirectory(useCase, dispatchPath, false));
                 // handle recursive by directory
                 if (useCase.isRecursive()) {
                     // get folders
@@ -63,12 +63,12 @@ public class DispatcherUseCase implements DispatcherInPort {
                         }
                     }
                 }
-                // send errors
-                if (!errors.isEmpty()) {
-                    notificationOutPort.sendDispatchErrors(useCase.getMailAddresses(), useCase.getName(), errors);
-                }
             } catch (final Exception e) {
-                log.error("Processing of use case {} failed", useCase.getName(), e);
+                log.error("Processing of use case {} failed.", useCase.getName(), e);
+            }
+            // send errors
+            if (!errors.isEmpty()) {
+                notificationOutPort.sendDispatchErrors(useCase.getMailAddresses(), useCase.getName(), errors);
             }
         }
         log.info("Finished dispatching");

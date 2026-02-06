@@ -47,24 +47,28 @@ public class DispatcherUseCase implements DispatcherInPort {
     public void triggerDispatching() {
         log.info("Starting dispatching");
         for (final UseCase useCase : swimDispatcherProperties.getUseCases()) {
-            // handle files directly in directory
-            final String dispatchPath = useCase.getDispatchPath(swimDispatcherProperties);
-            final Map<String, Throwable> errors = new HashMap<>(
-                    this.processDirectory(useCase, dispatchPath, false));
-            // handle recursive by directory
-            if (useCase.isRecursive()) {
-                // get folders
-                final List<String> folders = fileSystemOutPort.getSubDirectories(useCase.getBucket(), dispatchPath);
-                // dispatch files per folder if not in finished folder
-                for (final String folder : folders) {
-                    if (!folder.contains(swimDispatcherProperties.getFinishedFolder())) {
-                        errors.putAll(this.processDirectory(useCase, folder, true));
+            try {
+                // handle files directly in directory
+                final String dispatchPath = useCase.getDispatchPath(swimDispatcherProperties);
+                final Map<String, Throwable> errors = new HashMap<>(
+                        this.processDirectory(useCase, dispatchPath, false));
+                // handle recursive by directory
+                if (useCase.isRecursive()) {
+                    // get folders
+                    final List<String> folders = fileSystemOutPort.getSubDirectories(useCase.getBucket(), dispatchPath);
+                    // dispatch files per folder if not in finished folder
+                    for (final String folder : folders) {
+                        if (!folder.contains(swimDispatcherProperties.getFinishedFolder())) {
+                            errors.putAll(this.processDirectory(useCase, folder, true));
+                        }
                     }
                 }
-            }
-            // send errors
-            if (!errors.isEmpty()) {
-                notificationOutPort.sendDispatchErrors(useCase.getMailAddresses(), useCase.getName(), errors);
+                // send errors
+                if (!errors.isEmpty()) {
+                    notificationOutPort.sendDispatchErrors(useCase.getMailAddresses(), useCase.getName(), errors);
+                }
+            } catch (final Exception e) {
+                log.error("Processing of use case {} failed", useCase.getName(), e);
             }
         }
         log.info("Finished dispatching");

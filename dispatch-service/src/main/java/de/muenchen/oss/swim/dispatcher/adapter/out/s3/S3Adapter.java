@@ -227,27 +227,10 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
 
     @Override
     public void moveFile(final String bucket, final String srcPath, final String destPath) {
-        try {
-            // copy file
-            final CopySource copySource = CopySource.builder()
-                    .bucket(bucket)
-                    .object(srcPath)
-                    .build();
-            final CopyObjectArgs copyObjectArgs = CopyObjectArgs.builder()
-                    .bucket(bucket)
-                    .source(copySource)
-                    .object(destPath).build();
-            this.minioClient.copyObject(copyObjectArgs);
-            // delete file
-            final RemoveObjectArgs removeObjectArgs = RemoveObjectArgs.builder()
-                    .bucket(bucket).object(srcPath).build();
-            this.minioClient.removeObject(removeObjectArgs);
-            log.info("Moved file in bucket {} from {} to {}", bucket, srcPath, destPath);
-        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
-            final String message = String.format("Error while moving s3 object for bucket %s from path %s to %s", bucket, srcPath, destPath);
-            log.error(message, e);
-            throw new FileSystemAccessException(message, e);
-        }
+        // copy file
+        this.copyFile(bucket, srcPath, bucket, destPath, false);
+        // delete src file
+        this.deleteFile(bucket, srcPath);
     }
 
     @Override
@@ -273,6 +256,25 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
             final String message = String.format("Error while copying s3 object %s from bucket %s to %s in bucket %s", srcPath, srcBucket, destPath,
                     destBucket);
+            log.error(message, e);
+            throw new FileSystemAccessException(message, e);
+        }
+    }
+
+    /**
+     * Delete a file.
+     *
+     * @param bucket The bucket the file is in.
+     * @param path The path of the file.
+     */
+    public void deleteFile(final String bucket, final String path) {
+        try {
+            final RemoveObjectArgs removeObjectArgs = RemoveObjectArgs.builder()
+                    .bucket(bucket).object(path).build();
+            this.minioClient.removeObject(removeObjectArgs);
+            log.info("Deleted file in bucket {} with path {}", bucket, path);
+        } catch (final MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+            final String message = String.format("Error while deleting s3 object in bucket %s with path %s", bucket, path);
             log.error(message, e);
             throw new FileSystemAccessException(message, e);
         }

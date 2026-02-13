@@ -173,6 +173,9 @@ public class TargetResolverHelper {
         // load value from metadata file
         final Map<String, String> indexFields = metadata.indexFields();
         final String metadataDmsTarget = indexFields.get(swimDmsProperties.getMetadataDmsTargetKey());
+        if (StringUtils.isBlank(metadataDmsTarget)) {
+            throw new MetadataException("DMS target key '%s' not found in metadata file or empty".formatted(swimDmsProperties.getMetadataDmsTargetKey()));
+        }
         // resolve type from value
         try {
             final UseCaseType resolvedType = UseCaseType.valueOf(metadataDmsTarget.toUpperCase(Locale.ROOT));

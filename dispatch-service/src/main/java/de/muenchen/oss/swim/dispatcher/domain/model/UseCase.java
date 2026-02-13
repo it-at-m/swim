@@ -43,6 +43,12 @@ public class UseCase {
      */
     private boolean requiresMetadata = false;
     /**
+     * Pattern of filenames which are ignored while protocol processing (e.g. for files which were
+     * spawned from another file).
+     * See {@link de.muenchen.oss.swim.dispatcher.application.usecase.ProtocolProcessingUseCase}.
+     */
+    private String protocolIgnorePattern;
+    /**
      * If destination binding should be resolved via metadata file.
      * See {@link SwimDispatcherProperties#getMetadataDispatchBindingKey()}.
      * Uses {@link #destinationBinding} as fallback.

@@ -64,11 +64,15 @@ public class DispatcherUseCase implements DispatcherInPort {
                     }
                 }
             } catch (final Exception e) {
-                log.error("Processing of use case {} failed.", useCase.getName(), e);
+                log.error("Processing of use case {} failed. Notified errors could be incomplete.", useCase.getName(), e);
             }
             // send errors
-            if (!errors.isEmpty()) {
-                notificationOutPort.sendDispatchErrors(useCase.getMailAddresses(), useCase.getName(), errors);
+            try {
+                if (!errors.isEmpty()) {
+                    notificationOutPort.sendDispatchErrors(useCase.getMailAddresses(), useCase.getName(), errors);
+                }
+            } catch (final Exception e) {
+                log.error("Sending error notification for use case {} and {} errors failed.", useCase.getName(), errors.size(), e);
             }
         }
         log.info("Finished dispatching");

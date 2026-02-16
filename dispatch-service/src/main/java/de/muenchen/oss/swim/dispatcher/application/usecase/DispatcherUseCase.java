@@ -44,6 +44,7 @@ public class DispatcherUseCase implements DispatcherInPort {
     private final MetadataHelper metadataHelper;
 
     @Override
+    @SuppressWarnings("PMD.CognitiveComplexity")
     public void triggerDispatching() {
         log.info("Starting dispatching");
         for (final UseCase useCase : swimDispatcherProperties.getUseCases()) {

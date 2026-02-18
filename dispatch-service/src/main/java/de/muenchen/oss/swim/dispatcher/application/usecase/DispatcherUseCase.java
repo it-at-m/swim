@@ -44,7 +44,6 @@ public class DispatcherUseCase implements DispatcherInPort {
     private final MetadataHelper metadataHelper;
 
     @Override
-    @SuppressWarnings("PMD.CognitiveComplexity")
     public void triggerDispatching() {
         log.info("Starting dispatching");
         for (final UseCase useCase : swimDispatcherProperties.getUseCases()) {
@@ -64,16 +63,17 @@ public class DispatcherUseCase implements DispatcherInPort {
                         }
                     }
                 }
-            } catch (final Exception e) {
-                log.error("Processing of use case {} failed. Notified errors could be incomplete.", useCase.getName(), e);
-            }
-            // send errors
-            try {
+                // send errors
                 if (!errors.isEmpty()) {
                     notificationOutPort.sendDispatchErrors(useCase.getMailAddresses(), useCase.getName(), errors);
                 }
             } catch (final Exception e) {
-                log.error("Sending error notification for use case {} and {} errors failed.", useCase.getName(), errors.size(), e);
+                log.error("Processing of use case {} failed", useCase.getName(), e);
+                final Map<String, Throwable> enrichedErrors = new HashMap<>();
+                enrichedErrors.put("!!! USE CASE PROCESSING !!!", new UseCaseException(
+                        "Unexpected error during dispatching, use case was not processed completely. Error: %s".formatted(e.getMessage()), e));
+                enrichedErrors.putAll(errors);
+                notificationOutPort.sendDispatchErrors(useCase.getMailAddresses(), useCase.getName(), enrichedErrors);
             }
         }
         log.info("Finished dispatching");

@@ -1,7 +1,5 @@
 package de.muenchen.oss.swim.dispatcher.domain.model;
 
-import java.util.List;
-
 public record ErrorDetails(
         String source,
         String className,
@@ -9,6 +7,10 @@ public record ErrorDetails(
         String stacktrace) {
 
     public String getTrimmedMessage() {
-        return List.of(this.message.split(";")).getLast().trim();
+        if (this.message == null || this.message.isBlank()) {
+            return "";
+        }
+        final String[] parts = this.message.split(";");
+        return parts.length > 0 ? parts[parts.length - 1].trim() : "";
     }
 }

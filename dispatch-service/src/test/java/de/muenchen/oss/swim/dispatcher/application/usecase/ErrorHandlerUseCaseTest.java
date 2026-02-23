@@ -16,6 +16,7 @@ import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,8 +25,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-import java.util.Map;
 
 @SpringBootTest(classes = { SwimDispatcherProperties.class, ErrorHandlerUseCase.class })
 @EnableConfigurationProperties
@@ -58,8 +57,7 @@ class ErrorHandlerUseCaseTest {
         verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(TEST_PRESIGNED_URL_PATH), eq(Map.of(
                 "SWIM_State", "error",
                 "errorClass", "de.muenchen.swim.CustomException",
-                "errorMessage", "Cause message"
-        )));
+                "errorMessage", "Cause message")));
         verify(notificationOutPort, times(1)).sendFileError(eq(useCase.getMailAddresses()), eq(USE_CASE), eq(TEST_PRESIGNED_URL_PATH),
                 eq(TEST_ERROR_DETAILS));
         verify(notificationOutPort, times(0)).sendFileError(any(), any(), any(), any(), any());

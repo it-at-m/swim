@@ -353,6 +353,7 @@
                         <endWithNewline />
                         <importOrder />
                         <removeUnusedImports />
+                        <forbidWildcardImports />
                     </java>
                 </configuration>
                 <executions>

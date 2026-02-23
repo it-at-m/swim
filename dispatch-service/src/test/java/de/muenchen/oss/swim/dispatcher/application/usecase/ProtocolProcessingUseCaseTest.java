@@ -45,8 +45,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
-@SuppressWarnings("CPD-START")
+@SuppressWarnings({ "CPD-START", "PMD.CloseResource" })
 class ProtocolProcessingUseCaseTest {
+    public static final String EXAMPLE_PROTOCOL_RESOURCE_PATH = "files/protocol.csv";
+
     @MockitoBean
     private FileSystemOutPort fileSystemOutPort;
     @MockitoBean
@@ -86,7 +88,6 @@ class ProtocolProcessingUseCaseTest {
     }
 
     @Test
-    @SuppressWarnings("PMD.CloseResource")
     void testProcessProtocolFile_Successful() {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         // setup
@@ -96,7 +97,7 @@ class ProtocolProcessingUseCaseTest {
         final String protocolDirFinished = useCase.getFinishedPath(swimDispatcherProperties, protocolDir);
         when(fileSystemOutPort.getMatchingFilesWithTags(eq(BUCKET), eq(protocolDirFinished), eq(false), any(), any(), anyMap()))
                 .thenReturn(Map.of(FILE1, TAGS, FILE2, TAGS));
-        final InputStream protocolStream = getClass().getResourceAsStream("files/protocol.csv");
+        final InputStream protocolStream = getClass().getResourceAsStream(EXAMPLE_PROTOCOL_RESOURCE_PATH);
         when(fileSystemOutPort.readFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(protocolStream);
         // call
         protocolProcessingUseCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE);
@@ -114,7 +115,6 @@ class ProtocolProcessingUseCaseTest {
     }
 
     @Test
-    @SuppressWarnings("PMD.CloseResource")
     void testProcessProtocolFile_Missmatch() {
         // setup
         when(readProtocolOutPort.loadProtocol(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(List.of(
@@ -125,7 +125,7 @@ class ProtocolProcessingUseCaseTest {
                 FILE1, TAGS,
                 FILE2, TAGS,
                 new File(BUCKET, "test/inProcess/path/test3.pdf", 0L), TAGS));
-        final InputStream protocolStream = getClass().getResourceAsStream("files/protocol.csv");
+        final InputStream protocolStream = getClass().getResourceAsStream(EXAMPLE_PROTOCOL_RESOURCE_PATH);
         when(fileSystemOutPort.readFile(eq(PROTOCOL_FILE.bucket()), eq(PROTOCOL_FILE.path()))).thenReturn(protocolStream);
         // call
         protocolProcessingUseCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE);
@@ -152,7 +152,6 @@ class ProtocolProcessingUseCaseTest {
     }
 
     @Test
-    @SuppressWarnings("PMD.CloseResource")
     void testProcessProtocolFile_IgnorePattern() throws UseCaseException {
         final UseCase useCase = swimDispatcherProperties.findUseCase("test-meta-dest");
         final File protocolFile = new File(BUCKET, "test3/inProcess/path/path.csv", 0L);
@@ -163,7 +162,7 @@ class ProtocolProcessingUseCaseTest {
                 new File(BUCKET, "test3/inProcess/path/test.pdf", 0L), TAGS,
                 new File(BUCKET, "test3/inProcess/path/test-1v1.pdf", 0L), TAGS,
                 new File(BUCKET, "test3/inProcess/path/test-1v1-wrong.pdf", 0L), TAGS));
-        final InputStream protocolStream = getClass().getResourceAsStream("files/protocol.csv");
+        final InputStream protocolStream = getClass().getResourceAsStream(EXAMPLE_PROTOCOL_RESOURCE_PATH);
         when(fileSystemOutPort.readFile(eq(protocolFile.bucket()), eq(protocolFile.path()))).thenReturn(protocolStream);
         // call
         protocolProcessingUseCase.processProtocolFile(useCase, protocolFile);
@@ -175,5 +174,36 @@ class ProtocolProcessingUseCaseTest {
                 swimDispatcherProperties.getProtocolMatchTagKey(), "missingInProtocol")));
         verify(fileHandlingHelper, times(0)).markFileError(any(), any(), any());
         verify(notificationOutPort, times(0)).sendProtocolError(any(), any(), any(), any());
+    }
+
+    @Test
+    void testProcessProtocolFile_TagProcessedFiles() throws UseCaseException {
+        // use case with tag-protocol-processed enabled
+        final UseCase useCase = swimDispatcherProperties.findUseCase("test2");
+        final File protocolFile = new File("test-bucket-2", "path/test2/inProcess/path/path.csv", 0L);
+        final File inProcessFile1 = new File("test-bucket-2", "path/test2/inProcess/path/test.pdf", 0L);
+        final File inProcessFile2 = new File("test-bucket-2", "path/test2/inProcess/path/test2.pdf", 0L);
+        // setup
+        when(readProtocolOutPort.loadProtocol(eq(protocolFile.bucket()), eq(protocolFile.path()))).thenReturn(List.of(
+                new ProtocolEntry("test.pdf", 1, null, null, null, null, null, Map.of()),
+                new ProtocolEntry("test2.pdf", 2, null, null, null, null, null, Map.of())));
+        final String protocolDir = protocolFile.getParentPath();
+        // in-process contains both files
+        when(fileSystemOutPort.getMatchingFilesWithTags(eq(protocolFile.bucket()), eq(protocolDir), eq(false), any(), any(), anyMap())).thenReturn(Map.of(
+                inProcessFile1, TAGS,
+                inProcessFile2, TAGS));
+        // finished dir empty
+        final String protocolDirFinished = useCase.getFinishedPath(swimDispatcherProperties, protocolDir);
+        when(fileSystemOutPort.getMatchingFilesWithTags(eq(protocolFile.bucket()), eq(protocolDirFinished), eq(false), any(), any(), anyMap()))
+                .thenReturn(Map.of());
+        final InputStream protocolStream = getClass().getResourceAsStream(EXAMPLE_PROTOCOL_RESOURCE_PATH);
+        when(fileSystemOutPort.readFile(eq(protocolFile.bucket()), eq(protocolFile.path()))).thenReturn(protocolStream);
+        // call
+        protocolProcessingUseCase.processProtocolFile(useCase, protocolFile);
+        // test: both in-process files should be tagged as protocol processed
+        verify(fileSystemOutPort, times(1)).tagFile(eq(inProcessFile1.bucket()), eq(inProcessFile1.path()), eq(Map.of(
+                "SWIM_State", "protocolProcessingSuccessful")));
+        verify(fileSystemOutPort, times(1)).tagFile(eq(inProcessFile2.bucket()), eq(inProcessFile2.path()), eq(Map.of(
+                "SWIM_State", "protocolProcessingSuccessful")));
     }
 }

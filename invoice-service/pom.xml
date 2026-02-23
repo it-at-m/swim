@@ -28,7 +28,7 @@
         <swim-handler-core.version>0.5.0</swim-handler-core.version>
 
         <!-- Linting & Formatting -->
-        <spotless-maven-plugin.version>2.45.0</spotless-maven-plugin.version>
+        <spotless-maven-plugin.version>3.2.1</spotless-maven-plugin.version>
         <itm-java-codeformat.version>1.0.10</itm-java-codeformat.version>
         <pmd-maven-plugin.version>3.27.0</pmd-maven-plugin.version>
         <spotbugs-maven-plugin.version>4.9.8.2</spotbugs-maven-plugin.version>
@@ -43,12 +43,12 @@
         <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
 
         <!-- Utility -->
-        <commons-text.version>1.13.1</commons-text.version>
+        <commons-text.version>1.15.0</commons-text.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <refarch-tools.version>1.2.0</refarch-tools.version>
 
         <!-- cxf/WSDL -->
-        <cxf.version>4.1.5</cxf.version>
+        <cxf.version>4.2.0</cxf.version>
         <jakarta.xml.bind-api.version>4.0.5</jakarta.xml.bind-api.version>
         <jaxws-rt.version>4.0.3</jaxws-rt.version>
 
@@ -343,6 +343,7 @@
                         <endWithNewline />
                         <importOrder />
                         <removeUnusedImports />
+                        <forbidWildcardImports />
                     </java>
                 </configuration>
                 <executions>

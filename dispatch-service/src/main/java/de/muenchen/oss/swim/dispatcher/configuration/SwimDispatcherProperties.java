@@ -69,7 +69,7 @@ public class SwimDispatcherProperties {
     @NotBlank
     private String protocolProcessedStateTagValue;
     /**
-     * Tag value for state when file parsed protocol processing.
+     * Tag value for state when file passed protocol processing.
      * See {@link UseCase#isTagProtocolProcessed()}.
      */
     @NotBlank

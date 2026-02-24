@@ -10,7 +10,7 @@ public record ErrorDetails(
         if (this.message == null || this.message.isBlank()) {
             return "";
         }
-        final String[] parts = this.message.split(";");
-        return parts.length > 0 ? parts[parts.length - 1].trim() : "";
+        final String[] parts = this.message.split("; ");
+        return parts.length > 1 ? parts[1].trim() : this.message;
     }
 }

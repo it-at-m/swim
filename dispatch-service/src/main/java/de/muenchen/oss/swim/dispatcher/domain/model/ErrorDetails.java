@@ -11,6 +11,6 @@ public record ErrorDetails(
             return "";
         }
         final int index = this.message.indexOf("; ");
-        return index != -1 ? this.message.substring(index + 1).trim() : this.message;
+        return index == -1 ? this.message : this.message.substring(index + 1).trim();
     }
 }

@@ -1,5 +1,6 @@
 package de.muenchen.oss.swim.dispatcher.application.usecase;
 
+import static de.muenchen.oss.swim.dispatcher.TestConstants.BUCKET;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL_PATH;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE;
@@ -15,6 +16,7 @@ import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -43,7 +45,7 @@ class ErrorHandlerUseCaseTest {
     private static final ErrorDetails TEST_ERROR_DETAILS = new ErrorDetails(
             "swim-test-local",
             "de.muenchen.swim.CustomException",
-            "Error message",
+            "Error message; Cause message",
             "Error stacktrace");
 
     @Test
@@ -52,9 +54,12 @@ class ErrorHandlerUseCaseTest {
         // call
         errorHandlerUseCase.handleError(USE_CASE, TEST_PRESIGNED_URL, null, TEST_ERROR_DETAILS);
         // test
+        verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(TEST_PRESIGNED_URL_PATH), eq(Map.of(
+                "SWIM_State", "error",
+                "errorClass", "de.muenchen.swim.CustomException",
+                "errorMessage", "Cause message")));
         verify(notificationOutPort, times(1)).sendFileError(eq(useCase.getMailAddresses()), eq(USE_CASE), eq(TEST_PRESIGNED_URL_PATH),
                 eq(TEST_ERROR_DETAILS));
-        verify(fileSystemOutPort, times(1)).tagFile(any(), any(), any());
         verify(notificationOutPort, times(0)).sendFileError(any(), any(), any(), any(), any());
         verify(dispatchMeter, times(1)).incrementError(eq(USE_CASE), eq(TEST_ERROR_DETAILS.source()));
     }

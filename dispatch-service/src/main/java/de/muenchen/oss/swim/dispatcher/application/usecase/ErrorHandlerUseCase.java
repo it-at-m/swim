@@ -49,7 +49,7 @@ public class ErrorHandlerUseCase implements ErrorHandlerInPort {
      */
     protected void markFileError(final File file, final ErrorDetails e) {
         // escape illegal chars from message
-        final String escapedMessage = e.message().replaceAll("[^\\w .-]", " ");
+        final String escapedMessage = e.getTrimmedMessage().replaceAll("[^\\w .-]", " ");
         // shorten exception message for tag value max 256 chars
         final String shortenedExceptionMessage = escapedMessage.length() > 256 ? escapedMessage.substring(0, 256) : escapedMessage;
         fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(

@@ -19,6 +19,54 @@ Following a list and short description of the different components:
 - [dipa-service](./dipa-service): Service for transferring files into DiPa when notified by the `dispatch-service` via Kafka. Based on `handler-core`.
 - [scripts](./scripts): Helper scripts for maintenance tasks.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    dispatcher[dispatcher-service] --> s3[(S3)]
+    %% dipa
+    dispatcher -->|Apache Kafka| dipa[dipa-service] -->|SOAP| DiPa-EAI
+    dipa -->|presigned URLs| s3
+    dipa -->|Apache Kafka| dispatcher
+    %% dms
+    dispatcher -->|Apache Kafka| dms[dms-service] -->|REST| DMS-EAI
+    dms -->|presigned URLs| s3
+    dms -->|Apache Kafka| dispatcher
+    %% invoice
+    dispatcher -->|Apache Kafka| invoice[invoice-service] -->|SOAP| Invoice-EAI
+    invoice -->|presigned URLs| s3
+    invoice -->|Apache Kafka| dispatcher
+    %% matching
+    matching[matching-service]
+```
+
+### Default flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant dispatcher
+    participant s3
+    participant service as *-service
+    dispatcher ->>+ s3: Check for files to process (filtered by tags and dirs)
+    s3 -->>- dispatcher: 
+    loop for each file
+        dispatcher ->>+ service: Send file event via Apache Kafka
+        service -->> s3: Load file via presigned URL
+        service ->> service: process file (make API calls ...)
+        service -->>- dispatcher: Send file finished or error event via Apache Kafka
+    end
+    dispatcher ->> dispatcher: Tag file accordingly and move if necessary
+```
+
+```mermaid
+flowchart LR
+    dispatcher[dispatcher-service] -->|1.| s3[(S3)]
+    dispatcher -->|3. Apache Kafka| service[*-service] -->|5.| API
+    service -->|4. presigned URLs| s3
+    service -->|6. Apache Kafka| dispatcher
+```
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.

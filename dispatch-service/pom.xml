@@ -27,7 +27,7 @@
         <spring-cloud-dependencies.version>2025.0.1</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
 
         <!-- Other -->
-        <minio.version>8.5.17</minio.version>
+        <minio.version>8.6.0</minio.version>
 
         <!-- Linting & Formatting -->
         <spotless-maven-plugin.version>3.2.1</spotless-maven-plugin.version>

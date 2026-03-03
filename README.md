@@ -52,7 +52,8 @@ sequenceDiagram
     s3 -->>- dispatch: 
     loop for each file
         dispatch ->>+ service: Send file event via Apache Kafka
-        service -->> s3: Load file via presigned URL
+        service -->>+ s3: Load file via presigned URL
+        s3 -->- service: 
         service ->> service: process file (make API calls ...)
         service -->>- dispatch: Send file finished or error event via Apache Kafka
     end
@@ -63,9 +64,9 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     dispatch[dispatch-service] -->|1. get files to process| s3[(S3)]
-    dispatch -->|3. Apache Kafka| service[*-service] -->|5. do processing| API
-    service -->|4. presigned URLs| s3
-    service -->|6. Apache Kafka| dispatch
+    dispatch -->|2. Apache Kafka| service[*-service] -->|4. do processing| API
+    service -->|3. presigned URLs| s3
+    service -->|5. Apache Kafka| dispatch
 ```
 
 ## Contributing

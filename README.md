@@ -56,13 +56,14 @@ sequenceDiagram
         service ->> service: process file (make API calls ...)
         service -->>- dispatch: Send file finished or error event via Apache Kafka
     end
-    dispatch ->> dispatch: Tag file accordingly and move if necessary
+    dispatch ->>+ s3: Tag file accordingly and move if necessary
+    s3 -->- dispatch: 
 ```
 
 ```mermaid
 flowchart LR
-    dispatch[dispatch-service] -->|1.| s3[(S3)]
-    dispatch -->|3. Apache Kafka| service[*-service] -->|5.| API
+    dispatch[dispatch-service] -->|1. get files to process| s3[(S3)]
+    dispatch -->|3. Apache Kafka| service[*-service] -->|5. do processing| API
     service -->|4. presigned URLs| s3
     service -->|6. Apache Kafka| dispatch
 ```

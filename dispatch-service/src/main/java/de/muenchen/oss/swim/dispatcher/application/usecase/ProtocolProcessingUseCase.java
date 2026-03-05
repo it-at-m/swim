@@ -87,9 +87,11 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
             final List<ProtocolEntry> protocolEntries = readProtocolOutPort.loadProtocol(file.bucket(), file.path());
             final List<String> protocolFileNames = protocolEntries.stream().map(ProtocolEntry::fileName).toList();
             // load files in folder
-            final List<File> folderFiles = new ArrayList<>(
-                    fileSystemOutPort.getMatchingFilesWithTags(file.bucket(), file.getParentPath(), false, FILE_EXTENSION_PDF, Map.of(),
-                            Map.of()).keySet());
+            final Set<File> inProcessFiles = fileSystemOutPort
+                    .getMatchingFilesWithTags(file.bucket(), file.getParentPath(), false, FILE_EXTENSION_PDF, Map.of(),
+                            Map.of())
+                    .keySet();
+            final List<File> folderFiles = new ArrayList<>(inProcessFiles);
             // load files in finished folder
             final String finishedPath = useCase.getFinishedPath(swimDispatcherProperties, file.getParentPath());
             folderFiles.addAll(fileSystemOutPort.getMatchingFilesWithTags(file.bucket(), finishedPath, false, FILE_EXTENSION_PDF, Map.of(), Map.of()).keySet());
@@ -116,6 +118,13 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
             final List<String> missingFiles = new ArrayList<>(protocolFileNames);
             missingFiles.removeAll(folderFileNames);
             final boolean isMissingFiles = !missingFiles.isEmpty();
+            // tag files if enabled and protocol correct
+            if (useCase.isTagProtocolProcessed() && !isMissingFiles && !isMissingInProtocol) {
+                for (final File fileToTag : inProcessFiles) {
+                    fileSystemOutPort.tagFile(fileToTag.bucket(), fileToTag.path(), Map.of(
+                            swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getProtocolProcessedFilesStateTagValue()));
+                }
+            }
             // write protocol to db
             final String protocolName = useCase.getRawPath(swimDispatcherProperties, file.path());
             storeProtocolOutPort.deleteProtocol(useCase.getName(), protocolName);
@@ -125,27 +134,40 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
                 notificationOutPort.sendProtocol(useCase.getMailAddresses(), useCase.getName(), protocolName, inputStream, missingFiles,
                         missingInProtocol);
             }
-            // tag protocol as processed
-            final String matchState;
-            if (isMissingInProtocol && isMissingFiles) {
-                matchState = MATCH_MISSING_IN_PROTOCOL_AND_FILES;
-            } else if (isMissingInProtocol) {
-                matchState = MATCH_MISSING_IN_PROTOCOL;
-            } else if (isMissingFiles) {
-                matchState = MATCH_MISSING_FILES;
-            } else {
-                matchState = MATCH_CORRECT;
-            }
-            fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
-                    swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTagValue(),
-                    swimDispatcherProperties.getProtocolMatchTagKey(), matchState));
-            // move protocol
-            final String destPath = useCase.getFinishedProtocolPath(swimDispatcherProperties, file.path());
-            fileSystemOutPort.moveFile(file.bucket(), file.path(), destPath);
+            // mark protocol as finished
+            markProtocolAsFinished(useCase, file, isMissingInProtocol, isMissingFiles);
         } catch (final IOException | RuntimeException e) {
             log.warn("Error file processing {} for use case {}", file.path(), useCase.getName(), e);
             fileHandlingHelper.markFileError(file, swimDispatcherProperties.getProtocolStateTagKey(), e);
             notificationOutPort.sendProtocolError(useCase.getMailAddresses(), useCase.getName(), file.path(), e);
         }
+    }
+
+    /**
+     * Mark protocol as finished (tag, move to processed dir)
+     *
+     * @param useCase The use case of the protocol.
+     * @param file The protocol file.
+     * @param isMissingInProtocol If there are missing files in the protocol.
+     * @param isMissingFiles If there are files missing in the filesystem.
+     */
+    private void markProtocolAsFinished(final UseCase useCase, final File file, final boolean isMissingInProtocol, final boolean isMissingFiles) {
+        // tag protocol as processed
+        final String matchState;
+        if (isMissingInProtocol && isMissingFiles) {
+            matchState = MATCH_MISSING_IN_PROTOCOL_AND_FILES;
+        } else if (isMissingInProtocol) {
+            matchState = MATCH_MISSING_IN_PROTOCOL;
+        } else if (isMissingFiles) {
+            matchState = MATCH_MISSING_FILES;
+        } else {
+            matchState = MATCH_CORRECT;
+        }
+        fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
+                swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTagValue(),
+                swimDispatcherProperties.getProtocolMatchTagKey(), matchState));
+        // move protocol
+        final String destPath = useCase.getFinishedProtocolPath(swimDispatcherProperties, file.path());
+        fileSystemOutPort.moveFile(file.bucket(), file.path(), destPath);
     }
 }

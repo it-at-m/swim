@@ -60,6 +60,7 @@ swim:
   protocol-state-tag-key: CSV_State # tag to use for processing state of protocol CSVs
   protocol-match-tag-key: CSV_Match # tag to mark how a protocol matches the files (correct, missingFiles, missingInProtocol, missingInProtocolAndFiles)
   protocol-processed-state-tag-value: finished # state if a protocol file was finished
+  protocol-processed-files-state-tag-value: protocolProcessingSuccessful # state for files which were contained in a successful protocol, see use-cases.tag-protocol-processed
   error-state-value: error # state if error occurred
   error-class-tag-key: errorClass # tag for error class
   error-message-tag-key: errorMessage # tag for error message
@@ -77,6 +78,7 @@ swim:
       mail-addresses: # list of mail addresses used for sending notifications
       sensitive-filename: # if the filename is sensitive, if true it isn't logged (optional, default: false)
       protocol-ignore-pattern: # pattern of filenames which are ignored while protocol processing (e.g. for files which were spawned from another file).
+      tag-protocol-processed: # if to tag files which were contained in a successful protocol
 ```
 
 ### Adding additional target

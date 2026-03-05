@@ -26,4 +26,5 @@ swim:
     - name: test2
       bucket: test-bucket-2
       path: path/test2
+      tag-protocol-processed: true
   fallback-mail: swim@example.com

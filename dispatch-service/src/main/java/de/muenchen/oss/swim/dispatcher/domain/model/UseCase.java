@@ -68,6 +68,10 @@ public class UseCase {
      */
     @NotNull
     private List<String> mailAddresses = List.of();
+    /**
+     * If to tag file with protocol processing finished state.
+     */
+    private boolean tagProtocolProcessed = false;
 
     /**
      * Get {@link UseCase#path} without slash at end.

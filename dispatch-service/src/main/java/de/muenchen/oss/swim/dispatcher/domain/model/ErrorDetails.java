@@ -5,4 +5,12 @@ public record ErrorDetails(
         String className,
         String message,
         String stacktrace) {
+
+    public String getTrimmedMessage() {
+        if (this.message == null || this.message.isBlank()) {
+            return "";
+        }
+        final int index = this.message.indexOf("; ");
+        return index == -1 ? this.message : this.message.substring(index + 1).trim();
+    }
 }

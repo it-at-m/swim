@@ -17,7 +17,58 @@ Following a list and short description of the different components:
 - [handler-core](./handler-core): Library with base components for building a new service for handling notifications from the `dispatch-service`.
 - [dms-service](./dms-service): Service for transferring files into DMS when notified by the `dispatch-service` via Kafka. Based on `handler-core`.
 - [dipa-service](./dipa-service): Service for transferring files into DiPa when notified by the `dispatch-service` via Kafka. Based on `handler-core`.
+- [invoice-service](./invoice-service): Service for transferring files (invoices) to SAP when notified by the `dispatch-service` via Kafka. Based on `handler-core`.
 - [scripts](./scripts): Helper scripts for maintenance tasks.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    dispatch[dispatch-service] --> s3[(S3)]
+    %% dipa
+    dispatch -->|Apache Kafka| dipa[dipa-service] -->|SOAP| DiPa-EAI
+    dipa -->|presigned URLs| s3
+    dipa -->|Apache Kafka| dispatch
+    %% dms
+    dispatch -->|Apache Kafka| dms[dms-service] -->|REST| DMS-EAI
+    dms -->|presigned URLs| s3
+    dms -->|Apache Kafka| dispatch
+    %% invoice
+    dispatch -->|Apache Kafka| invoice[invoice-service] -->|SOAP| Invoice-EAI
+    invoice -->|presigned URLs| s3
+    invoice -->|Apache Kafka| dispatch
+    %% matching
+    matching[matching-service]
+```
+
+### Default flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant dispatch
+    participant s3
+    participant service as *-service
+    dispatch ->>+ s3: Check for files to process (filtered by tags and dirs)
+    s3 -->>- dispatch: 
+    loop for each file
+        dispatch ->>+ service: Send file event via Apache Kafka
+        service -->>+ s3: Load file via presigned URL
+        s3 -->- service: 
+        service ->> service: process file (make API calls ...)
+        service -->>- dispatch: Send file finished or error event via Apache Kafka
+    end
+    dispatch ->>+ s3: Tag file accordingly and move if necessary
+    s3 -->- dispatch: 
+```
+
+```mermaid
+flowchart LR
+    dispatch[dispatch-service] -->|1. get files to process| s3[(S3)]
+    dispatch -->|2. Apache Kafka| service[*-service] -->|4. do processing| API
+    service -->|3. presigned URLs| s3
+    service -->|5. Apache Kafka| dispatch
+```
 
 ## Contributing
 

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.11</version>
+        <version>3.5.13</version>
         <relativePath />
     </parent>
 
@@ -31,7 +31,7 @@
         <spotless-maven-plugin.version>3.2.1</spotless-maven-plugin.version>
         <itm-java-codeformat.version>1.0.10</itm-java-codeformat.version>
         <pmd-maven-plugin.version>3.27.0</pmd-maven-plugin.version>
-        <spotbugs-maven-plugin.version>4.9.8.2</spotbugs-maven-plugin.version>
+        <spotbugs-maven-plugin.version>4.9.8.3</spotbugs-maven-plugin.version>
         <spotbugs-annotations.version>4.9.8</spotbugs-annotations.version> <!-- must match the patch version of spotbugs-maven-plugin -->
         <findsecbugs-plugin.version>1.14.0</findsecbugs-plugin.version>
 
@@ -50,7 +50,7 @@
         <!-- cxf/WSDL -->
         <cxf.version>4.2.0</cxf.version>
         <jakarta.xml.bind-api.version>4.0.5</jakarta.xml.bind-api.version>
-        <jaxws-rt.version>4.0.3</jaxws-rt.version>
+        <jaxws-rt.version>4.0.4</jaxws-rt.version>
 
         <!-- Additional required dependencies -->
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version> <!-- Needed to make MapStruct and Lombok work together -->

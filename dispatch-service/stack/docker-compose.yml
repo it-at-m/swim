@@ -50,7 +50,7 @@ services:
   # ============= Kafka =============
   #
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.9.5@sha256:61e960bcbe5796d2987edc61fab297387f63d6f831754576cd107543d2cdc8bb
+    image: confluentinc/cp-zookeeper:7.9.6@sha256:d3294ad2b353ac5a155ad9abe37884f75c482f387af553679210303b7118a0d3
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -65,7 +65,7 @@ services:
       - no-new-privileges:true
 
   kafka:
-    image: confluentinc/cp-kafka:7.9.5@sha256:c4c6b755551da17fff056b9c8b39700f99020083bd2d69a171ece4784f33e640
+    image: confluentinc/cp-kafka:7.9.6@sha256:9e178783dba8cf44cd8b1d260f548a587a21235921957edd4ed7aa7d060b0852
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -169,7 +169,7 @@ services:
   # ============= Mail =============
   #
   mailpit:
-    image: axllent/mailpit:v1.29.3@sha256:fdaf09bd71dc0829ce8b62e4bfb5180bc5c0674c3e444283fc90681853f5a3c0
+    image: axllent/mailpit:v1.29.5@sha256:c5a6d0ba4d08187f70f305471da5fd9ad424fdfc2f25a2308226a786335dfa9f
     ports:
       - '1025:1025' # SMTP Server
       - '8025:8025' # UI

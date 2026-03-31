@@ -285,6 +285,11 @@ public class DispatcherUseCase implements DispatcherInPort {
         final String rawPath = useCase.getRawPath(swimDispatcherProperties, file.path());
         final String destPath = String.format("%s/from_%s/%s", targetUseCase.getDispatchPath(swimDispatcherProperties), useCase.getName(), rawPath);
         fileSystemOutPort.copyFile(file.bucket(), file.path(), targetUseCase.getBucket(), destPath, true);
+        // tag protocol processed if enabled
+        if (targetUseCase.isTagProtocolProcessed()) {
+            fileSystemOutPort.tagFile(targetUseCase.getBucket(), destPath, Map.of(
+                    swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getProtocolProcessedFilesStateTagValue()));
+        }
         // finish file
         this.finishFile(useCase, file);
         log.info("File {} in bucket {} rerouted from use case {} to use case {}", file.path(), file.bucket(), useCase.getName(), targetUseCase.getName());

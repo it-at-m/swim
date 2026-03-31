@@ -50,7 +50,7 @@
         <!-- cxf/WSDL -->
         <cxf.version>4.2.0</cxf.version>
         <jakarta.xml.bind-api.version>4.0.5</jakarta.xml.bind-api.version>
-        <jaxws-rt.version>4.0.3</jaxws-rt.version>
+        <jaxws-rt.version>4.0.4</jaxws-rt.version>
 
         <!-- Additional required dependencies -->
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version> <!-- Needed to make MapStruct and Lombok work together -->

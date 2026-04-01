@@ -196,6 +196,8 @@ class DispatcherUseCaseTest {
         verify(dispatcherUseCase, times(1)).rerouteFileToUseCase(eq(useCase), eq(FILE1), eq(tags));
         verify(fileSystemOutPort, times(1)).copyFile(eq(BUCKET), eq(FILE1.path()), eq("test-bucket-2"),
                 eq("path/test2/inProcess/from_test-meta/path/test.pdf"), eq(true));
+        verify(fileSystemOutPort, times(1)).tagFile(eq("test-bucket-2"), eq("path/test2/inProcess/from_test-meta/path/test.pdf"), eq(Map.of(
+                "SWIM_State", "protocolProcessingSuccessful")));
         verify(fileHandlingHelper, times(1)).finishFile(eq(useCase), eq(BUCKET), eq(FILE1.path()));
         verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(REROUTE.name()));
     }

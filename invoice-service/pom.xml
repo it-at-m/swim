@@ -45,7 +45,7 @@
         <!-- Utility -->
         <commons-text.version>1.15.0</commons-text.version>
         <mapstruct.version>1.6.3</mapstruct.version>
-        <refarch-tools.version>1.2.0</refarch-tools.version>
+        <refarch-tools.version>1.2.2</refarch-tools.version>
 
         <!-- cxf/WSDL -->
         <cxf.version>4.2.0</cxf.version>

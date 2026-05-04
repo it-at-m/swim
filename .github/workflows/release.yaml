@@ -42,7 +42,7 @@ jobs:
     steps:
       - name: Maven build and release
         id: maven-release-step
-        uses: it-at-m/lhm_actions/action-templates/actions/action-maven-release@94f7e40aa557a2790abfa98a9cc9186d260b94f8 # v1.0.27
+        uses: it-at-m/lhm_actions/action-templates/actions/action-maven-release@acb09213786b76dd7aa52ec1d901390d28c60eb0 # v1.0.29
         with:
           app-path: ${{ inputs.module }}
           releaseVersion: ${{ inputs.release-version }}
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build and push image
-        uses: it-at-m/lhm_actions/action-templates/actions/action-build-image@94f7e40aa557a2790abfa98a9cc9186d260b94f8 # v1.0.27
+        uses: it-at-m/lhm_actions/action-templates/actions/action-build-image@acb09213786b76dd7aa52ec1d901390d28c60eb0 # v1.0.29
         with:
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
@@ -78,7 +78,7 @@ jobs:
     steps:
       - name: Create GitHub Release
         id: create_release
-        uses: it-at-m/lhm_actions/action-templates/actions/action-create-github-release@94f7e40aa557a2790abfa98a9cc9186d260b94f8 # v1.0.27
+        uses: it-at-m/lhm_actions/action-templates/actions/action-create-github-release@acb09213786b76dd7aa52ec1d901390d28c60eb0 # v1.0.29
         with:
           tag-name: "${{ inputs.module }}_${{ github.event.inputs.release-version }}"
           generate-release-notes: true

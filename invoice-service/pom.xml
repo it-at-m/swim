@@ -48,7 +48,7 @@
         <refarch-tools.version>1.2.2</refarch-tools.version>
 
         <!-- cxf/WSDL -->
-        <cxf.version>4.2.0</cxf.version>
+        <cxf.version>4.2.1</cxf.version>
         <jakarta.xml.bind-api.version>4.0.5</jakarta.xml.bind-api.version>
         <jaxws-rt.version>4.0.4</jaxws-rt.version>
 

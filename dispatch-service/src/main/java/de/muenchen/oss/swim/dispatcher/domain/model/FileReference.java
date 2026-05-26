@@ -6,7 +6,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import org.apache.commons.lang3.StringUtils;
 
-public record File(@NotBlank String bucket, @NotBlank String path, Long size) {
+public record FileReference(@NotBlank String bucket, @NotBlank String path) {
     public String getFileName() {
         return path.substring(path.lastIndexOf('/') + 1);
     }
@@ -29,7 +29,11 @@ public record File(@NotBlank String bucket, @NotBlank String path, Long size) {
         return String.format("%s/%s.json", this.getParentPath(), this.getFileNameWithoutExtension());
     }
 
-    public static File fromPresignedUrl(final String presignedUrl) throws PresignedUrlException {
+    public FileReference getMetadataFile() {
+        return new FileReference(this.bucket, this.getMetadataFilePath());
+    }
+
+    public static FileReference fromPresignedUrl(final String presignedUrl) throws PresignedUrlException {
         // check input has content
         if (StringUtils.isBlank(presignedUrl)) {
             throw new PresignedUrlException("Empty presigned url can't be parsed");
@@ -41,11 +45,11 @@ public record File(@NotBlank String bucket, @NotBlank String path, Long size) {
         } catch (final URISyntaxException e) {
             throw new PresignedUrlException("Presigned url could not be parsed", e);
         }
-        // create File object from presigned url
+        // create FileReference object from presigned url
         final String uriPath = uri.getPath().replaceFirst("^/", "");
         final int slashIndex = uriPath.indexOf('/');
         final String bucket = uriPath.substring(0, slashIndex);
         final String filePath = uriPath.substring(slashIndex + 1);
-        return new File(bucket, filePath, null);
+        return new FileReference(bucket, filePath);
     }
 }

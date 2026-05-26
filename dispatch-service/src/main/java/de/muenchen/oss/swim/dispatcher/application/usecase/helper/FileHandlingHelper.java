@@ -3,7 +3,7 @@ package de.muenchen.oss.swim.dispatcher.application.usecase.helper;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
-import de.muenchen.oss.swim.dispatcher.domain.model.File;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -31,13 +31,13 @@ public class FileHandlingHelper {
      * @param stateTagKey The key of the state tag.
      * @param e The exception that was thrown.
      */
-    public void markFileError(final File file, final String stateTagKey, final Exception e) {
+    public void markFileError(final FileReference file, final String stateTagKey, final Exception e) {
         // escape illegal chars from message
         final String escapedMessage = e.getMessage().replaceAll(ILLEGAL_CHARS_PATTERN, " ");
         // shorten exception message for tag value max 256 chars
         final String shortenedExceptionMessage = escapedMessage.length() > TAG_MAX_VALUE_LENGTH ? escapedMessage.substring(0, TAG_MAX_VALUE_LENGTH)
                 : escapedMessage;
-        fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
+        fileSystemOutPort.tagFile(file, Map.of(
                 stateTagKey, swimDispatcherProperties.getErrorStateValue(),
                 swimDispatcherProperties.getErrorClassTagKey(), e.getClass().getName(),
                 swimDispatcherProperties.getErrorMessageTagKey(), shortenedExceptionMessage));
@@ -47,16 +47,15 @@ public class FileHandlingHelper {
      * Tag file as finished and move to finished dir.
      *
      * @param useCase Use case of the file.
-     * @param bucket Bucket the file is in.
-     * @param path Path of the file.
+     * @param file Reference of the file.
      */
-    public void finishFile(final UseCase useCase, final String bucket, final String path) {
+    public void finishFile(final UseCase useCase, final FileReference file) {
         // move file
-        final String destPath = useCase.getFinishedPath(swimDispatcherProperties, path);
-        fileSystemOutPort.moveFile(bucket, path, destPath);
-        log.info("Finished file {} in use case {}", path, useCase.getName());
+        final String destPath = useCase.getFinishedPath(swimDispatcherProperties, file.path());
+        fileSystemOutPort.moveFile(file, destPath);
+        log.info("Finished file {} in use case {}", file.path(), useCase.getName());
         // tag file in finished folder as finished
-        fileSystemOutPort.tagFile(bucket, destPath, Map.of(
+        fileSystemOutPort.tagFile(new FileReference(file.bucket(), destPath), Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchFileFinishedTagValue()));
         // update metric
         dispatchMeter.incrementFinished(useCase.getName());

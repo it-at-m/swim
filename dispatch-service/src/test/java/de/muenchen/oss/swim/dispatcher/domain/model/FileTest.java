@@ -8,10 +8,12 @@ class FileTest {
 
     @Test
     void test() {
-        final File file = new File("test-bucket", "test/path/file.pdf", 0L);
+        final FileReference file = new FileReference("test-bucket", "test/path/reference.pdf");
         assertEquals("test/path", file.getParentPath());
         assertEquals("path", file.getParentName());
-        assertEquals("file.pdf", file.getFileName());
-        assertEquals("file", file.getFileNameWithoutExtension());
+        assertEquals("reference.pdf", file.getFileName());
+        assertEquals("reference", file.getFileNameWithoutExtension());
+        assertEquals("test/path/reference.json", file.getMetadataFilePath());
+        assertEquals(new FileReference("test-bucket", "test/path/reference.json"), file.getMetadataFile());
     }
 }

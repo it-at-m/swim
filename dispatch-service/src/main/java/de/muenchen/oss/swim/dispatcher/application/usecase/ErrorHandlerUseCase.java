@@ -6,7 +6,7 @@ import de.muenchen.oss.swim.dispatcher.application.port.out.NotificationOutPort;
 import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
-import de.muenchen.oss.swim.dispatcher.domain.model.File;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +28,7 @@ public class ErrorHandlerUseCase implements ErrorHandlerInPort {
         log.warn("Processing error for use case {} and presigned url {}: {}", useCaseName, presignedUrl, cause);
         try {
             final UseCase useCase = swimDispatcherProperties.findUseCase(useCaseName);
-            final File file = File.fromPresignedUrl(presignedUrl);
+            final FileReference file = FileReference.fromPresignedUrl(presignedUrl);
             // tag file
             this.markFileError(file, cause);
             // send notification
@@ -47,12 +47,12 @@ public class ErrorHandlerUseCase implements ErrorHandlerInPort {
      * @param file File that throw an error.
      * @param e The error that was thrown-
      */
-    protected void markFileError(final File file, final ErrorDetails e) {
+    protected void markFileError(final FileReference file, final ErrorDetails e) {
         // escape illegal chars from message
         final String escapedMessage = e.getTrimmedMessage().replaceAll("[^\\w .-]", " ");
         // shorten exception message for tag value max 256 chars
         final String shortenedExceptionMessage = escapedMessage.length() > 256 ? escapedMessage.substring(0, 256) : escapedMessage;
-        fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
+        fileSystemOutPort.tagFile(file, Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getErrorStateValue(),
                 swimDispatcherProperties.getErrorClassTagKey(), e.className(),
                 swimDispatcherProperties.getErrorMessageTagKey(), shortenedExceptionMessage));

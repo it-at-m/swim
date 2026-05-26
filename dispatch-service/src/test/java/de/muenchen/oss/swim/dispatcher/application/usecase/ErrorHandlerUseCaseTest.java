@@ -1,7 +1,7 @@
 package de.muenchen.oss.swim.dispatcher.application.usecase;
 
-import static de.muenchen.oss.swim.dispatcher.TestConstants.BUCKET;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL;
+import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL_FILE;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL_PATH;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,7 +54,7 @@ class ErrorHandlerUseCaseTest {
         // call
         errorHandlerUseCase.handleError(USE_CASE, TEST_PRESIGNED_URL, null, TEST_ERROR_DETAILS);
         // test
-        verify(fileSystemOutPort, times(1)).tagFile(eq(BUCKET), eq(TEST_PRESIGNED_URL_PATH), eq(Map.of(
+        verify(fileSystemOutPort, times(1)).tagFile(eq(TEST_PRESIGNED_URL_FILE), eq(Map.of(
                 "SWIM_State", "error",
                 "errorClass", "de.muenchen.swim.CustomException",
                 "errorMessage", "Cause message")));

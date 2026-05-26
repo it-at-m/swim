@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public final class TestConstants {
 
     public static final String SPRING_TEST_PROFILE = "test";
-    public static final String SPRING_JSON_LOGGING_PROFILE = "json-logging";
 
     public static final String BUCKET = "test-bucket";
     public static final String USE_CASE = "test-meta";

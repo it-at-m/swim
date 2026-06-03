@@ -66,8 +66,8 @@ class ProtocolProcessingUseCaseTest {
     @Autowired
     private SwimDispatcherProperties swimDispatcherProperties;
 
-    private static final FileWithMetadata PROTOCOL_FILE = new FileWithMetadata(new FileReference(BUCKET, "test/inProcess/path/path.csv"), 0L, TAGS);
-    private static final FileWithMetadata NO_PROTOCOL_FILE = new FileWithMetadata(new FileReference(BUCKET, "test/inProcess/path/path2.csv"), 0L,
+    private static final FileWithMetadata PROTOCOL_FILE = new FileWithMetadata(new FileReference(BUCKET, "test/inProcess/path/path.csv"), 0L, null, TAGS);
+    private static final FileWithMetadata NO_PROTOCOL_FILE = new FileWithMetadata(new FileReference(BUCKET, "test/inProcess/path/path2.csv"), 0L, null,
             TAGS);
     private static final String PROTOCOL_RAW_PATH = "path/path.csv";
     private static final ProtocolEntry PROTOCOL_ENTRY1 = new ProtocolEntry("test.pdf", 1, null, null, null, null, null, Map.of());
@@ -126,7 +126,7 @@ class ProtocolProcessingUseCaseTest {
         when(fileSystemOutPort.getMatchingFilesWithTags(any(), any(), anyBoolean(), any(), any(), anyMap())).thenReturn(List.of(
                 FILE1,
                 FILE2,
-                new FileWithMetadata(new FileReference(BUCKET, "test/inProcess/path/test3.pdf"), 0L, TAGS)));
+                new FileWithMetadata(new FileReference(BUCKET, "test/inProcess/path/test3.pdf"), 0L, null, TAGS)));
         final InputStream protocolStream = getClass().getResourceAsStream(EXAMPLE_PROTOCOL_RESOURCE_PATH);
         when(fileSystemOutPort.readFile(eq(PROTOCOL_FILE.reference()))).thenReturn(protocolStream);
         // call
@@ -156,14 +156,14 @@ class ProtocolProcessingUseCaseTest {
     @Test
     void testProcessProtocolFile_IgnorePattern() throws UseCaseException {
         final UseCase useCase = swimDispatcherProperties.findUseCase("test-meta-dest");
-        final FileWithMetadata protocolFile = new FileWithMetadata(new FileReference(BUCKET, "test3/inProcess/path/path.csv"), 0L, TAGS);
+        final FileWithMetadata protocolFile = new FileWithMetadata(new FileReference(BUCKET, "test3/inProcess/path/path.csv"), 0L, null, TAGS);
         // setup
         when(readProtocolOutPort.loadProtocol(eq(protocolFile.reference()))).thenReturn(List.of(
                 new ProtocolEntry("test.pdf", 1, null, null, null, null, null, Map.of())));
         when(fileSystemOutPort.getMatchingFilesWithTags(any(), any(), anyBoolean(), any(), any(), anyMap())).thenReturn(List.of(
-                new FileWithMetadata(new FileReference(BUCKET, "test3/inProcess/path/test.pdf"), 0L, TAGS),
-                new FileWithMetadata(new FileReference(BUCKET, "test3/inProcess/path/test-1v1.pdf"), 0L, TAGS),
-                new FileWithMetadata(new FileReference(BUCKET, "test3/inProcess/path/test-1v1-wrong.pdf"), 0L, TAGS)));
+                new FileWithMetadata(new FileReference(BUCKET, "test3/inProcess/path/test.pdf"), 0L, null, TAGS),
+                new FileWithMetadata(new FileReference(BUCKET, "test3/inProcess/path/test-1v1.pdf"), 0L, null, TAGS),
+                new FileWithMetadata(new FileReference(BUCKET, "test3/inProcess/path/test-1v1-wrong.pdf"), 0L, null, TAGS)));
         final InputStream protocolStream = getClass().getResourceAsStream(EXAMPLE_PROTOCOL_RESOURCE_PATH);
         when(fileSystemOutPort.readFile(eq(protocolFile.reference()))).thenReturn(protocolStream);
         // call
@@ -182,9 +182,9 @@ class ProtocolProcessingUseCaseTest {
     void testProcessProtocolFile_TagProcessedFiles() throws UseCaseException {
         // use case with tag-protocol-processed enabled
         final UseCase useCase = swimDispatcherProperties.findUseCase("test2");
-        final FileWithMetadata protocolFile = new FileWithMetadata(new FileReference("test-bucket-2", "path/test2/inProcess/path/path.csv"), 0L, TAGS);
-        final FileWithMetadata inProcessFile1 = new FileWithMetadata(new FileReference("test-bucket-2", "path/test2/inProcess/path/test.pdf"), 0L, TAGS);
-        final FileWithMetadata inProcessFile2 = new FileWithMetadata(new FileReference("test-bucket-2", "path/test2/inProcess/path/test2.pdf"), 0L, TAGS);
+        final FileWithMetadata protocolFile = new FileWithMetadata(new FileReference("test-bucket-2", "path/test2/inProcess/path/path.csv"), 0L, null, TAGS);
+        final FileWithMetadata inProcessFile1 = new FileWithMetadata(new FileReference("test-bucket-2", "path/test2/inProcess/path/test.pdf"), 0L, null, TAGS);
+        final FileWithMetadata inProcessFile2 = new FileWithMetadata(new FileReference("test-bucket-2", "path/test2/inProcess/path/test2.pdf"), 0L, null, TAGS);
         // setup
         when(readProtocolOutPort.loadProtocol(eq(protocolFile.reference()))).thenReturn(List.of(
                 new ProtocolEntry("test.pdf", 1, null, null, null, null, null, Map.of()),

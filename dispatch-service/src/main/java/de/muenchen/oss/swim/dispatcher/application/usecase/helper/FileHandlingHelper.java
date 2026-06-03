@@ -44,12 +44,28 @@ public class FileHandlingHelper {
     }
 
     /**
+     * Tag file and move to finished directory.
+     *
+     * @param useCase The use case of the file.
+     * @param file The file to finish.
+     */
+    public void finishFile(final UseCase useCase, final FileReference file) {
+        // finish metadata file if required and exists
+        final FileReference metadataFile = file.getMetadataFile();
+        if (useCase.isRequiresMetadata() && this.fileSystemOutPort.fileExists(metadataFile)) {
+            this.markFileAsFinished(useCase, metadataFile);
+        }
+        // finish file
+        this.markFileAsFinished(useCase, file);
+    }
+
+    /**
      * Tag file as finished and move to finished dir.
      *
      * @param useCase Use case of the file.
      * @param file Reference of the file.
      */
-    public void finishFile(final UseCase useCase, final FileReference file) {
+    private void markFileAsFinished(final UseCase useCase, final FileReference file) {
         // move file
         final String destPath = useCase.getFinishedPath(swimDispatcherProperties, file.path());
         fileSystemOutPort.moveFile(file, destPath);

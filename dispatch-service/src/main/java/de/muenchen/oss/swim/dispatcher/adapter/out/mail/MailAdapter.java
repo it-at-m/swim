@@ -40,7 +40,7 @@ public class MailAdapter implements NotificationOutPort {
         final String subject = this.buildSubject(true, String.format(this.getMessage("dispatchErrors.subject"), useCase));
         final String body = String.format(
                 this.getMessage("dispatchErrors.message"),
-                useCase, additionalErrorMessage, errors.size(),
+                useCase, additionalErrorMessage != null ? additionalErrorMessage : "", errors.size(),
                 errors.entrySet().stream()
                         .map(e -> String.format("- %s: %s", e.getKey().path(), e.getValue().getMessage()))
                         .reduce((a, b) -> String.format("%s%n%s", a, b)).orElse(""));

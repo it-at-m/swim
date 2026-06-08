@@ -1,6 +1,5 @@
 package de.muenchen.oss.swim.dispatcher.application.usecase.helper;
 
-import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
 import java.util.HashMap;
@@ -27,8 +26,6 @@ public class GroupingHelper {
     public final static int CHUNKED_FILE_BASE_NAME_GROUP = 1;
     public final static int CHUNKED_FILE_INDEX_GROUP = 2;
     public final static int CHUNKED_FILE_COUNT_GROUP = 3;
-
-    private final SwimDispatcherProperties swimDispatcherProperties;
 
     /**
      * Groups a list of files by their base filename.

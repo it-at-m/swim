@@ -16,7 +16,6 @@ jobs:
           compose-file-path: "./dispatch-service/stack/"
 
   matching:
-    needs: []
     runs-on: ubuntu-latest
     permissions:
       contents: read

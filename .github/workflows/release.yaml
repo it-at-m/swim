@@ -37,8 +37,8 @@ jobs:
       contents: write
       pull-requests: write # can be removed if use-pr is 'false'
     outputs:
-      MVN_ARTIFACT_ID: ${{ steps.maven-release-step.outputs.MVN_ARTIFACT_ID }}
-      ARTIFACT_NAME: ${{ steps.maven-release-step.outputs.artifact-name }}
+      MVN_ARTIFACT_ID: ${{ steps.release-maven-artifact.outputs.MVN_ARTIFACT_ID }}
+      ARTIFACT_NAME: ${{ steps.release-maven-artifact.outputs.artifact-name }}
     env:
       TZ: Europe/Berlin
     steps:
@@ -67,7 +67,7 @@ jobs:
           path: "./${{ inputs.module }}"
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
-          artifact-name: ${{ needs.release-maven.outputs.ARTIFACT_NAME }}
+          artifact-name: ${{ needs.release-maven-artifact.outputs.ARTIFACT_NAME }}
           image-name: ${{ inputs.module }}
           image-tags: |
             type=raw,value=${{ inputs.release-version }}
@@ -82,5 +82,5 @@ jobs:
         with:
           tag-name: "${{ inputs.module }}_${{ github.event.inputs.release-version }}"
           generate-release-notes: true
-          artifact-name: ${{ needs.release-maven.outputs.ARTIFACT_NAME }}
+          artifact-name: ${{ needs.release-maven-artifact.outputs.ARTIFACT_NAME }}
           artifact-path: "./${{ inputs.module }}/target/${{ inputs.module }}-*.jar"

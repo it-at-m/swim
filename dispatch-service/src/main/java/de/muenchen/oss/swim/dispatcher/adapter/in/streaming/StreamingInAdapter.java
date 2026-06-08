@@ -5,7 +5,12 @@ import de.muenchen.oss.swim.dispatcher.application.port.in.MarkFileFinishedInPor
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
+import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
+import de.muenchen.oss.swim.dispatcher.domain.model.streaming.FileEvent;
+import de.muenchen.oss.swim.dispatcher.domain.model.streaming.FileEventDTO;
+import de.muenchen.oss.swim.dispatcher.domain.model.streaming.MultiFileEventDTO;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +26,26 @@ public class StreamingInAdapter {
     private final ErrorHandlerInPort errorHandlerInPort;
 
     @Bean
-    protected Consumer<Message<FileEventDTO>> finished() {
+    protected Consumer<Message<FileEvent>> finished() {
         return fileFinishedEventDTOMessage -> {
-            final FileEventDTO fileFinishedDTO = fileFinishedEventDTOMessage.getPayload();
+            final FileEvent event = fileFinishedEventDTOMessage.getPayload();
+            final String useCase;
+            final List<PresignedFile> files;
+            if (event instanceof FileEventDTO single) {
+                useCase = single.useCase();
+                files = List.of(new PresignedFile(single.presignedUrl(), single.metadataPresignedUrl()));
+            } else if (event instanceof MultiFileEventDTO multi) {
+                useCase = multi.useCase();
+                files = multi.files();
+            } else {
+                throw new IllegalArgumentException("Message payload is no valid event but '%s'".formatted(event.getClass()));
+            }
             try {
-                markFileFinishedInPort.markFileFinished(fileFinishedDTO.useCase(), fileFinishedDTO.presignedUrl());
-                if (StringUtils.isNotBlank(fileFinishedDTO.metadataPresignedUrl())) {
-                    markFileFinishedInPort.markFileFinished(fileFinishedDTO.useCase(), fileFinishedDTO.metadataPresignedUrl());
+                for (final PresignedFile file : files) {
+                    markFileFinishedInPort.markFileFinished(useCase, file.presignedUrl());
+                    if (StringUtils.isNotBlank(file.metadataPresignedUrl())) {
+                        markFileFinishedInPort.markFileFinished(useCase, file.metadataPresignedUrl());
+                    }
                 }
             } catch (PresignedUrlException | UseCaseException e) {
                 throw new RuntimeException(e);

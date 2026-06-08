@@ -16,6 +16,7 @@ import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.DispatchAction;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorContainer;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.HashMap;
@@ -95,16 +96,17 @@ public class DispatcherUseCase implements DispatcherInPort {
                 swimDispatcherProperties.getDispatchExcludeTags());
         log.info("Found {} ready to process files for use case {} in folder {}", readyFiles.size(), useCase.getName(), folder);
         // group and validate files
-        final Map<String, List<FileWithMetadata>> groupedFiles = groupingHelper.groupFiles(readyFiles);
-        final ErrorContainer<Map<String, List<FileWithMetadata>>> validatedAndFilterGroupedFiles = validationHelper.validateAndFilterGroupedFiles(
+        final Map<String, FileGroup> groupedFiles = groupingHelper.groupFiles(readyFiles);
+        final ErrorContainer<Map<String, FileGroup>> validatedAndFilterGroupedFiles = validationHelper.validateAndFilterGroupedFiles(
                 useCase, groupedFiles);
         final Map<String, Throwable> errors = new HashMap<>(validatedAndFilterGroupedFiles.errors());
         // for each file group
-        for (final Map.Entry<String, List<FileWithMetadata>> entry : validatedAndFilterGroupedFiles.value().entrySet()) {
+        for (final Map.Entry<String, FileGroup> entry : validatedAndFilterGroupedFiles.value().entrySet()) {
             final String baseFileName = entry.getKey();
-            final List<FileWithMetadata> files = entry.getValue();
+            final FileGroup fileGroup = entry.getValue();
+            final List<FileWithMetadata> files = fileGroup.getFiles();
             try {
-                this.processFileGroup(useCase, baseFileName, files);
+                this.processFileGroup(useCase, baseFileName, fileGroup);
             } catch (final MetadataException | UseCaseException | RuntimeException e) {
                 log.warn("Error while processing {} file(s) {} for use case {}", files.size(), baseFileName, useCase.getName(), e);
                 // mark file as failed
@@ -127,19 +129,20 @@ public class DispatcherUseCase implements DispatcherInPort {
      *
      * @param useCase The use case the files were found for.
      * @param baseFileName The files name without the split suffix or file extension.
-     * @param files The files to be processed.
+     * @param fileGroup The files to be processed.
      * @throws MetadataException If metadata file required but could not be loaded
      * @throws UseCaseException If use case can't be resolved in reroute action.
      */
-    protected void processFileGroup(final UseCase useCase, final String baseFileName, final List<FileWithMetadata> files)
+    protected void processFileGroup(final UseCase useCase, final String baseFileName, final FileGroup fileGroup)
             throws MetadataException, UseCaseException {
+        final List<FileWithMetadata> files = fileGroup.getFiles();
         if (!useCase.isSensitiveFilename()) {
             log.info("Processing {} file(s) {} for use case {}", files.size(), baseFileName, useCase.getName());
         }
         // resolve action
         final DispatchAction action = dispatchActionsHelper.resolveDispatchAction(files.getFirst().tags());
         // fail if multiple files but no dispatch
-        if (action != DISPATCH && files.size() > 1) {
+        if (action != DISPATCH && fileGroup.isMulti()) {
             throw new IllegalStateException("Other actions than DISPATCH are not allowed for multiple files");
         }
         // execute action
@@ -152,8 +155,8 @@ public class DispatcherUseCase implements DispatcherInPort {
             this.dispatchActionsHelper.rerouteFileToUseCase(useCase, files.getFirst().reference(), files.getFirst().tags());
             break;
         case DISPATCH:
-            final String destinationBinding = dispatchActionsHelper.resolveDestinationBinding(useCase, files);
-            this.dispatchActionsHelper.dispatchFileGroup(useCase, files, destinationBinding);
+            final String destinationBinding = dispatchActionsHelper.resolveDestinationBinding(useCase, fileGroup);
+            this.dispatchActionsHelper.dispatchFileGroup(useCase, fileGroup, destinationBinding);
             // use destination binding as actionName for more specific metrics
             actionName = destinationBinding;
             break;

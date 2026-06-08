@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import de.muenchen.oss.swim.dispatcher.TestConstants;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
@@ -44,9 +45,9 @@ class ValidationHelperTest {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         final FileWithMetadata tf1 = createFileWithMeta("p/x-1v2.pdf", TAGS);
         final FileWithMetadata tf2 = createFileWithMeta("p/x-2v2.pdf", TAGS);
-        final Map<String, List<FileWithMetadata>> groupedFiles = Map.of(
-                "x", List.of(tf1, tf2),
-                FILE1_BASE_NAME, List.of(FILE1));
+        final Map<String, FileGroup> groupedFiles = Map.of(
+                "x", new FileGroup(true, List.of(tf1, tf2)),
+                FILE1_BASE_NAME, new FileGroup(false, FILE1));
         // call
         helper.validateAndFilterGroupedFiles(useCase, groupedFiles);
         // then

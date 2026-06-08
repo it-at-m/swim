@@ -7,6 +7,7 @@ import static de.muenchen.oss.swim.dispatcher.application.usecase.helper.Groupin
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorContainer;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
@@ -34,17 +35,18 @@ public class ValidationHelper {
      * @param groupedFiles The grouped files to validate.
      * @return The result of the validation, with errors and valid files.
      */
-    public ErrorContainer<Map<String, List<FileWithMetadata>>> validateAndFilterGroupedFiles(final UseCase useCase,
-            final Map<String, List<FileWithMetadata>> groupedFiles) {
+    public ErrorContainer<Map<String, FileGroup>> validateAndFilterGroupedFiles(final UseCase useCase,
+            final Map<String, FileGroup> groupedFiles) {
         final Map<String, Throwable> errors = new HashMap<>();
-        final Map<String, List<FileWithMetadata>> filteredFiles = new HashMap<>();
+        final Map<String, FileGroup> filteredFiles = new HashMap<>();
         // validate groups
-        for (final Map.Entry<String, List<FileWithMetadata>> entry : groupedFiles.entrySet()) {
+        for (final Map.Entry<String, FileGroup> entry : groupedFiles.entrySet()) {
             final String baseFileName = entry.getKey();
-            final List<FileWithMetadata> files = entry.getValue();
+            final FileGroup fileGroup = entry.getValue();
+            final List<FileWithMetadata> files = fileGroup.getFiles();
             try {
                 // if multiple files
-                if (files.size() > 1) {
+                if (fileGroup.isMulti()) {
                     this.validateGroup(baseFileName, files);
                 }
                 // validate each file
@@ -52,7 +54,7 @@ public class ValidationHelper {
                     this.validateFile(useCase, file);
                 }
                 // add files for further processing
-                filteredFiles.put(baseFileName, files);
+                filteredFiles.put(baseFileName, fileGroup);
             } catch (final FileSizeException | RuntimeException e) {
                 for (final FileWithMetadata file : files) {
                     errors.put(file.reference().path(), e);

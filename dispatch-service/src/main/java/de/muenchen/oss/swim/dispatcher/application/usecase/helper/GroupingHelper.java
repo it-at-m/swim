@@ -1,8 +1,8 @@
 package de.muenchen.oss.swim.dispatcher.application.usecase.helper;
 
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,19 +42,23 @@ public class GroupingHelper {
      * @param files flat list of files (chunked and non-chunked)
      * @return map from base filename to the corresponding list of files
      */
-    public Map<String, List<FileWithMetadata>> groupFiles(final List<FileWithMetadata> files) {
-        final Map<String, List<FileWithMetadata>> groupedFiles = new HashMap<>();
+    public Map<String, FileGroup> groupFiles(final List<FileWithMetadata> files) {
+        final Map<String, FileGroup> groupedFiles = new HashMap<>();
         for (final FileWithMetadata file : files) {
             final Matcher matcher = CHUNKED_FILE_PATTERN.matcher(file.reference().getFileNameWithoutExtension());
             if (matcher.matches()) {
                 final String originalFileName = matcher.group(CHUNKED_FILE_BASE_NAME_GROUP);
                 if (groupedFiles.containsKey(originalFileName)) {
-                    groupedFiles.get(originalFileName).add(file);
+                    final FileGroup fileGroup = groupedFiles.get(originalFileName);
+                    if (!fileGroup.isMulti()) {
+                        throw new IllegalStateException("Is multi file pattern but group isn't multi");
+                    }
+                    fileGroup.add(file);
                 } else {
-                    groupedFiles.put(originalFileName, new ArrayList<>(List.of(file)));
+                    groupedFiles.put(originalFileName, new FileGroup(true, file));
                 }
             } else {
-                groupedFiles.put(file.reference().getFileNameWithoutExtension(), List.of(file));
+                groupedFiles.put(file.reference().getFileNameWithoutExtension(), new FileGroup(false, file));
             }
         }
         return groupedFiles;

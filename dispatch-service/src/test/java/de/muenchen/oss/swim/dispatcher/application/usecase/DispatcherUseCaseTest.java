@@ -3,6 +3,7 @@ package de.muenchen.oss.swim.dispatcher.application.usecase;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.BUCKET;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE1;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE1_BASE_NAME;
+import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE1_GROUP;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE2;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE2_BASE_NAME;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE_LIST;
@@ -37,6 +38,7 @@ import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.helper.MetadataHelper;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
 import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
@@ -105,8 +107,8 @@ class DispatcherUseCaseTest {
         // test
         verify(groupingHelper).groupFiles(eq(FILE_LIST));
         verify(validationHelper).validateAndFilterGroupedFiles(eq(useCase), eq(GROUPED_FILE_LIST));
-        verify(dispatcherUseCase, times(1)).processFileGroup(eq(useCase), eq(FILE1_BASE_NAME), eq(List.of(FILE1)));
-        verify(dispatcherUseCase, times(1)).processFileGroup(eq(useCase), eq(FILE2_BASE_NAME), eq(List.of(FILE2)));
+        verify(dispatcherUseCase, times(1)).processFileGroup(eq(useCase), eq(FILE1_BASE_NAME), eq(GROUPED_FILE_LIST.get(FILE1_BASE_NAME)));
+        verify(dispatcherUseCase, times(1)).processFileGroup(eq(useCase), eq(FILE2_BASE_NAME), eq(GROUPED_FILE_LIST.get(FILE2_BASE_NAME)));
         verify(fileHandlingHelper, times(0)).markFileError(any(), any(), any());
         verify(notificationOutPort, times(0)).sendDispatchErrors(any(), any(), any());
     }
@@ -139,9 +141,9 @@ class DispatcherUseCaseTest {
         when(fileSystemOutPort.getPresignedUrl(eq(METADATA_FILE))).thenReturn(PRESIGNED_URL_METADATA_FILE);
         when(fileSystemOutPort.getPresignedUrl(eq(FILE1.reference()))).thenReturn(PRESIGNED_URL_FILE);
         // call
-        dispatcherUseCase.processFileGroup(useCase, FILE1.reference().getFileNameWithoutExtension(), List.of(FILE1));
+        dispatcherUseCase.processFileGroup(useCase, FILE1.reference().getFileNameWithoutExtension(), FILE1_GROUP);
         // test
-        verify(fileDispatchingOutPort, times(1)).dispatchFile(eq(useCase.getDestinationBinding()), eq(USE_CASE), eq(List.of(PRESIGNED_FILE)));
+        verify(fileDispatchingOutPort, times(1)).dispatchFile(eq(useCase.getDestinationBinding()), eq(USE_CASE), eq(PRESIGNED_FILE));
         verify(dispatchActionsHelper, times(0)).rerouteFileToUseCase(any(), any(), any());
         verify(fileSystemOutPort, times(1)).tagFile(eq(FILE1.reference()), eq(Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
@@ -159,9 +161,9 @@ class DispatcherUseCaseTest {
         when(fileSystemOutPort.readFile(eq(METADATA_FILE)))
                 .thenReturn(getClass().getResourceAsStream("/files/example-metadata-destination.json"));
         // call
-        dispatcherUseCase.processFileGroup(useCase, FILE1_BASE_NAME, List.of(FILE1));
+        dispatcherUseCase.processFileGroup(useCase, FILE1_BASE_NAME, FILE1_GROUP);
         // test
-        verify(fileDispatchingOutPort, times(1)).dispatchFile(eq("invoice-out"), eq(useCaseName), eq(List.of(PRESIGNED_FILE)));
+        verify(fileDispatchingOutPort, times(1)).dispatchFile(eq("invoice-out"), eq(useCaseName), eq(PRESIGNED_FILE));
         verify(dispatchActionsHelper, times(0)).rerouteFileToUseCase(any(), any(), any());
         verify(fileSystemOutPort, times(1)).tagFile(eq(FILE1.reference()), eq(Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
@@ -174,7 +176,7 @@ class DispatcherUseCaseTest {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         when(fileSystemOutPort.fileExists(eq(METADATA_FILE))).thenReturn(false);
         // call and test
-        assertThrows(MetadataException.class, () -> dispatcherUseCase.processFileGroup(useCase, FILE1_BASE_NAME, List.of(FILE1)));
+        assertThrows(MetadataException.class, () -> dispatcherUseCase.processFileGroup(useCase, FILE1_BASE_NAME, FILE1_GROUP));
     }
 
     @Test
@@ -186,9 +188,9 @@ class DispatcherUseCaseTest {
                 swimDispatcherProperties.getDispatchActionTagKey(), "ignore");
         final FileWithMetadata file = new FileWithMetadata(FILE1.reference(), 0, null, tags);
         // call
-        dispatcherUseCase.processFileGroup(useCase, FILE1_BASE_NAME, List.of(file));
+        dispatcherUseCase.processFileGroup(useCase, FILE1_BASE_NAME, new FileGroup(false, file));
         // test
-        verify(fileDispatchingOutPort, times(0)).dispatchFile(any(), any(), any());
+        verify(fileDispatchingOutPort, times(0)).dispatchFile(any(), any(), (PresignedFile) any());
         verify(dispatchActionsHelper, times(0)).dispatchFileGroup(any(), any(), any());
         verify(dispatchActionsHelper, times(0)).rerouteFileToUseCase(any(), any(), any());
         verify(fileHandlingHelper, times(1)).finishFile(eq(useCase), eq(FILE1.reference()));
@@ -205,10 +207,10 @@ class DispatcherUseCaseTest {
                 "SWIM_Reroute_Destination", "test2");
         final FileWithMetadata file = new FileWithMetadata(FILE1.reference(), 0, null, tags);
         // call
-        dispatcherUseCase.processFileGroup(useCase, FILE1_BASE_NAME, List.of(file));
+        dispatcherUseCase.processFileGroup(useCase, FILE1_BASE_NAME, new FileGroup(false, file));
         // test
         final FileReference destFile = new FileReference("test-bucket-2", "path/test2/inProcess/from_test-meta/path/test.pdf");
-        verify(fileDispatchingOutPort, times(0)).dispatchFile(any(), any(), any());
+        verify(fileDispatchingOutPort, times(0)).dispatchFile(any(), any(), (PresignedFile) any());
         verify(dispatchActionsHelper, times(1)).rerouteFileToUseCase(eq(useCase), eq(FILE1.reference()), eq(tags));
         verify(fileSystemOutPort, times(1)).copyFile(eq(FILE1.reference()), eq(destFile), eq(true));
         verify(fileSystemOutPort, times(1)).tagFile(eq(destFile), eq(Map.of(

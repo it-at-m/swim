@@ -10,6 +10,7 @@ import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.helper.MetadataHelper;
 import de.muenchen.oss.swim.dispatcher.domain.model.DispatchAction;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
 import de.muenchen.oss.swim.dispatcher.domain.model.Metadata;
@@ -65,16 +66,16 @@ public class DispatchActionsHelper {
      * {@link UseCase#getDestinationBinding()}.
      *
      * @param useCase The use case to resolve the destination binding for.
-     * @param files The files to resolve the destination binding for.
+     * @param fileGroup The files to resolve the destination binding for.
      * @return The resolved destination binding.
      * @throws MetadataException If metadata file can't be loaded or parsed.
      */
-    public String resolveDestinationBinding(final UseCase useCase, final List<FileWithMetadata> files) throws MetadataException {
+    public String resolveDestinationBinding(final UseCase useCase, final FileGroup fileGroup) throws MetadataException {
         // if multiple files ignore all overwrites
-        if (files.size() > 1) {
+        if (fileGroup.isMulti()) {
             return useCase.getDestinationBinding();
         }
-        final FileReference file = files.getFirst().reference();
+        final FileReference file = fileGroup.getFiles().getFirst().reference();
         // resolve via metadata file if enabled
         if (useCase.isOverwriteDestinationViaMetadata()) {
             try (InputStream metadataFileStream = this.fileSystemOutPort.readFile(file.getMetadataFile())) {
@@ -95,14 +96,14 @@ public class DispatchActionsHelper {
      * Dispatch multiple files or one to the use case destination binding.
      *
      * @param useCase The use case of the file.
-     * @param files The files.
+     * @param fileGroup The files.
      * @param destination Destination binding to dispatch to.
      * @throws MetadataException If metadata file required but could not be loaded.
      */
-    public void dispatchFileGroup(final UseCase useCase, final List<FileWithMetadata> files, final String destination) throws MetadataException {
+    public void dispatchFileGroup(final UseCase useCase, final FileGroup fileGroup, final String destination) throws MetadataException {
         // check metadata file exists if required
         final List<PresignedFile> presignedFiles = new ArrayList<>();
-        for (final FileWithMetadata fileWithMeta : files) {
+        for (final FileWithMetadata fileWithMeta : fileGroup.getFiles()) {
             final FileReference file = fileWithMeta.reference();
             final String metadataPresignedUrl;
             if (useCase.isRequiresMetadata()) {
@@ -121,9 +122,13 @@ public class DispatchActionsHelper {
             presignedFiles.add(new PresignedFile(presignedUrl, metadataPresignedUrl));
         }
         // dispatch file
-        fileDispatchingOutPort.dispatchFile(destination, useCase.getName(), presignedFiles);
+        if (fileGroup.isMulti()) {
+            fileDispatchingOutPort.dispatchFile(destination, useCase.getName(), presignedFiles);
+        } else {
+            fileDispatchingOutPort.dispatchFile(destination, useCase.getName(), presignedFiles.getFirst());
+        }
         // mark file as dispatched
-        for (final FileWithMetadata fileWithMeta : files) {
+        for (final FileWithMetadata fileWithMeta : fileGroup.getFiles()) {
             final FileReference file = fileWithMeta.reference();
             fileSystemOutPort.tagFile(file, Map.of(
                     swimDispatcherProperties.getDispatchStateTagKey(),

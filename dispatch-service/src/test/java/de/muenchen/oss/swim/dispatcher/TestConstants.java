@@ -1,5 +1,6 @@
 package de.muenchen.oss.swim.dispatcher;
 
+import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
 import java.time.Duration;
@@ -31,9 +32,11 @@ public final class TestConstants {
     public static final String TEST_PRESIGNED_URL_PATH = "test/inProcess/path/example.pdf";
     public static final FileReference TEST_PRESIGNED_URL_FILE = new FileReference(BUCKET, "test/inProcess/path/example.pdf");
     public static final List<FileWithMetadata> FILE_LIST = List.of(FILE1, FILE2);
-    public static final Map<String, List<FileWithMetadata>> GROUPED_FILE_LIST = Map.of(
-            FILE1_BASE_NAME, List.of(FILE1),
-            FILE2_BASE_NAME, List.of(FILE2));
+    public static final FileGroup FILE1_GROUP = new FileGroup(false, FILE1);
+    public static final FileGroup FILE2_GROUP = new FileGroup(false, FILE2);
+    public static final Map<String, FileGroup> GROUPED_FILE_LIST = Map.of(
+            FILE1_BASE_NAME, FILE1_GROUP,
+            FILE2_BASE_NAME, FILE2_GROUP);
 
     public static FileWithMetadata createFileWithMeta(final String path, final Map<String, String> tags) {
         return new FileWithMetadata(new FileReference(BUCKET, path), 0L, ZonedDateTime.now().minus(Duration.ofDays(2)), tags);

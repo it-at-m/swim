@@ -58,7 +58,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build-path: ["./backend", "./eai"] # JSON array formatted as string, contains the paths to the java projects to build
+        build-path: ["./matching-service", "./dispatch-service", "./handler-core", "./dipa-service", "./dms-service", "./invoice-service"] # JSON array formatted as string, contains the paths to the java projects to build
     steps:
       - uses: it-at-m/lhm_actions/action-templates/actions/action-codeql@b088b94cad35e50b197104c9e2ac8fb25a7116b3 # v1.0.33
         with:

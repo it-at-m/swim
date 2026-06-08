@@ -10,11 +10,10 @@ public final class TestConstants {
 
     public static final String SPRING_TEST_PROFILE = "test";
     public static final String SPRING_NO_SECURITY_PROFILE = "no-security";
-    public static final String SPRING_JSON_LOGGING_PROFILE = "json-logging";
 
-    public final static DmsTarget METADATA_DMS_TARGET_USER = new DmsTarget("userMetadataCoo", "metadata.user", null, null);
-    public final static DmsTarget METADATA_DMS_TARGET_GROUP = new DmsTarget("groupMetadataCoo", "metadata.group", null, null);
-    public final static DmsTarget METADATA_DMS_TARGET_INCOMING = new DmsTarget("incomingMetadataCoo", "metadata.user", null, null);
-    public final static DmsTarget METADATA_DMS_TARGET_OU_WORK_QUEUE = new DmsTarget(null, "metadata.user", null, null);
+    public static final DmsTarget METADATA_DMS_TARGET_USER = new DmsTarget("userMetadataCoo", "metadata.user", null, null);
+    public static final DmsTarget METADATA_DMS_TARGET_GROUP = new DmsTarget("groupMetadataCoo", "metadata.group", null, null);
+    public static final DmsTarget METADATA_DMS_TARGET_INCOMING = new DmsTarget("incomingMetadataCoo", "metadata.user", null, null);
+    public static final DmsTarget METADATA_DMS_TARGET_OU_WORK_QUEUE = new DmsTarget(null, "metadata.user", null, null);
 
 }

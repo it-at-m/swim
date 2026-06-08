@@ -82,10 +82,10 @@ class ProtocolProcessingUseCaseTest {
         // call
         protocolProcessingUseCase.triggerProtocolProcessing();
         // test
-        verify(fileSystemOutPort, times(1)).getMatchingFilesWithTags(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH), anyBoolean(), any(), any(), anyMap());
-        verify(protocolProcessingUseCase, times(1)).processProtocolFile(any(), any());
-        verify(protocolProcessingUseCase, times(1)).processProtocolFile(any(), eq(PROTOCOL_FILE.reference()));
-        verify(notificationOutPort, times(1)).sendProtocolError(any(), eq(USE_CASE), eq(NO_PROTOCOL_FILE.reference().path()), any());
+        verify(fileSystemOutPort).getMatchingFilesWithTags(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH), anyBoolean(), any(), any(), anyMap());
+        verify(protocolProcessingUseCase).processProtocolFile(any(), any());
+        verify(protocolProcessingUseCase).processProtocolFile(any(), eq(PROTOCOL_FILE.reference()));
+        verify(notificationOutPort).sendProtocolError(any(), eq(USE_CASE), eq(NO_PROTOCOL_FILE.reference().path()), any());
     }
 
     @Test
@@ -104,14 +104,14 @@ class ProtocolProcessingUseCaseTest {
         // call
         protocolProcessingUseCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE.reference());
         // test
-        verify(notificationOutPort, times(1)).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_RAW_PATH), eq(protocolStream), eq(List.of()),
+        verify(notificationOutPort).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_RAW_PATH), eq(protocolStream), eq(List.of()),
                 eq(List.of()));
-        verify(storeProtocolOutPort, times(1)).deleteProtocol(eq(USE_CASE), eq(PROTOCOL_RAW_PATH));
-        verify(storeProtocolOutPort, times(1)).storeProtocol(eq(USE_CASE), eq(PROTOCOL_RAW_PATH), eq(List.of(PROTOCOL_ENTRY1, PROTOCOL_ENTRY2)));
-        verify(fileSystemOutPort, times(1)).tagFile(eq(PROTOCOL_FILE.reference()), eq(Map.of(
+        verify(storeProtocolOutPort).deleteProtocol(eq(USE_CASE), eq(PROTOCOL_RAW_PATH));
+        verify(storeProtocolOutPort).storeProtocol(eq(USE_CASE), eq(PROTOCOL_RAW_PATH), eq(List.of(PROTOCOL_ENTRY1, PROTOCOL_ENTRY2)));
+        verify(fileSystemOutPort).tagFile(eq(PROTOCOL_FILE.reference()), eq(Map.of(
                 swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTagValue(),
                 swimDispatcherProperties.getProtocolMatchTagKey(), "correct")));
-        verify(fileSystemOutPort, times(1)).moveFile(eq(PROTOCOL_FILE.reference()), eq("test/finishedProtocols/path/path.csv"));
+        verify(fileSystemOutPort).moveFile(eq(PROTOCOL_FILE.reference()), eq("test/finishedProtocols/path/path.csv"));
         verify(fileHandlingHelper, times(0)).markFileError(any(), any(), any());
         verify(notificationOutPort, times(0)).sendProtocolError(any(), any(), any(), any());
     }
@@ -132,9 +132,9 @@ class ProtocolProcessingUseCaseTest {
         // call
         protocolProcessingUseCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE.reference());
         // test
-        verify(notificationOutPort, times(1)).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_RAW_PATH), eq(protocolStream),
+        verify(notificationOutPort).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_RAW_PATH), eq(protocolStream),
                 eq(List.of("test4.pdf")), eq(List.of("test3.pdf")));
-        verify(fileSystemOutPort, times(1)).tagFile(eq(PROTOCOL_FILE.reference()), eq(Map.of(
+        verify(fileSystemOutPort).tagFile(eq(PROTOCOL_FILE.reference()), eq(Map.of(
                 swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTagValue(),
                 swimDispatcherProperties.getProtocolMatchTagKey(), "missingInProtocolAndFiles")));
         verify(fileHandlingHelper, times(0)).markFileError(any(), any(), any());
@@ -149,8 +149,8 @@ class ProtocolProcessingUseCaseTest {
         // call
         protocolProcessingUseCase.processProtocolFile(swimDispatcherProperties.getUseCases().getFirst(), PROTOCOL_FILE.reference());
         // test
-        verify(fileHandlingHelper, times(1)).markFileError(eq(PROTOCOL_FILE.reference()), eq(swimDispatcherProperties.getProtocolStateTagKey()), eq(e));
-        verify(notificationOutPort, times(1)).sendProtocolError(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_FILE.reference().path()), eq(e));
+        verify(fileHandlingHelper).markFileError(eq(PROTOCOL_FILE.reference()), eq(swimDispatcherProperties.getProtocolStateTagKey()), eq(e));
+        verify(notificationOutPort).sendProtocolError(eq(USE_CASE_RECIPIENTS), eq(USE_CASE), eq(PROTOCOL_FILE.reference().path()), eq(e));
     }
 
     @Test
@@ -169,9 +169,9 @@ class ProtocolProcessingUseCaseTest {
         // call
         protocolProcessingUseCase.processProtocolFile(useCase, protocolFile.reference());
         // test
-        verify(notificationOutPort, times(1)).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(useCase.getName()), eq(PROTOCOL_RAW_PATH), eq(protocolStream),
+        verify(notificationOutPort).sendProtocol(eq(USE_CASE_RECIPIENTS), eq(useCase.getName()), eq(PROTOCOL_RAW_PATH), eq(protocolStream),
                 eq(List.of()), eq(List.of("test-1v1-wrong.pdf")));
-        verify(fileSystemOutPort, times(1)).tagFile(eq(protocolFile.reference()), eq(Map.of(
+        verify(fileSystemOutPort).tagFile(eq(protocolFile.reference()), eq(Map.of(
                 swimDispatcherProperties.getProtocolStateTagKey(), swimDispatcherProperties.getProtocolProcessedStateTagValue(),
                 swimDispatcherProperties.getProtocolMatchTagKey(), "missingInProtocol")));
         verify(fileHandlingHelper, times(0)).markFileError(any(), any(), any());
@@ -203,9 +203,9 @@ class ProtocolProcessingUseCaseTest {
         // call
         protocolProcessingUseCase.processProtocolFile(useCase, protocolFile.reference());
         // test: both in-process files should be tagged as protocol processed
-        verify(fileSystemOutPort, times(1)).tagFile(eq(inProcessFile1.reference()), eq(Map.of(
+        verify(fileSystemOutPort).tagFile(eq(inProcessFile1.reference()), eq(Map.of(
                 "SWIM_State", "protocolProcessingSuccessful")));
-        verify(fileSystemOutPort, times(1)).tagFile(eq(inProcessFile2.reference()), eq(Map.of(
+        verify(fileSystemOutPort).tagFile(eq(inProcessFile2.reference()), eq(Map.of(
                 "SWIM_State", "protocolProcessingSuccessful")));
     }
 }

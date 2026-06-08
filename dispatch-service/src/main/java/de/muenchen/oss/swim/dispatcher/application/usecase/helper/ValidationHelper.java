@@ -5,8 +5,8 @@ import static de.muenchen.oss.swim.dispatcher.application.usecase.helper.Groupin
 import static de.muenchen.oss.swim.dispatcher.application.usecase.helper.GroupingHelper.CHUNKED_FILE_PATTERN;
 
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
+import de.muenchen.oss.swim.dispatcher.domain.exception.FileChunkException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
-import de.muenchen.oss.swim.dispatcher.domain.model.ErrorContainer;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
@@ -14,54 +14,35 @@ import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ValidationHelper {
     private final SwimDispatcherProperties swimDispatcherProperties;
 
     /**
-     * Validate and filter a list of grouped files.
-     * Validates each group with all files and each file separately.
-     * Not valid files are filtered out and are listed in the errors.
+     * Validate and filter a FileGroup.
+     * Validates group with all files and each file separately.
      *
      * @param useCase The use case the files were found for.
-     * @param groupedFiles The grouped files to validate.
-     * @return The result of the validation, with errors and valid files.
+     * @param fileGroup The FileGroup to validate.
      */
-    public ErrorContainer<Map<String, FileGroup>> validateAndFilterGroupedFiles(final UseCase useCase,
-            final Map<String, FileGroup> groupedFiles) {
-        final Map<String, Throwable> errors = new HashMap<>();
-        final Map<String, FileGroup> filteredFiles = new HashMap<>();
-        // validate groups
-        for (final Map.Entry<String, FileGroup> entry : groupedFiles.entrySet()) {
-            final String baseFileName = entry.getKey();
-            final FileGroup fileGroup = entry.getValue();
-            final List<FileWithMetadata> files = fileGroup.getFiles();
-            try {
-                // if multiple files
-                if (fileGroup.isMulti()) {
-                    this.validateGroup(baseFileName, files);
-                }
-                // validate each file
-                for (final FileWithMetadata file : files) {
-                    this.validateFile(useCase, file);
-                }
-                // add files for further processing
-                filteredFiles.put(baseFileName, fileGroup);
-            } catch (final FileSizeException | RuntimeException e) {
-                for (final FileWithMetadata file : files) {
-                    errors.put(file.reference().path(), e);
-                }
-            }
+    public void validateFileGroup(final UseCase useCase, final String baseFileName, final FileGroup fileGroup) throws FileSizeException, FileChunkException {
+        final List<FileWithMetadata> files = fileGroup.getFiles();
+        // if multiple files
+        if (fileGroup.isMulti()) {
+            this.validateGroup(baseFileName, files);
         }
-        return new ErrorContainer<>(errors, filteredFiles);
+        // validate each file
+        for (final FileWithMetadata file : files) {
+            this.validateFile(useCase, file);
+        }
     }
 
     /**
@@ -75,12 +56,12 @@ public class ValidationHelper {
      *
      * @param baseFileName the base filename of the group (without extension)
      * @param files the files that belong to the base filename
-     * @throws IllegalStateException if tags differ or any chunk is missing
+     * @throws FileChunkException if tags differ or any chunk is missing
      */
-    protected void validateGroup(final String baseFileName, final List<FileWithMetadata> files) {
+    protected void validateGroup(final String baseFileName, final List<FileWithMetadata> files) throws FileChunkException {
         // check all files same tags
         if (files.stream().map(FileWithMetadata::tags).distinct().limit(2).count() > 1) {
-            throw new IllegalStateException("The tags of the %d files %s are different.".formatted(files.size(), baseFileName));
+            throw new FileChunkException("The tags of the %d files %s are different.".formatted(files.size(), baseFileName));
         }
         // check all file chunks are present and throw error if over age limit
         final boolean allChunksPresent = this.allChunksPresent(files);
@@ -90,7 +71,7 @@ public class ValidationHelper {
                 .map(i -> Duration.between(i, ZonedDateTime.now()))
                 .orElseThrow();
         if (!allChunksPresent && newestFileAge.compareTo(swimDispatcherProperties.getMaxFileChunkAge()) > 0) {
-            throw new IllegalStateException("There are chunks missing from ");
+            throw new FileChunkException("There are chunks missing for file %s".formatted(baseFileName));
         }
     }
 

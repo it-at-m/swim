@@ -54,14 +54,14 @@ class ErrorHandlerUseCaseTest {
         // call
         errorHandlerUseCase.handleError(USE_CASE, TEST_PRESIGNED_URL, null, TEST_ERROR_DETAILS);
         // test
-        verify(fileSystemOutPort, times(1)).tagFile(eq(TEST_PRESIGNED_URL_FILE), eq(Map.of(
+        verify(fileSystemOutPort).tagFile(eq(TEST_PRESIGNED_URL_FILE), eq(Map.of(
                 "SWIM_State", "error",
                 "errorClass", "de.muenchen.swim.CustomException",
                 "errorMessage", "Cause message")));
-        verify(notificationOutPort, times(1)).sendFileError(eq(useCase.getMailAddresses()), eq(USE_CASE), eq(TEST_PRESIGNED_URL_PATH),
+        verify(notificationOutPort).sendFileError(eq(useCase.getMailAddresses()), eq(USE_CASE), eq(TEST_PRESIGNED_URL_PATH),
                 eq(TEST_ERROR_DETAILS));
         verify(notificationOutPort, times(0)).sendFileError(any(), any(), any(), any(), any());
-        verify(dispatchMeter, times(1)).incrementError(eq(USE_CASE), eq(TEST_ERROR_DETAILS.source()));
+        verify(dispatchMeter).incrementError(eq(USE_CASE), eq(TEST_ERROR_DETAILS.source()));
     }
 
     @Test

@@ -6,6 +6,7 @@ import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE1_BASE_NAME;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE1_GROUP;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE2;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE2_BASE_NAME;
+import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE2_GROUP;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE_LIST;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.FOLDER_PATH;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.GROUPED_FILE_LIST;
@@ -35,6 +36,8 @@ import de.muenchen.oss.swim.dispatcher.application.usecase.helper.GroupingHelper
 import de.muenchen.oss.swim.dispatcher.application.usecase.helper.ValidationHelper;
 import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
+import de.muenchen.oss.swim.dispatcher.domain.exception.FileChunkException;
+import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.helper.MetadataHelper;
@@ -96,7 +99,7 @@ class DispatcherUseCaseTest {
     private SwimDispatcherProperties swimDispatcherProperties;
 
     @Test
-    void testTriggerDispatching_Success() throws MetadataException, UseCaseException {
+    void testTriggerDispatching_Success() throws MetadataException, UseCaseException, FileChunkException, FileSizeException {
         // setup
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH))).thenReturn(List.of(FOLDER_PATH));
@@ -106,15 +109,16 @@ class DispatcherUseCaseTest {
         dispatcherUseCase.triggerDispatching();
         // test
         verify(groupingHelper).groupFiles(eq(FILE_LIST));
-        verify(validationHelper).validateAndFilterGroupedFiles(eq(useCase), eq(GROUPED_FILE_LIST));
-        verify(dispatcherUseCase, times(1)).processFileGroup(eq(useCase), eq(FILE1_BASE_NAME), eq(GROUPED_FILE_LIST.get(FILE1_BASE_NAME)));
-        verify(dispatcherUseCase, times(1)).processFileGroup(eq(useCase), eq(FILE2_BASE_NAME), eq(GROUPED_FILE_LIST.get(FILE2_BASE_NAME)));
+        verify(validationHelper).validateFileGroup(eq(useCase), eq(FILE1_BASE_NAME), eq(FILE1_GROUP));
+        verify(validationHelper).validateFileGroup(eq(useCase), eq(FILE2_BASE_NAME), eq(FILE2_GROUP));
+        verify(dispatcherUseCase).processFileGroup(eq(useCase), eq(FILE1_BASE_NAME), eq(GROUPED_FILE_LIST.get(FILE1_BASE_NAME)));
+        verify(dispatcherUseCase).processFileGroup(eq(useCase), eq(FILE2_BASE_NAME), eq(GROUPED_FILE_LIST.get(FILE2_BASE_NAME)));
         verify(fileHandlingHelper, times(0)).markFileError(any(), any(), any());
         verify(notificationOutPort, times(0)).sendDispatchErrors(any(), any(), any());
     }
 
     @Test
-    void testTriggerDispatching_Exception() throws MetadataException, UseCaseException {
+    void testTriggerDispatching_Exception() throws MetadataException, UseCaseException, FileChunkException, FileSizeException {
         // setup
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         when(fileSystemOutPort.getSubDirectories(eq(BUCKET), eq(USE_CASE_DISPATCH_PATH))).thenReturn(List.of(FOLDER_PATH));
@@ -125,12 +129,13 @@ class DispatcherUseCaseTest {
         dispatcherUseCase.triggerDispatching();
         // test
         verify(groupingHelper).groupFiles(eq(FILE_LIST));
-        verify(validationHelper).validateAndFilterGroupedFiles(eq(useCase), eq(GROUPED_FILE_LIST));
-        verify(fileHandlingHelper, times(1)).markFileError(eq(FILE1.reference()), eq(swimDispatcherProperties.getDispatchStateTagKey()), eq(e));
-        verify(fileHandlingHelper, times(1)).markFileError(eq(FILE2.reference()), eq(swimDispatcherProperties.getDispatchStateTagKey()), eq(e));
-        verify(notificationOutPort, times(1)).sendDispatchErrors(eq(USE_CASE_RECIPIENTS), eq(useCase.getName()), eq(Map.of(
-                FILE1.reference().path(), e,
-                FILE2.reference().path(), e)));
+        verify(validationHelper).validateFileGroup(eq(useCase), eq(FILE1_BASE_NAME), eq(FILE1_GROUP));
+        verify(validationHelper).validateFileGroup(eq(useCase), eq(FILE2_BASE_NAME), eq(FILE2_GROUP));
+        verify(fileHandlingHelper).markFileError(eq(FILE1.reference()), eq(swimDispatcherProperties.getDispatchStateTagKey()), eq(e));
+        verify(fileHandlingHelper).markFileError(eq(FILE2.reference()), eq(swimDispatcherProperties.getDispatchStateTagKey()), eq(e));
+        verify(notificationOutPort).sendDispatchErrors(eq(USE_CASE_RECIPIENTS), eq(useCase.getName()), eq(Map.of(
+                FILE1.reference(), e,
+                FILE2.reference(), e)));
     }
 
     @Test
@@ -143,11 +148,11 @@ class DispatcherUseCaseTest {
         // call
         dispatcherUseCase.processFileGroup(useCase, FILE1.reference().getFileNameWithoutExtension(), FILE1_GROUP);
         // test
-        verify(fileDispatchingOutPort, times(1)).dispatchFile(eq(useCase.getDestinationBinding()), eq(USE_CASE), eq(PRESIGNED_FILE));
+        verify(fileDispatchingOutPort).dispatchFile(eq(useCase.getDestinationBinding()), eq(USE_CASE), eq(PRESIGNED_FILE));
         verify(dispatchActionsHelper, times(0)).rerouteFileToUseCase(any(), any(), any());
-        verify(fileSystemOutPort, times(1)).tagFile(eq(FILE1.reference()), eq(Map.of(
+        verify(fileSystemOutPort).tagFile(eq(FILE1.reference()), eq(Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
-        verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(useCase.getDestinationBinding()));
+        verify(dispatchMeter).incrementDispatched(eq(USE_CASE), eq(useCase.getDestinationBinding()));
     }
 
     @Test
@@ -163,11 +168,11 @@ class DispatcherUseCaseTest {
         // call
         dispatcherUseCase.processFileGroup(useCase, FILE1_BASE_NAME, FILE1_GROUP);
         // test
-        verify(fileDispatchingOutPort, times(1)).dispatchFile(eq("invoice-out"), eq(useCaseName), eq(PRESIGNED_FILE));
+        verify(fileDispatchingOutPort).dispatchFile(eq("invoice-out"), eq(useCaseName), eq(PRESIGNED_FILE));
         verify(dispatchActionsHelper, times(0)).rerouteFileToUseCase(any(), any(), any());
-        verify(fileSystemOutPort, times(1)).tagFile(eq(FILE1.reference()), eq(Map.of(
+        verify(fileSystemOutPort).tagFile(eq(FILE1.reference()), eq(Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchedStateTagValue())));
-        verify(dispatchMeter, times(1)).incrementDispatched(eq(useCaseName), eq("invoice-out"));
+        verify(dispatchMeter).incrementDispatched(eq(useCaseName), eq("invoice-out"));
     }
 
     @Test
@@ -193,8 +198,8 @@ class DispatcherUseCaseTest {
         verify(fileDispatchingOutPort, times(0)).dispatchFile(any(), any(), (PresignedFile) any());
         verify(dispatchActionsHelper, times(0)).dispatchFileGroup(any(), any(), any());
         verify(dispatchActionsHelper, times(0)).rerouteFileToUseCase(any(), any(), any());
-        verify(fileHandlingHelper, times(1)).finishFile(eq(useCase), eq(FILE1.reference()));
-        verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(IGNORE.name()));
+        verify(fileHandlingHelper).finishFile(eq(useCase), eq(FILE1.reference()));
+        verify(dispatchMeter).incrementDispatched(eq(USE_CASE), eq(IGNORE.name()));
     }
 
     @Test
@@ -211,11 +216,11 @@ class DispatcherUseCaseTest {
         // test
         final FileReference destFile = new FileReference("test-bucket-2", "path/test2/inProcess/from_test-meta/path/test.pdf");
         verify(fileDispatchingOutPort, times(0)).dispatchFile(any(), any(), (PresignedFile) any());
-        verify(dispatchActionsHelper, times(1)).rerouteFileToUseCase(eq(useCase), eq(FILE1.reference()), eq(tags));
-        verify(fileSystemOutPort, times(1)).copyFile(eq(FILE1.reference()), eq(destFile), eq(true));
-        verify(fileSystemOutPort, times(1)).tagFile(eq(destFile), eq(Map.of(
+        verify(dispatchActionsHelper).rerouteFileToUseCase(eq(useCase), eq(FILE1.reference()), eq(tags));
+        verify(fileSystemOutPort).copyFile(eq(FILE1.reference()), eq(destFile), eq(true));
+        verify(fileSystemOutPort).tagFile(eq(destFile), eq(Map.of(
                 "SWIM_State", "protocolProcessingSuccessful")));
-        verify(fileHandlingHelper, times(1)).finishFile(eq(useCase), eq(FILE1.reference()));
-        verify(dispatchMeter, times(1)).incrementDispatched(eq(USE_CASE), eq(REROUTE.name()));
+        verify(fileHandlingHelper).finishFile(eq(useCase), eq(FILE1.reference()));
+        verify(dispatchMeter).incrementDispatched(eq(USE_CASE), eq(REROUTE.name()));
     }
 }

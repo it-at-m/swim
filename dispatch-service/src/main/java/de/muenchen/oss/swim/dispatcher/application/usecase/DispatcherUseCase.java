@@ -12,11 +12,13 @@ import de.muenchen.oss.swim.dispatcher.application.usecase.helper.GroupingHelper
 import de.muenchen.oss.swim.dispatcher.application.usecase.helper.ValidationHelper;
 import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
+import de.muenchen.oss.swim.dispatcher.domain.exception.FileChunkException;
+import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.DispatchAction;
-import de.muenchen.oss.swim.dispatcher.domain.model.ErrorContainer;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.HashMap;
@@ -44,7 +46,7 @@ public class DispatcherUseCase implements DispatcherInPort {
     public void triggerDispatching() {
         log.info("Starting dispatching");
         for (final UseCase useCase : swimDispatcherProperties.getUseCases()) {
-            final Map<String, Throwable> errors = new HashMap<>();
+            final Map<FileReference, Throwable> errors = new HashMap<>();
             try {
                 // handle files directly in directory
                 final String dispatchPath = useCase.getDispatchPath(swimDispatcherProperties);
@@ -66,11 +68,9 @@ public class DispatcherUseCase implements DispatcherInPort {
                 }
             } catch (final Exception e) {
                 log.error("Processing of use case {} failed", useCase.getName(), e);
-                final Map<String, Throwable> enrichedErrors = new HashMap<>();
-                enrichedErrors.put("!!! USE CASE PROCESSING !!!", new UseCaseException(
-                        "Unexpected error during dispatching, use case was not processed completely. Error: %s".formatted(e.getMessage()), e));
-                enrichedErrors.putAll(errors);
-                notificationOutPort.sendDispatchErrors(useCase.getMailAddresses(), useCase.getName(), enrichedErrors);
+                final String additionalMessage = "!!! USE CASE PROCESSING !!! Unexpected error during dispatching, use case was not processed completely. Error: %s"
+                        .formatted(e.getMessage());
+                notificationOutPort.sendDispatchErrors(useCase.getMailAddresses(), useCase.getName(), errors, additionalMessage);
             }
         }
         log.info("Finished dispatching");
@@ -85,7 +85,7 @@ public class DispatcherUseCase implements DispatcherInPort {
      * @return Error which occurred during processing (Key: file path, value: error).
      */
     private @NotNull
-    Map<String, Throwable> processDirectory(final UseCase useCase, final String folder, final boolean recursive) {
+    Map<FileReference, Throwable> processDirectory(final UseCase useCase, final String folder, final boolean recursive) {
         // find files
         final List<FileWithMetadata> readyFiles = fileSystemOutPort.getMatchingFilesWithTags(
                 useCase.getBucket(),
@@ -97,25 +97,24 @@ public class DispatcherUseCase implements DispatcherInPort {
         log.info("Found {} ready to process files for use case {} in folder {}", readyFiles.size(), useCase.getName(), folder);
         // group and validate files
         final Map<String, FileGroup> groupedFiles = groupingHelper.groupFiles(readyFiles);
-        final ErrorContainer<Map<String, FileGroup>> validatedAndFilterGroupedFiles = validationHelper.validateAndFilterGroupedFiles(
-                useCase, groupedFiles);
-        final Map<String, Throwable> errors = new HashMap<>(validatedAndFilterGroupedFiles.errors());
+        final Map<FileReference, Throwable> errors = new HashMap<>();
         // for each file group
-        for (final Map.Entry<String, FileGroup> entry : validatedAndFilterGroupedFiles.value().entrySet()) {
+        for (final Map.Entry<String, FileGroup> entry : groupedFiles.entrySet()) {
             final String baseFileName = entry.getKey();
             final FileGroup fileGroup = entry.getValue();
             final List<FileWithMetadata> files = fileGroup.getFiles();
             try {
+                this.validationHelper.validateFileGroup(useCase, baseFileName, fileGroup);
                 this.processFileGroup(useCase, baseFileName, fileGroup);
-            } catch (final MetadataException | UseCaseException | RuntimeException e) {
+            } catch (final MetadataException | UseCaseException | RuntimeException | FileSizeException | FileChunkException e) {
                 log.warn("Error while processing {} file(s) {} for use case {}", files.size(), baseFileName, useCase.getName(), e);
-                // mark file as failed
+                // mark files as failed
                 for (final FileWithMetadata file : files) {
                     fileHandlingHelper.markFileError(file.reference(), swimDispatcherProperties.getDispatchStateTagKey(), e);
                 }
                 // store exception for later notification
                 for (final FileWithMetadata file : files) {
-                    errors.put(file.reference().path(), e);
+                    errors.put(file.reference(), e);
                 }
             }
         }

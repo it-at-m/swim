@@ -54,13 +54,13 @@ class ProcessFileUseCaseTest {
     @Autowired
     private ProcessFileUseCase processFileUseCase;
 
-    private final static String BUCKET = "test-bucket";
-    private final static String FILE_NAME_WITHOUT_EXTENSION = "test_asd";
-    private final static String FILE_NAME = String.format("%s.pdf", FILE_NAME_WITHOUT_EXTENSION);
-    private final static String FILE_PATH = String.format("test-path/%s", FILE_NAME);
-    private final static File FILE = new File(BUCKET, FILE_PATH);
-    private final static String FILE_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, FILE_PATH);
-    private final static DipaRequestContext REQUEST_CONTEXT = new DipaRequestContext("staticUsername");
+    private static final String BUCKET = "test-bucket";
+    private static final String FILE_NAME_WITHOUT_EXTENSION = "test_asd";
+    private static final String FILE_NAME = String.format("%s.pdf", FILE_NAME_WITHOUT_EXTENSION);
+    private static final String FILE_PATH = String.format("test-path/%s", FILE_NAME);
+    private static final File FILE = new File(BUCKET, FILE_PATH);
+    private static final String FILE_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, FILE_PATH);
+    private static final DipaRequestContext REQUEST_CONTEXT = new DipaRequestContext("staticUsername");
 
     @BeforeEach
     void setup() throws PresignedUrlException {

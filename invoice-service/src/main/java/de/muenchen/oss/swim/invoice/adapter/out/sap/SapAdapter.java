@@ -31,6 +31,7 @@ public class SapAdapter implements InvoiceServiceOutPort {
     private final SIInvoiceDocumentSYOB invoiceClient;
 
     @Override
+    @SuppressWarnings("PMD.ReplaceJavaUtilCalendar")
     public void createInvoice(final String filename, final InputStream inputStream) {
         // parse filename
         final ParsedFilename parsedFilename = parseFilename(filename);

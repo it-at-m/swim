@@ -12,6 +12,8 @@ import de.muenchen.oss.swim.matching.domain.exception.CsvParsingException;
 import de.muenchen.oss.swim.matching.domain.model.ImportReport;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +44,7 @@ class RestAdapterTest {
 
     @Test
     void testUpdateFileNotCsv() {
-        final MultipartFile nonCsvFile = new MockMultipartFile("file", "test.txt", "text/plain", "data".getBytes());
+        final MultipartFile nonCsvFile = new MockMultipartFile("file", "test.txt", "text/plain", "data".getBytes(StandardCharsets.UTF_8));
 
         final ResponseStatusException response = assertThrows(ResponseStatusException.class, () -> restAdapter.update(nonCsvFile));
 

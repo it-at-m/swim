@@ -121,7 +121,7 @@ public class EventMessageConverter implements MessageConverter {
                 throw new StreamingException("Error while converting JSON to FileEvent", e);
             }
         } else {
-            throw new IllegalArgumentException("Argument type '%s' could not be converted to FileEvent".formatted(targetClass.getName()));
+            throw new IllegalArgumentException("Payload type '%s' could not be converted to FileEvent".formatted(payload.getClass().getName()));
         }
     }
 }

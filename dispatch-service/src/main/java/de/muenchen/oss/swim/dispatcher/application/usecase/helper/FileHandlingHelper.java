@@ -32,8 +32,9 @@ public class FileHandlingHelper {
      * @param e The exception that was thrown.
      */
     public void markFileError(final FileReference file, final String stateTagKey, final Throwable e) {
+        final String rawMessage = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
         // escape illegal chars from message
-        final String escapedMessage = e.getMessage().replaceAll(ILLEGAL_CHARS_PATTERN, " ");
+        final String escapedMessage = rawMessage.replaceAll(ILLEGAL_CHARS_PATTERN, " ");
         // shorten exception message for tag value max 256 chars
         final String shortenedExceptionMessage = escapedMessage.length() > TAG_MAX_VALUE_LENGTH ? escapedMessage.substring(0, TAG_MAX_VALUE_LENGTH)
                 : escapedMessage;

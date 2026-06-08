@@ -49,7 +49,7 @@ public record File(
      * @param presignedUrlString The presigned URL of a file.
      * @return The resolve File.
      */
-    static public File fromPresignedUrl(final String presignedUrlString) throws PresignedUrlException {
+    public static File fromPresignedUrl(final String presignedUrlString) throws PresignedUrlException {
         try {
             final URI presignedUrl = new URI(presignedUrlString);
             final String path = presignedUrl.getPath().replaceFirst("^/", "");

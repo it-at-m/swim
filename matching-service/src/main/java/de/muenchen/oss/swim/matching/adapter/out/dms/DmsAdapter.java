@@ -21,7 +21,7 @@ public class DmsAdapter implements DmsOutPort {
     private final ContentObjectsApi contentObjectsApi;
     private final DmsProperties dmsProperties;
 
-    private final static String DMS_APPLICATION = "SWIM-Matching";
+    private static final String DMS_APPLICATION = "SWIM-Matching";
 
     @Override
     public InputStream getExportContent() {

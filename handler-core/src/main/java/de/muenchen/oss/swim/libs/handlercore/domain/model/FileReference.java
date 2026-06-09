@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public record File(
+public record FileReference(
         @NotBlank String bucket,
         @NotBlank String path) {
     public String getFileName() {
@@ -44,12 +44,12 @@ public record File(
     }
 
     /**
-     * Build {@link File} from presigned URL.
+     * Build {@link FileReference} from presigned URL.
      *
      * @param presignedUrlString The presigned URL of a file.
-     * @return The resolve File.
+     * @return The resolved FileReference.
      */
-    public static File fromPresignedUrl(final String presignedUrlString) throws PresignedUrlException {
+    public static FileReference fromPresignedUrl(final String presignedUrlString) throws PresignedUrlException {
         try {
             final URI presignedUrl = new URI(presignedUrlString);
             final String path = presignedUrl.getPath().replaceFirst("^/", "");
@@ -62,7 +62,7 @@ public record File(
             }
             final String bucket = path.substring(0, firstSlash);
             final String filePath = path.substring(firstSlash + 1);
-            return new File(bucket, filePath);
+            return new FileReference(bucket, filePath);
         } catch (final URISyntaxException e) {
             throw new PresignedUrlException("Presigned URL couldn't be parsed", e);
         }

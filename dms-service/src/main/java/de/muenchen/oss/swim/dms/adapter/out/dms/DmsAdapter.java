@@ -27,10 +27,13 @@ import de.muenchen.refarch.integration.dms.model.ReadProcedureObjectsAntwortDTO;
 import de.muenchen.refarch.integration.dms.model.ReadProcedureResponseDTO;
 import de.muenchen.refarch.integration.dms.model.SearchObjNameAnfrageDTO;
 import de.muenchen.refarch.integration.dms.model.SearchObjNameAntwortDTO;
+import de.muenchen.refarch.integration.dms.model.UpdateIncomingAnfrageDTO;
+import de.muenchen.refarch.integration.dms.model.UpdateIncomingAntwortDTO;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -90,10 +93,11 @@ public class DmsAdapter implements DmsOutPort {
     }
 
     @Override
-    public String createIncomingInInbox(final DmsTarget dmsTarget, final DmsIncomingRequest incomingRequest, final InputStream inputStream) {
+    public String createIncomingInInbox(final DmsTarget dmsTarget, final DmsIncomingRequest incomingRequest, final DmsContentObjectRequest contentObjectRequest,
+            final InputStream inputStream) {
         log.debug("Putting Incoming {} in inbox {}", incomingRequest.name(), dmsTarget);
         // create ContentObject
-        final String contentObjectCoo = this.createContentObjectInInbox(dmsTarget, incomingRequest.contentObject(), inputStream);
+        final String contentObjectCoo = this.createContentObjectInInbox(dmsTarget, contentObjectRequest, inputStream);
         // create Incoming from existing ContentObject
         final CreateIncomingFromInboxRequestDTO request = new CreateIncomingFromInboxRequestDTO();
         request.inboxid(dmsTarget.getCoo());
@@ -120,7 +124,8 @@ public class DmsAdapter implements DmsOutPort {
     }
 
     @Override
-    public String createProcedureIncoming(final DmsTarget dmsTarget, final DmsIncomingRequest incomingRequest, final InputStream inputStream) {
+    public String createProcedureIncoming(final DmsTarget dmsTarget, final DmsIncomingRequest incomingRequest,
+            final Map<DmsContentObjectRequest, InputStream> files) {
         log.debug("Putting Incoming {} in Procedure {}", incomingRequest.name(), dmsTarget);
         final CreateIncomingBasisAnfrageDTO request = new CreateIncomingBasisAnfrageDTO();
         request.referrednumber(dmsTarget.getCoo());
@@ -128,20 +133,46 @@ public class DmsAdapter implements DmsOutPort {
         request.filesubj(incomingRequest.subject());
         request.useou(true);
         try {
-            final AbstractResource file = new NamedInputStreamResource(incomingRequest.contentObject().name(), inputStream);
+            final List<AbstractResource> attachments = files.entrySet().stream()
+                    .map(i -> new NamedInputStreamResource(i.getKey().name(), i.getValue())).collect(Collectors.toList());
             final CreateIncomingAntwortDTO response = incomingsApi.createIncoming(
                     request,
                     DMS_APPLICATION,
                     dmsTarget.getUsername(),
                     dmsTarget.getJoboe(),
                     dmsTarget.getJobposition(),
-                    List.of(file)).block();
+                    attachments).block();
             if (response != null) {
                 final String coo = response.getObjid();
                 log.info("Created new Incoming {} for {}", coo, dmsTarget);
                 return coo;
             } else {
                 throw new DmsException("Response null while putting file in procedure");
+            }
+        } catch (final WebClientResponseException e) {
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
+        }
+    }
+
+    @Override
+    public void addContentObjectsToIncoming(final DmsTarget dmsTarget, final Map<DmsContentObjectRequest, InputStream> files) {
+        log.debug("Updating Incoming {} with {} files", dmsTarget, files.size());
+        final UpdateIncomingAnfrageDTO request = new UpdateIncomingAnfrageDTO();
+        final List<AbstractResource> attachments = files.entrySet().stream()
+                .map(i -> new NamedInputStreamResource(i.getKey().name(), i.getValue())).collect(Collectors.toList());
+        try {
+            final UpdateIncomingAntwortDTO response = incomingsApi.updateIncoming(
+                    dmsTarget.getCoo(),
+                    request,
+                    DMS_APPLICATION,
+                    dmsTarget.getUsername(),
+                    dmsTarget.getJoboe(),
+                    dmsTarget.getJobposition(),
+                    attachments).block();
+            if (response != null) {
+                log.info("Updated Incoming {} by adding {} files", dmsTarget, files.size());
+            } else {
+                throw new DmsException("Response null while updating incoming");
             }
         } catch (final WebClientResponseException e) {
             throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);

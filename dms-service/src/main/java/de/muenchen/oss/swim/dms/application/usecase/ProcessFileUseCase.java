@@ -140,20 +140,21 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 throw new DmsException(message);
             }
         }
-        // resolve Incoming parameters
-        final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata);
+        // resolve Incoming and ContentObject parameters
+        final DmsContentObjectRequest contentObjectRequest = this.resolveContentObjectParameters(file, useCase, metadata);
+        final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata, contentObjectRequest);
         // check if incoming already exists
         if (useCase.getIncoming().isReuseIncoming()) {
             final Optional<String> incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, incomingRequest.name());
             if (incomingCoo.isPresent()) {
                 // add ContentObject to Incoming
                 final DmsTarget incomingDmsTarget = new DmsTarget(incomingCoo.get(), dmsTarget.getUsername(), dmsTarget.getJoboe(), dmsTarget.getJobposition());
-                this.dmsOutPort.createContentObject(incomingDmsTarget, incomingRequest.contentObject(), fileStream);
+                this.dmsOutPort.createContentObject(incomingDmsTarget, contentObjectRequest, fileStream);
                 return;
             }
         }
         // create Incoming
-        dmsOutPort.createProcedureIncoming(dmsTarget, incomingRequest, fileStream);
+        dmsOutPort.createProcedureIncoming(dmsTarget, incomingRequest, Map.of(contentObjectRequest, fileStream));
     }
 
     /**
@@ -183,9 +184,10 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      */
     protected void processInboxIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget,
             final InputStream fileStream, final Metadata metadata) throws MetadataException {
-        final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata);
+        final DmsContentObjectRequest contentObjectRequest = this.resolveContentObjectParameters(file, useCase, metadata);
+        final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata, contentObjectRequest);
         // create Incoming
-        this.dmsOutPort.createIncomingInInbox(dmsTarget, incomingRequest, fileStream);
+        this.dmsOutPort.createIncomingInInbox(dmsTarget, incomingRequest, contentObjectRequest, fileStream);
     }
 
     /**
@@ -265,9 +267,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @return Resolved parameters for new Incoming.
      */
     protected DmsIncomingRequest resolveIncomingParameters(final File file, final UseCase useCase,
-            final Metadata metadata) throws MetadataException {
-        // resolve ContentObject
-        final DmsContentObjectRequest contentObjectRequest = this.resolveContentObjectParameters(file, useCase, metadata);
+            final Metadata metadata, final DmsContentObjectRequest contentObjectRequest) throws MetadataException {
         // resolve name for Incoming
         final String incomingName;
         if (StringUtils.isBlank(useCase.getIncoming().getIncomingNamePattern())) {
@@ -293,6 +293,6 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         } else {
             incomingSubject = null;
         }
-        return new DmsIncomingRequest(incomingName, incomingSubject, contentObjectRequest);
+        return new DmsIncomingRequest(incomingName, incomingSubject);
     }
 }

@@ -6,9 +6,11 @@ import de.muenchen.oss.swim.dms.domain.model.DmsRequestContext;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.validation.annotation.Validated;
 
@@ -26,27 +28,38 @@ public interface DmsOutPort {
             @NotNull InputStream inputStream);
 
     /**
-     * Create Incoming inside an Inbox-
+     * Create Incoming with ContentObject inside an Inbox.
      *
      * @param dmsTarget The target Inbox.
      * @param incomingRequest The values for the new Incoming.
+     * @param contentObjectRequest The values for the new ContentObject.
      * @param inputStream The content of the new ContentObject.
      * @return The coo of the new Incoming.
      */
-    String createIncomingInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest, @NotNull InputStream inputStream);
+    String createIncomingInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest,
+            @NotNull @Valid DmsContentObjectRequest contentObjectRequest, @NotNull InputStream inputStream);
 
     /**
-     * Create Incoming.
+     * Create Incoming with ContentObjects.
      * Either inside given Procedure {@link DmsTarget#getCoo()} or OU work queue of
      * {@link DmsTarget#getUsername()}.
      *
      * @param dmsTarget The target. If {@link DmsTarget#getCoo()} is defined: Procedure, if not: OU work
      *            queue.
      * @param incomingRequest The values for the new Incoming.
-     * @param inputStream The content of the new ContentObject.
+     * @param files The files to add as ContentObjects.
      * @return The coo of the new Incoming.
      */
-    String createProcedureIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest, @NotNull InputStream inputStream);
+    String createProcedureIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest,
+            @NotEmpty @Valid Map<DmsContentObjectRequest, InputStream> files);
+
+    /**
+     * Add ContentObjects to existing Incoming.
+     *
+     * @param dmsTarget The Incoming to add the ContentObjects to.
+     * @param files The files to add as ContentObjects.
+     */
+    void addContentObjectsToIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotEmpty @Valid Map<DmsContentObjectRequest, InputStream> files);
 
     /**
      * Get name of Procedure by coo.

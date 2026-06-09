@@ -213,6 +213,7 @@ public class DmsAdapter implements DmsOutPort {
                 final List<Objektreferenz> matchingIncomings = response.getGiobjecttype().stream().filter(
                         i -> i.getObjname() != null && i.getObjname().startsWith(incomingNamePrefix))
                         .toList();
+                log.info("Found Incomings {} where name starts with '{}'", matchingIncomings, incomingNamePrefix);
                 if (matchingIncomings.size() > 1) {
                     log.warn("Using first of multiple matching Incomings with prefix {} for {}", incomingNamePrefix, dmsTarget);
                 }

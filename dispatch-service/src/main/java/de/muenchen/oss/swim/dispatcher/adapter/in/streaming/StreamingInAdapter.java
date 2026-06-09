@@ -7,8 +7,8 @@ import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
 import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
 import de.muenchen.oss.swim.dispatcher.domain.model.streaming.FileEvent;
-import de.muenchen.oss.swim.dispatcher.domain.model.streaming.FileEventDTO;
-import de.muenchen.oss.swim.dispatcher.domain.model.streaming.MultiFileEventDTO;
+import de.muenchen.oss.swim.dispatcher.domain.model.streaming.MultiFileEvent;
+import de.muenchen.oss.swim.dispatcher.domain.model.streaming.SingleFileEvent;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -31,10 +31,10 @@ public class StreamingInAdapter {
             final FileEvent event = fileFinishedEventDTOMessage.getPayload();
             final String useCase;
             final List<PresignedFile> files;
-            if (event instanceof FileEventDTO single) {
+            if (event instanceof SingleFileEvent single) {
                 useCase = single.useCase();
                 files = List.of(new PresignedFile(single.presignedUrl(), single.metadataPresignedUrl()));
-            } else if (event instanceof MultiFileEventDTO multi) {
+            } else if (event instanceof MultiFileEvent multi) {
                 useCase = multi.useCase();
                 files = multi.files();
             } else {
@@ -54,9 +54,9 @@ public class StreamingInAdapter {
     }
 
     @Bean
-    protected Consumer<Message<FileEventDTO>> dlq() {
+    protected Consumer<Message<SingleFileEvent>> dlq() {
         return message -> {
-            final FileEventDTO fileFinishedDTO = message.getPayload();
+            final SingleFileEvent fileFinishedDTO = message.getPayload();
             final ErrorDetails error = this.errorDetailsFromHeaders(message.getHeaders());
             errorHandlerInPort.handleError(fileFinishedDTO.useCase(), fileFinishedDTO.presignedUrl(), fileFinishedDTO.metadataPresignedUrl(), error);
         };

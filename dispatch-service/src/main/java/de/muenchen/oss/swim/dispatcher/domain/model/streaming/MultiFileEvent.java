@@ -3,12 +3,12 @@ package de.muenchen.oss.swim.dispatcher.domain.model.streaming;
 import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
 import java.util.List;
 
-public record MultiFileEventDTO(
+public record MultiFileEvent(
         String useCase,
         List<PresignedFile> files) implements FileEvent {
-    public final static String TYPE_NAME = "multi";
+    public static final String TYPE_NAME = "multi";
 
-    public MultiFileEventDTO {
+    public MultiFileEvent {
         if (useCase == null || useCase.isBlank()) {
             throw new IllegalArgumentException("useCase must not be null or blank");
         }

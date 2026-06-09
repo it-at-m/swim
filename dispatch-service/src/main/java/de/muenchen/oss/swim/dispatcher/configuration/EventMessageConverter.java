@@ -4,18 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dispatcher.domain.exception.StreamingException;
 import de.muenchen.oss.swim.dispatcher.domain.model.streaming.FileEvent;
-import de.muenchen.oss.swim.dispatcher.domain.model.streaming.FileEventDTO;
-import de.muenchen.oss.swim.dispatcher.domain.model.streaming.MultiFileEventDTO;
+import de.muenchen.oss.swim.dispatcher.domain.model.streaming.MultiFileEvent;
+import de.muenchen.oss.swim.dispatcher.domain.model.streaming.SingleFileEvent;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,32 +25,29 @@ import org.springframework.stereotype.Component;
  * When the requested target type is {@code FileEvent}, the converter inspects the
  * {@value #TYPE_HEADER} header to resolve the concrete implementation:
  * <ul>
- * <li>"single" &rarr; {@link FileEventDTO}</li>
- * <li>"multi" &rarr; {@link MultiFileEventDTO}</li>
+ * <li>"single" &rarr; {@link SingleFileEvent}</li>
+ * <li>"multi" &rarr; {@link MultiFileEvent}</li>
  * </ul>
  * If the header is missing it falls back to "single" and if it's unknown, this converter returns
  * {@code null} so that other
  * converters may attempt conversion.
- * </p>
  *
  * <p>
  * The payload is expected to be a {@code byte[]} containing JSON and is converted using
  * the injected {@link ObjectMapper}. Outbound conversion via
  * {@link #toMessage(Object, MessageHeaders)}
  * is not supported and returns {@code null}.
- * </p>
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class EventMessageConverter implements MessageConverter {
-    public final static String TYPE_HEADER = "swim_event_type";
+    public static final String TYPE_HEADER = "swim_event_type";
 
     private final ObjectMapper objectMapper;
 
     @Override
-    public @Nullable
-    Object fromMessage(@NotNull final Message<?> message, @NotNull final Class<?> targetClass) {
+    public Object fromMessage(@NonNull final Message<?> message, @NonNull final Class<?> targetClass) {
         final Class<?> resolvedTargetClass = this.resolveTargetType(message, targetClass);
         // if target type couldn't be resolved skip message converter
         if (resolvedTargetClass == null) {
@@ -61,10 +57,9 @@ public class EventMessageConverter implements MessageConverter {
     }
 
     @Override
-    public @Nullable
-    Message<?> toMessage(@NotNull final Object payload, @Nullable MessageHeaders headers) {
+    public Message<?> toMessage(@NonNull final Object payload, final MessageHeaders headers) {
         // skip everything except FileEvents
-        if (!FileEvent.class.isAssignableFrom(payload.getClass())) {
+        if (!(payload instanceof FileEvent)) {
             return null;
         }
         // convert to json
@@ -77,8 +72,16 @@ public class EventMessageConverter implements MessageConverter {
         // build message
         final MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(jsonPayload.getBytes(StandardCharsets.UTF_8));
         messageBuilder.setHeaderIfAbsent(MessageHeaders.CONTENT_TYPE, "application/json");
-        messageBuilder.setHeader(TYPE_HEADER,
-                payload instanceof FileEventDTO ? FileEventDTO.TYPE_NAME : payload instanceof MultiFileEventDTO ? MultiFileEventDTO.TYPE_NAME : null);
+        final String eventType;
+        if (payload instanceof SingleFileEvent) {
+            eventType = SingleFileEvent.TYPE_NAME;
+        } else if (payload instanceof MultiFileEvent) {
+            eventType = MultiFileEvent.TYPE_NAME;
+        } else {
+            throw new IllegalArgumentException(
+                    "Unsupported FileEvent implementation: " + payload.getClass().getName());
+        }
+        messageBuilder.setHeader(TYPE_HEADER, eventType);
         return messageBuilder.build();
     }
 
@@ -98,10 +101,10 @@ public class EventMessageConverter implements MessageConverter {
             throw new StreamingException("Type header couldn't be resolved", e);
         }
         // fallback to single if no type
-        if (type == null || FileEventDTO.TYPE_NAME.equals(type)) {
-            return FileEventDTO.class;
-        } else if (MultiFileEventDTO.TYPE_NAME.equals(type)) {
-            return MultiFileEventDTO.class;
+        if (type == null || SingleFileEvent.TYPE_NAME.equals(type)) {
+            return SingleFileEvent.class;
+        } else if (MultiFileEvent.TYPE_NAME.equals(type)) {
+            return MultiFileEvent.class;
         }
         return null;
     }

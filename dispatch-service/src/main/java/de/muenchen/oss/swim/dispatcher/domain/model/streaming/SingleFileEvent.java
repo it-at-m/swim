@@ -2,14 +2,14 @@ package de.muenchen.oss.swim.dispatcher.domain.model.streaming;
 
 import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
 
-public record FileEventDTO(
+public record SingleFileEvent(
         String useCase,
         String presignedUrl,
         String metadataPresignedUrl) implements FileEvent {
 
-    public final static String TYPE_NAME = "single";
+    public static final String TYPE_NAME = "single";
 
-    public FileEventDTO {
+    public SingleFileEvent {
         if (useCase == null || useCase.isBlank()) {
             throw new IllegalArgumentException("useCase must not be null or blank");
         }
@@ -18,7 +18,7 @@ public record FileEventDTO(
         }
     }
 
-    public static FileEventDTO fromPresignedFile(final String useCase, final PresignedFile file) {
-        return new FileEventDTO(useCase, file.presignedUrl(), file.metadataPresignedUrl());
+    public static SingleFileEvent fromPresignedFile(final String useCase, final PresignedFile file) {
+        return new SingleFileEvent(useCase, file.presignedUrl(), file.metadataPresignedUrl());
     }
 }

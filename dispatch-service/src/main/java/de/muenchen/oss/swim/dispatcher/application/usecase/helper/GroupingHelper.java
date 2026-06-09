@@ -22,10 +22,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class GroupingHelper {
-    public final static Pattern CHUNKED_FILE_PATTERN = Pattern.compile("(.+)[-_](\\d+)v(\\d+)$");
-    public final static int CHUNKED_FILE_BASE_NAME_GROUP = 1;
-    public final static int CHUNKED_FILE_INDEX_GROUP = 2;
-    public final static int CHUNKED_FILE_COUNT_GROUP = 3;
+    public static final Pattern CHUNKED_FILE_PATTERN = Pattern.compile("(.+)[-_](\\d+)v(\\d+)$");
+    public static final int CHUNKED_FILE_BASE_NAME_GROUP = 1;
+    public static final int CHUNKED_FILE_INDEX_GROUP = 2;
+    public static final int CHUNKED_FILE_COUNT_GROUP = 3;
 
     /**
      * Groups a list of files by their base filename.

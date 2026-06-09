@@ -57,9 +57,9 @@ public class EventMessageConverter implements MessageConverter {
     }
 
     @Override
-    public Message<?> toMessage(final Object payload, final MessageHeaders headers) {
+    public Message<?> toMessage(@NonNull final Object payload, final MessageHeaders headers) {
         // skip everything except FileEvents
-        if (!FileEvent.class.isAssignableFrom(payload.getClass())) {
+        if (!(payload instanceof FileEvent)) {
             return null;
         }
         // convert to json
@@ -72,8 +72,16 @@ public class EventMessageConverter implements MessageConverter {
         // build message
         final MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(jsonPayload.getBytes(StandardCharsets.UTF_8));
         messageBuilder.setHeaderIfAbsent(MessageHeaders.CONTENT_TYPE, "application/json");
-        messageBuilder.setHeader(TYPE_HEADER,
-                payload instanceof SingleFileEvent ? SingleFileEvent.TYPE_NAME : payload instanceof MultiFileEvent ? MultiFileEvent.TYPE_NAME : null);
+        final String eventType;
+        if (payload instanceof SingleFileEvent) {
+            eventType = SingleFileEvent.TYPE_NAME;
+        } else if (payload instanceof MultiFileEvent) {
+            eventType = MultiFileEvent.TYPE_NAME;
+        } else {
+            throw new IllegalArgumentException(
+                    "Unsupported FileEvent implementation: " + payload.getClass().getName());
+        }
+        messageBuilder.setHeader(TYPE_HEADER, eventType);
         return messageBuilder.build();
     }
 

@@ -60,8 +60,11 @@ public record FileReference(
             if (firstSlash == -1) {
                 throw new PresignedUrlException("Invalid path format: missing bucket/file structure");
             }
-            final String bucket = path.substring(0, firstSlash);
             final String filePath = path.substring(firstSlash + 1);
+            if (filePath.isBlank()) {
+                throw new PresignedUrlException("Invalid path format: missing file path");
+            }
+            final String bucket = path.substring(0, firstSlash);
             return new FileReference(bucket, filePath);
         } catch (final URISyntaxException e) {
             throw new PresignedUrlException("Presigned URL couldn't be parsed", e);

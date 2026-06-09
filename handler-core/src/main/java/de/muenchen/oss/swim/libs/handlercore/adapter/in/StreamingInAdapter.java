@@ -34,6 +34,8 @@ public class StreamingInAdapter {
                     processFileInPort.processEvent(single);
                 } else if (fileEvent instanceof MultiFileEvent multi) {
                     processFileInPort.processEvent(multi);
+                } else {
+                    throw new IllegalArgumentException("FileEvent of type '%s' isn't supported".formatted(fileEvent.getClass().getName()));
                 }
             } catch (final PresignedUrlException | UnknownUseCaseException | MetadataException e) {
                 log.warn("Error while processing event in use case {}: {}", fileEvent.useCase(), fileEvent, e);

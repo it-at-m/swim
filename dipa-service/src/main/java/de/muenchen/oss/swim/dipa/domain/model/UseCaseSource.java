@@ -13,20 +13,17 @@ public class UseCaseSource {
     /**
      * Defines how the target PersNr and Category are gathered.
      */
-    @NotNull
-    private Type type;
+    @NotNull private Type type;
     /**
      * Regex pattern for extracting target PersNr from filename.
      * {@link Type#FILENAME}
      */
-    @Pattern(regexp = PatternHelper.RAW_PATTERN)
-    private String filenamePersNrPattern;
+    @Pattern(regexp = PatternHelper.RAW_PATTERN) private String filenamePersNrPattern;
     /**
      * Regex pattern for extracting target Category from filename.
      * {@link Type#FILENAME}
      */
-    @Pattern(regexp = PatternHelper.RAW_PATTERN)
-    private String filenameCategoryPattern;
+    @Pattern(regexp = PatternHelper.RAW_PATTERN) private String filenameCategoryPattern;
     /**
      * Static target PersNr.
      * See {@link Type#STATIC}

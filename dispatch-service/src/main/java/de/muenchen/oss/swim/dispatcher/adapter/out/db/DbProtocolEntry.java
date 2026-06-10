@@ -30,14 +30,10 @@ class DbProtocolEntry {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
-    @NotBlank
-    private String useCase;
-    @NotBlank
-    private String protocolName;
-    @NotBlank
-    private String fileName;
-    @NotNull
-    private Integer pageCount;
+    @NotBlank private String useCase;
+    @NotBlank private String protocolName;
+    @NotBlank private String fileName;
+    @NotNull private Integer pageCount;
     private String department;
     private String boxId;
     private String paginationId;

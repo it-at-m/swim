@@ -9,8 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "swim.mail")
 public class MailProperties {
-    @NotBlank
-    private String fromAddress;
+    @NotBlank private String fromAddress;
     /**
      * Prefix which is added to mail subject.
      * E.g. for defining environment.
@@ -21,6 +20,5 @@ public class MailProperties {
      * Available options are de and en.
      * Default is en.
      */
-    @NotNull
-    private Locale locale = Locale.ENGLISH;
+    @NotNull private Locale locale = Locale.ENGLISH;
 }

@@ -17,6 +17,5 @@ public class DipaRequestContext {
     /**
      * User under which the request is executed.
      */
-    @NotBlank
-    private final String username;
+    @NotBlank private final String username;
 }

@@ -16,66 +16,53 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "swim")
 @Validated
 public class SwimDmsProperties {
-    @NotNull
-    @Valid
-    @NestedConfigurationProperty
+    @NotNull @Valid @NestedConfigurationProperty
     private List<UseCase> useCases = List.of();
     /**
      * Var name in metadata file to get target user inbox coo from.
      */
-    @NotBlank
-    private String metadataUserInboxCooKey;
+    @NotBlank private String metadataUserInboxCooKey;
     /**
      * Var name in metadata file to get target user inbox owner from.
      */
-    @NotBlank
-    private String metadataUserInboxUserKey;
+    @NotBlank private String metadataUserInboxUserKey;
     /**
      * Var name in metadata file to get target group inbox coo from.
      */
-    @NotBlank
-    private String metadataGroupInboxCooKey;
+    @NotBlank private String metadataGroupInboxCooKey;
     /**
      * Var name in metadata file to get target user inbox owner from.
      */
-    @NotBlank
-    private String metadataGroupInboxUserKey;
+    @NotBlank private String metadataGroupInboxUserKey;
     /**
      * Var name in metadata file to get target incoming coo from.
      */
-    @NotBlank
-    private String metadataIncomingCooKey;
+    @NotBlank private String metadataIncomingCooKey;
     /**
      * Var name in metadata file to get target incoming owner from.
      */
-    @NotBlank
-    private String metadataIncomingUserKey;
+    @NotBlank private String metadataIncomingUserKey;
     /**
      * Var name in metadata file to get target incoming joboe from.
      */
-    @NotBlank
-    private String metadataIncomingJoboeKey;
+    @NotBlank private String metadataIncomingJoboeKey;
     /**
      * Var name in metadata file to get target incoming jobposition from.
      */
-    @NotBlank
-    private String metadataIncomingJobpositionKey;
+    @NotBlank private String metadataIncomingJobpositionKey;
     /**
      * Var name in metadata file to get dms target resource type from.
      */
-    @NotBlank
-    private String metadataDmsTargetKey;
+    @NotBlank private String metadataDmsTargetKey;
     /**
      * Prefix of metadata index fields which should be put into subject.
      * See {@link UseCaseIncoming#isMetadataSubject()}.
      */
-    @NotBlank
-    private String metadataSubjectPrefix;
+    @NotBlank private String metadataSubjectPrefix;
     /**
      * Prefix for {@link UseCase#isDecodeGermanChars()}.
      */
-    @NotBlank
-    private String decodeGermanCharsPrefix;
+    @NotBlank private String decodeGermanCharsPrefix;
 
     /**
      * Resolve use case via name.

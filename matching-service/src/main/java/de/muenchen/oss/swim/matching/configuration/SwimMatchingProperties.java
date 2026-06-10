@@ -15,12 +15,10 @@ public class SwimMatchingProperties {
     /**
      * Cron for triggering import via export in DMS.
      */
-    @NotBlank
-    private String scheduleCron;
+    @NotBlank private String scheduleCron;
     /**
      * Whitelist of DMS tenant to import.
      * See {@link DmsInbox#getDmsTenant()}
      */
-    @NotNull
-    private List<String> dmsTenants;
+    @NotNull private List<String> dmsTenants;
 }

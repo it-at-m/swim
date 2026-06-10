@@ -21,6 +21,5 @@ public class LdapProperties {
      * Is used with {@link String#format} to inject search ou.
      * Example: "ou=%s,o=example,c=com".
      */
-    @NotBlank
-    private String userBaseOu;
+    @NotBlank private String userBaseOu;
 }

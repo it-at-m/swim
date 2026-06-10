@@ -12,17 +12,10 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class GroupDmsInbox {
-    @NotBlank
-    @Pattern(regexp = "COO[\\d.]+]")
-    private final String coo;
-    @NotBlank
-    private final String name;
-    @NotBlank
-    private final String ownerLhmObjectId;
-    @NotBlank
-    private final String username;
-    @NotBlank
-    private final String ou;
-    @NotBlank
-    private final String dmsTenant;
+    @NotBlank @Pattern(regexp = "COO[\\d.]+]") private final String coo;
+    @NotBlank private final String name;
+    @NotBlank private final String ownerLhmObjectId;
+    @NotBlank private final String username;
+    @NotBlank private final String ou;
+    @NotBlank private final String dmsTenant;
 }

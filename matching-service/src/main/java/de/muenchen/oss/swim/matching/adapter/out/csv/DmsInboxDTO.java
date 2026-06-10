@@ -10,12 +10,12 @@ import java.io.IOException;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record DmsInboxDTO(
-        @JsonProperty("Externe ID") String lhmObjectId,
-        @JsonProperty("Adresse") String coo,
-        @JsonProperty("Name") String name,
-        @JsonProperty("ACL für neue/importierte Schriftstücke") @JsonDeserialize(using = InboxTypeDeserializer.class) InboxType type,
-        @JsonProperty("Organisationseinheit") String ou,
-        @JsonProperty("Mandant") String mandant) {
+        @JsonProperty(value = "Externe ID", required = true) String lhmObjectId,
+        @JsonProperty(value = "Adresse", required = true) String coo,
+        @JsonProperty(value = "Name", required = true) String name,
+        @JsonProperty(value = "ACL für neue/importierte Schriftstücke", required = true) @JsonDeserialize(using = InboxTypeDeserializer.class) InboxType type,
+        @JsonProperty(value = "Organisationseinheit", required = true) String ou,
+        @JsonProperty(value = "Mandant", required = true) String mandant) {
 
     private static final String ACL_USER = "ACL für persönliche Daten des Eigentümers";
     public static final String ACL_GROUP = "ACL für Schriftgutobjekte der Organisationseinheit";

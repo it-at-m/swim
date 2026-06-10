@@ -14,20 +14,17 @@ public class UseCaseSource {
     /**
      * Defines how the target coo is gathered.
      */
-    @NotNull
-    private Type type;
+    @NotNull private Type type;
     /**
      * Regex pattern for extracting target coo from filename.
      * {@link Type#FILENAME}
      */
-    @Pattern(regexp = PatternHelper.RAW_PATTERN)
-    private String filenameCooPattern;
+    @Pattern(regexp = PatternHelper.RAW_PATTERN) private String filenameCooPattern;
     /**
      * Regex pattern for extracting target dms resource name from filename.
      * {@link Type#FILENAME_NAME}
      */
-    @Pattern(regexp = PatternHelper.RAW_PATTERN)
-    private String filenameNamePattern;
+    @Pattern(regexp = PatternHelper.RAW_PATTERN) private String filenameNamePattern;
     /**
      * Map for resolving target coo via filename.
      * Key: Regex which is matched against filename (case-insensitive).

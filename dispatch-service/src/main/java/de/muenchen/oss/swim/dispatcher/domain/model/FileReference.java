@@ -48,6 +48,9 @@ public record FileReference(@NotBlank String bucket, @NotBlank String path) {
         // create FileReference object from presigned url
         final String uriPath = uri.getPath().replaceFirst("^/", "");
         final int slashIndex = uriPath.indexOf('/');
+        if (slashIndex <= 0 || slashIndex >= uriPath.length() - 1) {
+            throw new PresignedUrlException("Presigned url has no valid bucket/object path");
+        }
         final String bucket = uriPath.substring(0, slashIndex);
         final String filePath = uriPath.substring(slashIndex + 1);
         return new FileReference(bucket, filePath);

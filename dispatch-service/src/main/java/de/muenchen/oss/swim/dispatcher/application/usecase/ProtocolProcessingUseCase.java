@@ -58,19 +58,20 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
             // for each file
             log.info("Found {} protocol files for use case {}", protocolFiles.size(), useCase.getName());
             for (final FileWithMetadata file : protocolFiles) {
-                log.info("Processing protocol {} for use case {}", file.reference().path(), useCase.getName());
+                final FileReference fileReference = file.reference();
+                log.info("Processing protocol {} for use case {}", fileReference.path(), useCase.getName());
                 // skip file if name not matching parent folder
-                if (!file.reference().getParentName().equals(file.reference().getFileNameWithoutExtension())) {
-                    final String message = String.format("Found CSV not matching folder name: %s in bucket %s", file.reference().path(),
-                            file.reference().bucket());
+                if (!fileReference.getParentName().equals(fileReference.getFileNameWithoutExtension())) {
+                    final String message = String.format("Found CSV not matching folder name: %s in bucket %s", fileReference.path(),
+                            fileReference.bucket());
                     final IllegalStateException exception = new IllegalStateException(message);
                     log.warn(message);
-                    fileHandlingHelper.markFileError(file.reference(), swimDispatcherProperties.getProtocolStateTagKey(), exception);
-                    notificationOutPort.sendProtocolError(useCase.getMailAddresses(), useCase.getName(), file.reference().path(), exception);
+                    fileHandlingHelper.markFileError(fileReference, swimDispatcherProperties.getProtocolStateTagKey(), exception);
+                    notificationOutPort.sendProtocolError(useCase.getMailAddresses(), useCase.getName(), fileReference.path(), exception);
                     continue;
                 }
                 // process protocol
-                this.processProtocolFile(useCase, file.reference());
+                this.processProtocolFile(useCase, fileReference);
             }
         }
         log.info("Finished protocol processing");
@@ -104,10 +105,10 @@ public class ProtocolProcessingUseCase implements ProtocolProcessingInPort {
                     // filter ignored files
                     .map(FileWithMetadata::reference)
                     // map to filename
-                    .filter(filed -> {
+                    .filter(f -> {
                         // filter out files if pattern is set
                         if (filenameIgnorePattern != null) {
-                            final String fileNameWithoutExtension = filed.getFileNameWithoutExtension();
+                            final String fileNameWithoutExtension = f.getFileNameWithoutExtension();
                             return !filenameIgnorePattern.matcher(fileNameWithoutExtension).matches();
                         }
                         return true;

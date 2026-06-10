@@ -305,6 +305,8 @@
                         <importOrder />
                         <removeUnusedImports />
                         <forbidWildcardImports />
+                        <expandWildcardImports />
+                        <formatAnnotations />
                     </java>
                 </configuration>
                 <executions>

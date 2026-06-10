@@ -14,13 +14,11 @@ public class UseCaseContentObject {
      * Pattern is applied to S3 filename.
      * The filename is used as ContentObject name.
      */
-    @Pattern(regexp = PatternHelper.RAW_PATTERN)
-    private String filenameOverwritePattern;
+    @Pattern(regexp = PatternHelper.RAW_PATTERN) private String filenameOverwritePattern;
     /**
      * Regex pattern for setting subject in dms by providing regex pattern.
      * Pattern is applied to S3 filename.
      * Currently only works inside {@link DmsResourceType#INBOX}.
      */
-    @Pattern(regexp = PatternHelper.RAW_PATTERN)
-    private String subjectPattern;
+    @Pattern(regexp = PatternHelper.RAW_PATTERN) private String subjectPattern;
 }

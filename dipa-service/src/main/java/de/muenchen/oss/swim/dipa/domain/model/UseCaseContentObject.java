@@ -14,6 +14,5 @@ public class UseCaseContentObject {
      * Pattern is applied to S3 filename.
      * The filename is used as ContentObject name.
      */
-    @Pattern(regexp = PatternHelper.RAW_PATTERN)
-    private String filenameOverwritePattern;
+    @Pattern(regexp = PatternHelper.RAW_PATTERN) private String filenameOverwritePattern;
 }

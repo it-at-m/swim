@@ -22,10 +22,8 @@ class UserInboxMatchingEntry {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
-    @NotBlank
-    private String coo;
-    @NotBlank
-    private String inboxName;
+    @NotBlank private String coo;
+    @NotBlank private String inboxName;
     private String username;
     private String firstname;
     private String surname;
@@ -33,6 +31,5 @@ class UserInboxMatchingEntry {
     private String street;
     private String postalCode;
     private String city;
-    @NotBlank
-    private String dmsTenant;
+    @NotBlank private String dmsTenant;
 }

@@ -11,14 +11,9 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ToString(exclude = "password")
 public class DmsProperties {
-    @NotBlank
-    private String baseUrl;
-    @NotBlank
-    private String username;
-    @NotBlank
-    private String password;
-    @NotBlank
-    private String importCoo;
-    @NotBlank
-    private String importUsername;
+    @NotBlank private String baseUrl;
+    @NotBlank private String username;
+    @NotBlank private String password;
+    @NotBlank private String importCoo;
+    @NotBlank private String importUsername;
 }

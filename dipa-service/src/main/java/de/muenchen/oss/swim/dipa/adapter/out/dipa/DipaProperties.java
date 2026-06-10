@@ -13,12 +13,8 @@ import org.springframework.validation.annotation.Validated;
 @ToString(exclude = "password")
 @Validated
 class DipaProperties {
-    @NotBlank
-    private String endpointUrl;
-    @NotBlank
-    private String username;
-    @NotBlank
-    private String password;
-    @NotNull
-    private Duration sendTimeout;
+    @NotBlank private String endpointUrl;
+    @NotBlank private String username;
+    @NotBlank private String password;
+    @NotNull private Duration sendTimeout;
 }

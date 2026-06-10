@@ -13,18 +13,15 @@ public class UseCase {
     /**
      * Name of the use case.
      */
-    @NotBlank
-    private String name;
+    @NotBlank private String name;
     /**
      * The s3 bucket to look for files in.
      */
-    @NotBlank
-    private String bucket;
+    @NotBlank private String bucket;
     /**
      * The folder prefix to look for files in.
      */
-    @NotBlank
-    private String path;
+    @NotBlank private String path;
     /**
      * If to look recursive for files.
      */
@@ -61,13 +58,11 @@ public class UseCase {
     /**
      * Destination to send notification about file to.
      */
-    @NotBlank
-    private String destinationBinding;
+    @NotBlank private String destinationBinding;
     /**
      * Mail addresses to notify about use case errors or specific events.
      */
-    @NotNull
-    private List<String> mailAddresses = List.of();
+    @NotNull private List<String> mailAddresses = List.of();
     /**
      * If to tag file with protocol processing finished state.
      */

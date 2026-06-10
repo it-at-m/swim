@@ -13,19 +13,12 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class DmsInbox {
-    @NotBlank
-    @Pattern(regexp = "COO[\\d.]+")
-    private final String coo;
-    @NotBlank
-    private final String name;
-    @NotBlank
-    private final String ownerLhmObjectId;
-    @NotBlank
-    private final String ou;
-    @NotBlank
-    private final String dmsTenant;
-    @NotNull
-    private final InboxType type;
+    @NotBlank @Pattern(regexp = "COO[\\d.]+") private final String coo;
+    @NotBlank private final String name;
+    @NotBlank private final String ownerLhmObjectId;
+    @NotBlank private final String ou;
+    @NotBlank private final String dmsTenant;
+    @NotNull private final InboxType type;
 
     public enum InboxType {
         USER,

@@ -15,9 +15,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "swim")
 @Validated
 public class SwimDipaProperties {
-    @NotNull
-    @Valid
-    @NestedConfigurationProperty
+    @NotNull @Valid @NestedConfigurationProperty
     private List<UseCase> useCases = List.of();
 
     /**

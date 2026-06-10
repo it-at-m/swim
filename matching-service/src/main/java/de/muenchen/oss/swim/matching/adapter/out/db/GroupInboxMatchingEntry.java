@@ -17,12 +17,8 @@ class GroupInboxMatchingEntry {
     public static final String TABLE_NAME = "lhm_group_inbox";
     @Id
     private String coo;
-    @NotBlank
-    private String username;
-    @NotBlank
-    private String inboxName;
-    @NotBlank
-    private String ou;
-    @NotBlank
-    private String dmsTenant;
+    @NotBlank private String username;
+    @NotBlank private String inboxName;
+    @NotBlank private String ou;
+    @NotBlank private String dmsTenant;
 }

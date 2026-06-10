@@ -16,15 +16,13 @@ public class UseCaseIncoming {
      * If not defined overwritten filename is used.
      * Only applies to {@link UseCaseType#PROCEDURE_INCOMING}
      */
-    @Pattern(regexp = PatternHelper.RAW_PATTERN)
-    private String incomingNamePattern;
+    @Pattern(regexp = PatternHelper.RAW_PATTERN) private String incomingNamePattern;
     /**
      * Regex pattern for defining a custom Incoming subject.
      * Either this or {@link #isMetadataSubject()} can be defined.
      * Only applies to {@link UseCaseType#PROCEDURE_INCOMING}.
      */
-    @Pattern(regexp = PatternHelper.RAW_PATTERN)
-    private String incomingSubjectPattern;
+    @Pattern(regexp = PatternHelper.RAW_PATTERN) private String incomingSubjectPattern;
     /**
      * Fill subject with metadata. See {@link de.muenchen.oss.swim.dms.configuration.SwimDmsProperties}.
      * Either this or {@link #getIncomingSubjectPattern()} can be defined.
@@ -35,16 +33,14 @@ public class UseCaseIncoming {
      * Verify name of resolved Procedure against pattern, if defined.
      * Only applies to {@link UseCaseType#PROCEDURE_INCOMING}
      */
-    @Pattern(regexp = PatternHelper.RAW_PATTERN)
-    private String verifyProcedureNamePattern;
+    @Pattern(regexp = PatternHelper.RAW_PATTERN) private String verifyProcedureNamePattern;
     /**
      * Reuse Incoming with same name if true.
      * Only applies to {@link UseCaseType#PROCEDURE_INCOMING}
      */
     private boolean reuseIncoming = false;
 
-    @AssertTrue(message = "Only either pattern or metadata can be used for Incoming subject")
-    protected boolean isOnlyOneSubjectSource() {
+    @AssertTrue(message = "Only either pattern or metadata can be used for Incoming subject") protected boolean isOnlyOneSubjectSource() {
         return !metadataSubject || StringUtils.isBlank(incomingSubjectPattern);
     }
 }

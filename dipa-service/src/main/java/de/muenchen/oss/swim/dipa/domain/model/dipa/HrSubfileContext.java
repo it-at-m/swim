@@ -16,13 +16,11 @@ public class HrSubfileContext extends DipaRequestContext {
     /**
      * PersNr to identify a HrSubfile.
      */
-    @NotBlank
-    private final String persNr;
+    @NotBlank private final String persNr;
     /**
      * Category to identify a HrSubfile.
      */
-    @NotBlank
-    private final String category;
+    @NotBlank private final String category;
 
     public HrSubfileContext(final DipaRequestContext context, final String persNr, final String category) {
         super(context.getUsername());

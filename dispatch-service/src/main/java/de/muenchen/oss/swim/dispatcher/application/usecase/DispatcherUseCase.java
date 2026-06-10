@@ -87,8 +87,7 @@ public class DispatcherUseCase implements DispatcherInPort {
      * @param folder The full path of the folder.
      * @return Error which occurred during processing (Key: file path, value: error).
      */
-    private @NotNull
-    Map<String, Throwable> processDirectory(final UseCase useCase, final String folder, final boolean recursive) {
+    private @NotNull Map<String, Throwable> processDirectory(final UseCase useCase, final String folder, final boolean recursive) {
         final Map<File, Map<String, String>> readyFiles = fileSystemOutPort.getMatchingFilesWithTags(
                 useCase.getBucket(),
                 folder,
@@ -165,8 +164,7 @@ public class DispatcherUseCase implements DispatcherInPort {
      * @param tags The tags of the file.
      * @return The resolved action.
      */
-    protected @NotNull
-    DispatchAction resolveDispatchAction(final Map<String, String> tags) {
+    protected @NotNull DispatchAction resolveDispatchAction(final Map<String, String> tags) {
         // dispatch if tag doesn't exist
         if (!tags.containsKey(swimDispatcherProperties.getDispatchActionTagKey())) {
             return DISPATCH;

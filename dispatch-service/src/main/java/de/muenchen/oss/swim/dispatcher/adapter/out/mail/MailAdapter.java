@@ -25,8 +25,8 @@ public class MailAdapter implements NotificationOutPort {
     private final JavaMailSender mailSender;
     private final MessageSource messageSource;
 
-    private final static String SUBJECT_OK = "OK";
-    private final static String SUBJECT_ERROR = "ERROR";
+    private static final String SUBJECT_OK = "OK";
+    private static final String SUBJECT_ERROR = "ERROR";
 
     @Override
     public void sendDispatchErrors(final List<String> recipients, final String useCase, final Map<String, Throwable> errors) {

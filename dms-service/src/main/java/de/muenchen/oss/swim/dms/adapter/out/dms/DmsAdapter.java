@@ -52,10 +52,10 @@ public class DmsAdapter implements DmsOutPort {
     private final ContentObjectsApi contentObjectsApi;
     private final SearchObjNamesApi searchObjNamesApi;
 
-    private final static String DMS_APPLICATION = "SWIM";
-    private final static String DMS_OBJECT_TYPE_INBOX = "FSCVGOV@1.1001:Inbox";
-    private final static String DMS_OBJECT_TYPE_PROCEDURE = "DEPRECONFIG@15.1001:Procedure";
-    private final static Map<DmsResourceType, String> DMS_OBJECT_TYPE_MAPPING = Map.of(
+    private static final String DMS_APPLICATION = "SWIM";
+    private static final String DMS_OBJECT_TYPE_INBOX = "FSCVGOV@1.1001:Inbox";
+    private static final String DMS_OBJECT_TYPE_PROCEDURE = "DEPRECONFIG@15.1001:Procedure";
+    private static final Map<DmsResourceType, String> DMS_OBJECT_TYPE_MAPPING = Map.of(
             DmsResourceType.PROCEDURE, DMS_OBJECT_TYPE_PROCEDURE,
             DmsResourceType.INBOX, DMS_OBJECT_TYPE_INBOX);
 

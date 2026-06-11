@@ -58,7 +58,11 @@ public record FileReference(
         } catch (final URISyntaxException e) {
             throw new PresignedUrlException("Presigned URL couldn't be parsed", e);
         }
-        final String path = presignedUrl.getPath().replaceFirst("^/", "");
+        final String rawPath = presignedUrl.getPath();
+        if (rawPath == null) {
+            throw new PresignedUrlException("Invalid path in presigned URL");
+        }
+        final String path = rawPath.replaceFirst("^/", "");
         if (path.isEmpty()) {
             throw new PresignedUrlException("Empty path in presigned URL");
         }

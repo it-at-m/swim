@@ -17,7 +17,7 @@ public record SingleFileEvent(
             throw new IllegalArgumentException("useCase must not be null or blank");
         }
         if (presignedFile == null) {
-            throw new IllegalArgumentException("presignedUrl must not be null or blank");
+            throw new IllegalArgumentException("presignedUrl must not be null");
         }
     }
 }

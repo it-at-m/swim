@@ -1,6 +1,6 @@
 package de.muenchen.oss.swim.dispatcher.application.usecase;
 
-import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL;
+import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_FILE;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL_FILE;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TEST_PRESIGNED_URL_PATH;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE;
@@ -15,6 +15,7 @@ import de.muenchen.oss.swim.dispatcher.application.port.out.NotificationOutPort;
 import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
+import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -52,7 +53,7 @@ class ErrorHandlerUseCaseTest {
     void handleError_Success() {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         // call
-        errorHandlerUseCase.handleError(USE_CASE, TEST_PRESIGNED_URL, null, TEST_ERROR_DETAILS);
+        errorHandlerUseCase.handleError(USE_CASE, TEST_PRESIGNED_FILE, TEST_ERROR_DETAILS);
         // test
         verify(fileSystemOutPort).tagFile(eq(TEST_PRESIGNED_URL_FILE), eq(Map.of(
                 "SWIM_State", "error",
@@ -68,7 +69,7 @@ class ErrorHandlerUseCaseTest {
     void handleError_PresignedUrlException() {
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         // call
-        errorHandlerUseCase.handleError(USE_CASE, null, null, TEST_ERROR_DETAILS);
+        errorHandlerUseCase.handleError(USE_CASE, new PresignedFile(null, null), TEST_ERROR_DETAILS);
         // test
         verify(notificationOutPort, times(0)).sendFileError(any(), any(), any(), any());
         verify(notificationOutPort, times(0)).sendFileError(eq(useCase.getMailAddresses()), eq(USE_CASE), eq(TEST_PRESIGNED_URL_PATH),

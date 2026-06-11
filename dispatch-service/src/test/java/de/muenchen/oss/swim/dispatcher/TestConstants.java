@@ -3,6 +3,7 @@ package de.muenchen.oss.swim.dispatcher;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
+import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -31,6 +32,7 @@ public final class TestConstants {
     public static final String TEST_PRESIGNED_URL = "https://s3.muenchen.de/test-bucket/test/inProcess/path/example.pdf";
     public static final String TEST_PRESIGNED_URL_PATH = "test/inProcess/path/example.pdf";
     public static final FileReference TEST_PRESIGNED_URL_FILE = new FileReference(BUCKET, "test/inProcess/path/example.pdf");
+    public static final PresignedFile TEST_PRESIGNED_FILE = new PresignedFile(TEST_PRESIGNED_URL, null);
     public static final List<FileWithMetadata> FILE_LIST = List.of(FILE1, FILE2);
     public static final FileGroup FILE1_GROUP = new FileGroup(false, FILE1);
     public static final FileGroup FILE2_GROUP = new FileGroup(false, FILE2);

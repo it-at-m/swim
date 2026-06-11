@@ -7,6 +7,7 @@ import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
+import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,8 @@ public class ErrorHandlerUseCase implements ErrorHandlerInPort {
     private final DispatchMeter dispatchMeter;
 
     @Override
-    public void handleError(final String useCaseName, final String presignedUrl, final String metadataPresignedUrl, final ErrorDetails cause) {
+    public void handleError(final String useCaseName, final PresignedFile presignedFile, final ErrorDetails cause) {
+        final String presignedUrl = presignedFile.presignedUrl();
         log.warn("Processing error for use case {} and presigned url {}: {}", useCaseName, presignedUrl, cause);
         try {
             final UseCase useCase = swimDispatcherProperties.findUseCase(useCaseName);

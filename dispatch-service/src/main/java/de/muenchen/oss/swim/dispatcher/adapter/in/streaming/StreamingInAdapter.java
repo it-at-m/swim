@@ -54,11 +54,24 @@ public class StreamingInAdapter {
     }
 
     @Bean
-    protected Consumer<Message<SingleFileEvent>> dlq() {
+    protected Consumer<Message<FileEvent>> dlq() {
         return message -> {
-            final SingleFileEvent fileFinishedDTO = message.getPayload();
+            final FileEvent event = message.getPayload();
+            final String useCase;
+            final List<PresignedFile> files;
+            if (event instanceof SingleFileEvent single) {
+                useCase = single.useCase();
+                files = List.of(new PresignedFile(single.presignedUrl(), single.metadataPresignedUrl()));
+            } else if (event instanceof MultiFileEvent multi) {
+                useCase = multi.useCase();
+                files = multi.files();
+            } else {
+                throw new IllegalArgumentException("Message payload is no valid event but '%s'".formatted(event.getClass()));
+            }
             final ErrorDetails error = this.errorDetailsFromHeaders(message.getHeaders());
-            errorHandlerInPort.handleError(fileFinishedDTO.useCase(), fileFinishedDTO.presignedUrl(), fileFinishedDTO.metadataPresignedUrl(), error);
+            for (final PresignedFile file : files) {
+                errorHandlerInPort.handleError(useCase, file, error);
+            }
         };
     }
 

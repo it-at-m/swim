@@ -17,7 +17,7 @@ public class StreamingOutAdapter implements FileDispatchingOutPort {
 
     @Override
     public void dispatchFile(final String bindingName, final String useCase, final PresignedFile presignedFile) {
-        final SingleFileEvent event = SingleFileEvent.fromPresignedFile(useCase, presignedFile);
+        final SingleFileEvent event = new SingleFileEvent(useCase, presignedFile);
         send(bindingName, event);
     }
 

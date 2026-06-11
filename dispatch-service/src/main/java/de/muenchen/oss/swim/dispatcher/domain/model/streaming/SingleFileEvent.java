@@ -1,11 +1,14 @@
 package de.muenchen.oss.swim.dispatcher.domain.model.streaming;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record SingleFileEvent(
-        String useCase,
-        String presignedUrl,
-        String metadataPresignedUrl) implements FileEvent {
+        @NotBlank String useCase,
+        @JsonUnwrapped @NotNull @Valid PresignedFile presignedFile) implements FileEvent {
 
     public static final String TYPE_NAME = "single";
 
@@ -13,12 +16,8 @@ public record SingleFileEvent(
         if (useCase == null || useCase.isBlank()) {
             throw new IllegalArgumentException("useCase must not be null or blank");
         }
-        if (presignedUrl == null || presignedUrl.isBlank()) {
+        if (presignedFile == null) {
             throw new IllegalArgumentException("presignedUrl must not be null or blank");
         }
-    }
-
-    public static SingleFileEvent fromPresignedFile(final String useCase, final PresignedFile file) {
-        return new SingleFileEvent(useCase, file.presignedUrl(), file.metadataPresignedUrl());
     }
 }

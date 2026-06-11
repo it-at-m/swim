@@ -33,7 +33,7 @@ public class StreamingInAdapter {
             final List<PresignedFile> files;
             if (event instanceof SingleFileEvent single) {
                 useCase = single.useCase();
-                files = List.of(new PresignedFile(single.presignedUrl(), single.metadataPresignedUrl()));
+                files = List.of(single.presignedFile());
             } else if (event instanceof MultiFileEvent multi) {
                 useCase = multi.useCase();
                 files = multi.files();
@@ -61,7 +61,7 @@ public class StreamingInAdapter {
             final List<PresignedFile> files;
             if (event instanceof SingleFileEvent single) {
                 useCase = single.useCase();
-                files = List.of(new PresignedFile(single.presignedUrl(), single.metadataPresignedUrl()));
+                files = List.of(single.presignedFile());
             } else if (event instanceof MultiFileEvent multi) {
                 useCase = multi.useCase();
                 files = multi.files();

@@ -73,6 +73,9 @@ public class EventMessageConverter implements MessageConverter {
         }
         // build message
         final MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(jsonPayload.getBytes(StandardCharsets.UTF_8));
+        if (headers != null) {
+            messageBuilder.copyHeaders(headers);
+        }
         messageBuilder.setHeaderIfAbsent(MessageHeaders.CONTENT_TYPE, "application/json");
         final String eventType;
         if (payload instanceof SingleFileEvent) {

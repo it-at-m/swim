@@ -103,7 +103,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                         // could occur if reference was moved between getObjectsInPath and this tag load
                         log.trace("FileReference not found while getting tags for reference list: {} in {}", i.objectName(), bucket);
                     }
-                    return new FileWithMetadata(new FileReference(bucket, i.objectName()), i.size(), tags);
+                    return new FileWithMetadata(new FileReference(bucket, i.objectName()), i.size(), i.lastModified(), tags);
                 })
                 // filter tags
                 .filter(i -> {

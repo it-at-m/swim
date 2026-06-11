@@ -31,9 +31,10 @@ public class FileHandlingHelper {
      * @param stateTagKey The key of the state tag.
      * @param e The exception that was thrown.
      */
-    public void markFileError(final FileReference file, final String stateTagKey, final Exception e) {
+    public void markFileError(final FileReference file, final String stateTagKey, final Throwable e) {
+        final String rawMessage = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
         // escape illegal chars from message
-        final String escapedMessage = e.getMessage().replaceAll(ILLEGAL_CHARS_PATTERN, " ");
+        final String escapedMessage = rawMessage.replaceAll(ILLEGAL_CHARS_PATTERN, " ");
         // shorten exception message for tag value max 256 chars
         final String shortenedExceptionMessage = escapedMessage.length() > TAG_MAX_VALUE_LENGTH ? escapedMessage.substring(0, TAG_MAX_VALUE_LENGTH)
                 : escapedMessage;
@@ -44,12 +45,28 @@ public class FileHandlingHelper {
     }
 
     /**
+     * Tag file and move to finished directory.
+     *
+     * @param useCase The use case of the file.
+     * @param file The file to finish.
+     */
+    public void finishFile(final UseCase useCase, final FileReference file) {
+        // finish metadata file if required and exists
+        final FileReference metadataFile = file.getMetadataFile();
+        if (useCase.isRequiresMetadata() && this.fileSystemOutPort.fileExists(metadataFile)) {
+            this.markFileAsFinished(useCase, metadataFile);
+        }
+        // finish file
+        this.markFileAsFinished(useCase, file);
+    }
+
+    /**
      * Tag file as finished and move to finished dir.
      *
      * @param useCase Use case of the file.
      * @param file Reference of the file.
      */
-    public void finishFile(final UseCase useCase, final FileReference file) {
+    private void markFileAsFinished(final UseCase useCase, final FileReference file) {
         // move file
         final String destPath = useCase.getFinishedPath(swimDispatcherProperties, file.path());
         fileSystemOutPort.moveFile(file, destPath);

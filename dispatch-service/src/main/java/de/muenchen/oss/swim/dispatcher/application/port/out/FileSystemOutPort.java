@@ -83,7 +83,7 @@ public interface FileSystemOutPort {
     boolean verifyPresignedUrl(@NotBlank String presignedUrl) throws PresignedUrlException;
 
     /**
-     * Move a file from one place to another.
+     * Move a file from one place to another in the same bucket.
      *
      * @param srcFileReference The reference identifying the source file.
      * @param destPath The destination path of the file.

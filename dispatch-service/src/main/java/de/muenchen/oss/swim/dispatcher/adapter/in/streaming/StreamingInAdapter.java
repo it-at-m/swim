@@ -5,7 +5,12 @@ import de.muenchen.oss.swim.dispatcher.application.port.in.MarkFileFinishedInPor
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
+import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
+import de.muenchen.oss.swim.dispatcher.domain.model.streaming.FileEvent;
+import de.muenchen.oss.swim.dispatcher.domain.model.streaming.MultiFileEvent;
+import de.muenchen.oss.swim.dispatcher.domain.model.streaming.SingleFileEvent;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +26,26 @@ public class StreamingInAdapter {
     private final ErrorHandlerInPort errorHandlerInPort;
 
     @Bean
-    protected Consumer<Message<FileEventDTO>> finished() {
+    protected Consumer<Message<FileEvent>> finished() {
         return fileFinishedEventDTOMessage -> {
-            final FileEventDTO fileFinishedDTO = fileFinishedEventDTOMessage.getPayload();
+            final FileEvent event = fileFinishedEventDTOMessage.getPayload();
+            final String useCase;
+            final List<PresignedFile> files;
+            if (event instanceof SingleFileEvent single) {
+                useCase = single.useCase();
+                files = List.of(single.presignedFile());
+            } else if (event instanceof MultiFileEvent multi) {
+                useCase = multi.useCase();
+                files = multi.files();
+            } else {
+                throw new IllegalArgumentException("Message payload is no valid event but '%s'".formatted(event.getClass()));
+            }
             try {
-                markFileFinishedInPort.markFileFinished(fileFinishedDTO.useCase(), fileFinishedDTO.presignedUrl());
-                if (StringUtils.isNotBlank(fileFinishedDTO.metadataPresignedUrl())) {
-                    markFileFinishedInPort.markFileFinished(fileFinishedDTO.useCase(), fileFinishedDTO.metadataPresignedUrl());
+                for (final PresignedFile file : files) {
+                    markFileFinishedInPort.markFileFinished(useCase, file.presignedUrl());
+                    if (StringUtils.isNotBlank(file.metadataPresignedUrl())) {
+                        markFileFinishedInPort.markFileFinished(useCase, file.metadataPresignedUrl());
+                    }
                 }
             } catch (PresignedUrlException | UseCaseException e) {
                 throw new RuntimeException(e);
@@ -36,11 +54,24 @@ public class StreamingInAdapter {
     }
 
     @Bean
-    protected Consumer<Message<FileEventDTO>> dlq() {
+    protected Consumer<Message<FileEvent>> dlq() {
         return message -> {
-            final FileEventDTO fileFinishedDTO = message.getPayload();
+            final FileEvent event = message.getPayload();
+            final String useCase;
+            final List<PresignedFile> files;
+            if (event instanceof SingleFileEvent single) {
+                useCase = single.useCase();
+                files = List.of(single.presignedFile());
+            } else if (event instanceof MultiFileEvent multi) {
+                useCase = multi.useCase();
+                files = multi.files();
+            } else {
+                throw new IllegalArgumentException("Message payload is no valid event but '%s'".formatted(event.getClass()));
+            }
             final ErrorDetails error = this.errorDetailsFromHeaders(message.getHeaders());
-            errorHandlerInPort.handleError(fileFinishedDTO.useCase(), fileFinishedDTO.presignedUrl(), fileFinishedDTO.metadataPresignedUrl(), error);
+            for (final PresignedFile file : files) {
+                errorHandlerInPort.handleError(useCase, file, error);
+            }
         };
     }
 

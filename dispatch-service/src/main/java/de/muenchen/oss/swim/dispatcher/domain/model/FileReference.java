@@ -4,7 +4,6 @@ import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
 import java.net.URISyntaxException;
-import org.apache.commons.lang3.StringUtils;
 
 public record FileReference(@NotBlank String bucket, @NotBlank String path) {
     public String getFileName() {
@@ -33,26 +32,37 @@ public record FileReference(@NotBlank String bucket, @NotBlank String path) {
         return new FileReference(this.bucket, this.getMetadataFilePath());
     }
 
-    public static FileReference fromPresignedUrl(final String presignedUrl) throws PresignedUrlException {
-        // check input has content
-        if (StringUtils.isBlank(presignedUrl)) {
-            throw new PresignedUrlException("Empty presigned url can't be parsed");
-        }
-        // parse presigned url
-        final URI uri;
+    /**
+     * Build {@link FileReference} from presigned URL.
+     *
+     * @param presignedUrlString The presigned URL of a file.
+     * @return The resolved FileReference.
+     */
+    @SuppressWarnings("PMD.CyclomaticComplexity")
+    public static FileReference fromPresignedUrl(final String presignedUrlString) throws PresignedUrlException {
+        final URI presignedUrl;
         try {
-            uri = new URI(presignedUrl);
+            presignedUrl = new URI(presignedUrlString);
         } catch (final URISyntaxException e) {
-            throw new PresignedUrlException("Presigned url could not be parsed", e);
+            throw new PresignedUrlException("Presigned URL couldn't be parsed", e);
         }
-        // create FileReference object from presigned url
-        final String uriPath = uri.getPath().replaceFirst("^/", "");
-        final int slashIndex = uriPath.indexOf('/');
-        if (slashIndex <= 0 || slashIndex >= uriPath.length() - 1) {
-            throw new PresignedUrlException("Presigned url has no valid bucket/object path");
+        final String rawPath = presignedUrl.getPath();
+        if (rawPath == null) {
+            throw new PresignedUrlException("Invalid path in presigned URL");
         }
-        final String bucket = uriPath.substring(0, slashIndex);
-        final String filePath = uriPath.substring(slashIndex + 1);
+        final String path = rawPath.replaceFirst("^/", "");
+        if (path.isEmpty()) {
+            throw new PresignedUrlException("Empty path in presigned URL");
+        }
+        final int firstSlash = path.indexOf('/');
+        if (firstSlash == -1) {
+            throw new PresignedUrlException("Invalid path format: missing bucket/file structure");
+        }
+        final String filePath = path.substring(firstSlash + 1);
+        final String bucket = path.substring(0, firstSlash);
+        if (filePath.isBlank() || bucket.isBlank()) {
+            throw new PresignedUrlException("Invalid path format: missing bucket or file path");
+        }
         return new FileReference(bucket, filePath);
     }
 }

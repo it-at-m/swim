@@ -18,25 +18,27 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.stereotype.Component;
 
 /**
- * Spring {@link MessageConverter} that deserializes incoming streaming messages into
- * {@link FileEvent} implementations based on a discriminator header.
+ * Spring {@link MessageConverter} that converts to and from {@link FileEvent}
+ * implementations based on a discriminator header.
  *
  * <p>
  * When the requested target type is {@code FileEvent}, the converter inspects the
  * {@value #TYPE_HEADER} header to resolve the concrete implementation:
  * <ul>
- * <li>"single" &rarr; {@link SingleFileEvent}</li>
- * <li>"multi" &rarr; {@link MultiFileEvent}</li>
+ * <li>{@value SingleFileEvent#TYPE_NAME} &rarr; {@link SingleFileEvent}</li>
+ * <li>{@value MultiFileEvent#TYPE_NAME} &rarr; {@link MultiFileEvent}</li>
  * </ul>
- * If the header is missing it falls back to "single" and if it's unknown, this converter returns
- * {@code null} so that other
- * converters may attempt conversion.
+ * If the header is missing it falls back to {@link SingleFileEvent} and, if it's unknown,
+ * this converter returns {@code null} so that other converters may attempt conversion.
  *
  * <p>
- * The payload is expected to be a {@code byte[]} containing JSON and is converted using
- * the injected {@link ObjectMapper}. Outbound conversion via
- * {@link #toMessage(Object, MessageHeaders)}
- * is not supported and returns {@code null}.
+ * Inbound conversion expects a JSON {@code byte[]} payload.
+ *
+ * <p>
+ * Outbound conversion is supported for
+ * {@link FileEvent} payloads only: the payload is serialized to JSON and the
+ * {@value #TYPE_HEADER} is set to the corresponding {@code TYPE_NAME}. For non-{@code FileEvent}
+ * payloads {@code null} is returned.
  */
 @Component
 @RequiredArgsConstructor
@@ -87,8 +89,10 @@ public class EventMessageConverter implements MessageConverter {
 
     /**
      * Resolves the concrete target class for a {@link FileEvent} based on the
-     * {@value #TYPE_HEADER} header. Returns {@code null} if the requested target type is not
-     * {@code FileEvent} or the header is unknown so other converters can handle it.
+     * {@value #TYPE_HEADER} header. Returns {@code null} if the requested target class is not
+     * {@code FileEvent} or the type header is unknown so other converters can handle it.
+     *
+     * @throws StreamingException if the type header can't be parsed to a String.
      */
     private Class<?> resolveTargetType(final Message<?> message, final Class<?> targetClass) {
         if (!FileEvent.class.equals(targetClass)) {
@@ -97,8 +101,8 @@ public class EventMessageConverter implements MessageConverter {
         final String type;
         try {
             type = message.getHeaders().get(TYPE_HEADER, String.class);
-        } catch (final RuntimeException e) {
-            throw new StreamingException("Type header couldn't be resolved", e);
+        } catch (final IllegalArgumentException e) {
+            throw new StreamingException("Type header couldn't be resolved to String", e);
         }
         // fallback to single if no type
         if (type == null || SingleFileEvent.TYPE_NAME.equals(type)) {
@@ -114,6 +118,7 @@ public class EventMessageConverter implements MessageConverter {
      * {@link FileEvent} implementation using the {@link ObjectMapper}.
      *
      * @throws IllegalArgumentException if the payload type is unsupported.
+     * @throws StreamingException if JSON deserialization fails.
      */
     private FileEvent convert(final Message<?> message, final Class<?> targetClass) {
         final Object payload = message.getPayload();

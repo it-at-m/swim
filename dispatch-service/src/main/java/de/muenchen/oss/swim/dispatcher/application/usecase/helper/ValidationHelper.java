@@ -33,16 +33,21 @@ public class ValidationHelper {
      * @param useCase The use case the files were found for.
      * @param fileGroup The FileGroup to validate.
      */
-    public void validateFileGroup(final UseCase useCase, final String baseFileName, final FileGroup fileGroup) throws FileSizeException, FileChunkException {
+    public boolean validateFileGroup(final UseCase useCase, final String baseFileName, final FileGroup fileGroup) throws FileSizeException, FileChunkException {
         final List<FileWithMetadata> files = fileGroup.getFiles();
         // if multiple files
         if (fileGroup.isMulti()) {
-            this.validateGroup(baseFileName, files);
+            if (!this.validateGroup(baseFileName, files)) {
+                return false;
+            }
         }
         // validate each file
         for (final FileWithMetadata file : files) {
-            this.validateFile(useCase, file);
+            if (!this.validateFile(useCase, file)) {
+                return false;
+            }
         }
+        return true;
     }
 
     /**
@@ -58,7 +63,7 @@ public class ValidationHelper {
      * @param files the files that belong to the base filename
      * @throws FileChunkException if tags differ or any chunk is missing
      */
-    protected void validateGroup(final String baseFileName, final List<FileWithMetadata> files) throws FileChunkException {
+    protected boolean validateGroup(final String baseFileName, final List<FileWithMetadata> files) throws FileChunkException {
         // check all files same tags
         if (files.stream().map(FileWithMetadata::tags).distinct().limit(2).count() > 1) {
             throw new FileChunkException("The tags of the %d files %s are different.".formatted(files.size(), baseFileName));
@@ -73,6 +78,8 @@ public class ValidationHelper {
         if (!allChunksPresent && newestFileAge.compareTo(swimDispatcherProperties.getMaxFileChunkAge()) > 0) {
             throw new FileChunkException("There are chunks missing for file %s".formatted(baseFileName));
         }
+        // skip processing for group if chunks missing but bellow threshold
+        return allChunksPresent;
     }
 
     /**
@@ -112,12 +119,13 @@ public class ValidationHelper {
      * @param file The file to validate
      * @throws FileSizeException When the file is above the file size limit.
      */
-    protected void validateFile(final UseCase useCase, final FileWithMetadata file) throws FileSizeException {
+    protected boolean validateFile(final UseCase useCase, final FileWithMetadata file) throws FileSizeException {
         // validate file size
         if (file.size() > useCase.getMaxFileSize().toBytes()) {
             final String message = String.format("FileReference %s too large. %d > %d", file.reference().path(), file.size(),
                     useCase.getMaxFileSize().toBytes());
             throw new FileSizeException(message);
         }
+        return true;
     }
 }

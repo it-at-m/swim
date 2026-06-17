@@ -41,6 +41,10 @@ public final class TestConstants {
             FILE2_BASE_NAME, FILE2_GROUP);
 
     public static FileWithMetadata createFileWithMeta(final String path, final Map<String, String> tags) {
-        return new FileWithMetadata(new FileReference(BUCKET, path), 0L, ZonedDateTime.now().minus(Duration.ofDays(2)), tags);
+        return new FileWithMetadata(new FileReference(BUCKET, path), 0L, ZonedDateTime.now(), tags);
+    }
+
+    public static FileWithMetadata createFileWithMeta(final String path, final Map<String, String> tags, final Duration duration) {
+        return new FileWithMetadata(new FileReference(BUCKET, path), 0L, ZonedDateTime.now().minus(duration), tags);
     }
 }

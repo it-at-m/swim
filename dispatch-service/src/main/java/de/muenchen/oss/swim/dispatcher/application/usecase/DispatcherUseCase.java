@@ -104,7 +104,12 @@ public class DispatcherUseCase implements DispatcherInPort {
             final FileGroup fileGroup = entry.getValue();
             final List<FileWithMetadata> files = fileGroup.getFiles();
             try {
-                this.validationHelper.validateFileGroup(useCase, baseFileName, fileGroup);
+                boolean validGroup = this.validationHelper.validateFileGroup(useCase, baseFileName, fileGroup);
+                // skip group if not valid
+                if (!validGroup) {
+                    log.warn("Skipped invalid group {} for use case {}", baseFileName, useCase.getName());
+                    continue;
+                }
                 this.processFileGroup(useCase, baseFileName, fileGroup);
             } catch (final MetadataException | UseCaseException | RuntimeException | FileSizeException | FileChunkException e) {
                 log.warn("Error while processing {} file(s) {} for use case {}", files.size(), baseFileName, useCase.getName(), e);

@@ -7,6 +7,7 @@ import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE1_GROUP;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TAGS;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.createFileWithMeta;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -19,6 +20,8 @@ import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
+
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -94,12 +97,25 @@ class ValidationHelperTest {
     void validateGroup_throws_whenChunkMissing() {
         // given: total declares 3, but only 1 and 3 present and max time is over
         final Map<String, String> tags = Map.of("same", "true");
+        final Duration age = Duration.ofDays(2);
+        final List<FileWithMetadata> group = List.of(
+                createFileWithMeta("p/y-1v3.pdf", tags, age),
+                createFileWithMeta("p/y-3v3.pdf", tags, age));
+
+        // then
+        assertThrows(FileChunkException.class, () -> helper.validateGroup("y", group));
+    }
+
+    @Test
+    void validateGroup_false_whenChunkMissingBellowTimeout() throws FileChunkException {
+        // given: total declares 3, but only 1 and 3 present
+        final Map<String, String> tags = Map.of("same", "true");
         final List<FileWithMetadata> group = List.of(
                 createFileWithMeta("p/y-1v3.pdf", tags),
                 createFileWithMeta("p/y-3v3.pdf", tags));
 
         // then
-        assertThrows(FileChunkException.class, () -> helper.validateGroup("y", group));
+        assertFalse(helper.validateGroup("y", group));
     }
 
     @Test

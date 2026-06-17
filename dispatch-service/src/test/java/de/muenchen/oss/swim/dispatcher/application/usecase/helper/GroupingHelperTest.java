@@ -37,8 +37,8 @@ class GroupingHelperTest {
         final FileWithMetadata a2 = createFileWithMeta("path/fileA-2v3.pdf", tags);
         final FileWithMetadata a3 = createFileWithMeta("path/fileA-3v3.pdf", tags);
         final FileWithMetadata other = createFileWithMeta("path/other.pdf", tags);
-        final FileWithMetadata b1 = createFileWithMeta("path/fileB_1v2.pdf", tags);
-        final FileWithMetadata b2 = createFileWithMeta("path/fileB_2v2.pdf", tags);
+        final FileWithMetadata b1 = createFileWithMeta("path/fileB-1v2.pdf", tags);
+        final FileWithMetadata b2 = createFileWithMeta("path/fileB-2v2.pdf", tags);
 
         // when
         final Map<String, FileGroup> grouped = helper.groupFiles(List.of(a1, a2, a3, other, b1, b2));

@@ -36,10 +36,8 @@ public class ValidationHelper {
     public boolean validateFileGroup(final UseCase useCase, final String baseFileName, final FileGroup fileGroup) throws FileSizeException, FileChunkException {
         final List<FileWithMetadata> files = fileGroup.getFiles();
         // if multiple files
-        if (fileGroup.isMulti()) {
-            if (!this.validateGroup(baseFileName, files)) {
+        if (fileGroup.isMulti() && !this.validateGroup(baseFileName, files)) {
                 return false;
-            }
         }
         // validate each file
         for (final FileWithMetadata file : files) {

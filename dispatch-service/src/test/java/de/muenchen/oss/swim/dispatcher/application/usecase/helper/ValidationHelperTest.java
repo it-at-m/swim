@@ -20,7 +20,6 @@ import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;

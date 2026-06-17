@@ -104,7 +104,7 @@ public class DispatcherUseCase implements DispatcherInPort {
             final FileGroup fileGroup = entry.getValue();
             final List<FileWithMetadata> files = fileGroup.getFiles();
             try {
-                boolean validGroup = this.validationHelper.validateFileGroup(useCase, baseFileName, fileGroup);
+                final boolean validGroup = this.validationHelper.validateFileGroup(useCase, baseFileName, fileGroup);
                 // skip group if not valid
                 if (!validGroup) {
                     log.warn("Skipped invalid group {} for use case {}", baseFileName, useCase.getName());

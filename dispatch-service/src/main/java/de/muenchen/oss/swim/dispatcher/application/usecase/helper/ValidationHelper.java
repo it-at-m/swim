@@ -86,7 +86,7 @@ public class ValidationHelper {
     private boolean allChunksPresent(final List<FileWithMetadata> files) {
         final Matcher countMatcher = CHUNKED_FILE_PATTERN.matcher(files.getFirst().reference().getFileNameWithoutExtension());
         if (!countMatcher.matches()) {
-            throw new IllegalArgumentException("Files needs to match chunk pattern");
+            throw new IllegalArgumentException("File needs to match chunk pattern (counter)");
         }
         final int parts = Integer.parseInt(countMatcher.group(CHUNKED_FILE_COUNT_GROUP));
         final List<Integer> indizes = files.stream()
@@ -95,7 +95,7 @@ public class ValidationHelper {
                 .map(i -> {
                     final Matcher indexMatcher = CHUNKED_FILE_PATTERN.matcher(i);
                     if (!indexMatcher.matches()) {
-                        throw new IllegalArgumentException("Files needs to match chunk pattern");
+                        throw new IllegalArgumentException("Files need to match chunk pattern (index)");
                     }
                     return indexMatcher.group(CHUNKED_FILE_INDEX_GROUP);
                 })
@@ -106,7 +106,7 @@ public class ValidationHelper {
 
     /**
      * Validates a single file.
-     * Validates if the file is bellow the file size limit.
+     * Validates if the file is below the file size limit.
      *
      * @param useCase The use case of the file.
      * @param file The file to validate

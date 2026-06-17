@@ -109,7 +109,7 @@ public class DispatchActionsHelper {
             if (useCase.isRequiresMetadata()) {
                 // build metadata file path
                 final FileReference metadataFile = file.getMetadataFile();
-                // continue if not existing
+                // exit if not existing
                 if (!fileSystemOutPort.fileExists(metadataFile)) {
                     final String message = String.format("Metadata file %s missing", metadataFile);
                     throw new MetadataException(message);

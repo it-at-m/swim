@@ -45,6 +45,8 @@ swim:
     url:
     access-key:
     secret-key:
+  # file chunking
+  max-file-chunk-age: 1d # after which file age an error should be thrown if file chunks are missing
   # dirs
   dispatch-folder: inProcess # subfolder to search for files to process under
   finished-folder: finished # subfolder to move finished files to

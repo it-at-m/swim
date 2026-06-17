@@ -27,21 +27,12 @@ public class StreamingInAdapter {
 
     @Bean
     protected Consumer<Message<FileEvent>> finished() {
-        return fileFinishedEventDTOMessage -> {
-            final FileEvent event = fileFinishedEventDTOMessage.getPayload();
-            final String useCase;
-            final List<PresignedFile> files;
-            if (event instanceof SingleFileEvent single) {
-                useCase = single.useCase();
-                files = List.of(single.presignedFile());
-            } else if (event instanceof MultiFileEvent multi) {
-                useCase = multi.useCase();
-                files = multi.files();
-            } else {
-                throw new IllegalArgumentException("Message payload is no valid event but '%s'".formatted(event.getClass()));
-            }
+        return fileEventMessage -> {
+            final FileEvent event = fileEventMessage.getPayload();
+            final MultiFileEvent multiFileEvent = MultiFileEvent.fromFileEvent(event);
             try {
-                for (final PresignedFile file : files) {
+                for (final PresignedFile file : multiFileEvent.files()) {
+                    final String useCase = multiFileEvent.useCase();
                     markFileFinishedInPort.markFileFinished(useCase, file.presignedUrl());
                     if (StringUtils.isNotBlank(file.metadataPresignedUrl())) {
                         markFileFinishedInPort.markFileFinished(useCase, file.metadataPresignedUrl());
@@ -55,22 +46,12 @@ public class StreamingInAdapter {
 
     @Bean
     protected Consumer<Message<FileEvent>> dlq() {
-        return message -> {
-            final FileEvent event = message.getPayload();
-            final String useCase;
-            final List<PresignedFile> files;
-            if (event instanceof SingleFileEvent single) {
-                useCase = single.useCase();
-                files = List.of(single.presignedFile());
-            } else if (event instanceof MultiFileEvent multi) {
-                useCase = multi.useCase();
-                files = multi.files();
-            } else {
-                throw new IllegalArgumentException("Message payload is no valid event but '%s'".formatted(event.getClass()));
-            }
-            final ErrorDetails error = this.errorDetailsFromHeaders(message.getHeaders());
-            for (final PresignedFile file : files) {
-                errorHandlerInPort.handleError(useCase, file, error);
+        return fileEventMessage -> {
+            final FileEvent event = fileEventMessage.getPayload();
+            final MultiFileEvent multiFileEvent = MultiFileEvent.fromFileEvent(event);
+            final ErrorDetails error = this.errorDetailsFromHeaders(fileEventMessage.getHeaders());
+            for (final PresignedFile file : multiFileEvent.files()) {
+                errorHandlerInPort.handleError(multiFileEvent.useCase(), file, error);
             }
         };
     }

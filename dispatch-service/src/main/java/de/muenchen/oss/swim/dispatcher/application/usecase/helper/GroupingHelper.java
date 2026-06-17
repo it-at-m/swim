@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class GroupingHelper {
-    public static final Pattern CHUNKED_FILE_PATTERN = Pattern.compile("(.+)[-_](\\d+)v(\\d+)$");
+    public static final Pattern CHUNKED_FILE_PATTERN = Pattern.compile("(.+)-(\\d+)v(\\d+)$");
     public static final int CHUNKED_FILE_BASE_NAME_GROUP = 1;
     public static final int CHUNKED_FILE_INDEX_GROUP = 2;
     public static final int CHUNKED_FILE_COUNT_GROUP = 3;

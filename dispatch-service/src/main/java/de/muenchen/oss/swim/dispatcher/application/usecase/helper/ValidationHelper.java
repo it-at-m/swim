@@ -37,7 +37,7 @@ public class ValidationHelper {
         final List<FileWithMetadata> files = fileGroup.getFiles();
         // if multiple files
         if (fileGroup.isMulti() && !this.validateGroup(baseFileName, files)) {
-                return false;
+            return false;
         }
         // validate each file
         for (final FileWithMetadata file : files) {

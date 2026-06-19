@@ -23,8 +23,9 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
 class GroupingHelperTest {
     public static final String BASE_NAME_A = "fileA";
+    public static final String BASE_NAME_A_OTHER = "fileA.pdf";
     public static final String BASE_NAME_B = "fileB";
-    public static final String BASE_NAME_OTHER = "other";
+    public static final String BASE_NAME_OTHER = "other.pdf";
 
     @Autowired
     private GroupingHelper helper;
@@ -37,19 +38,22 @@ class GroupingHelperTest {
         final FileWithMetadata a2 = createFileWithMeta("path/fileA-2v3.pdf", tags);
         final FileWithMetadata a3 = createFileWithMeta("path/fileA-3v3.pdf", tags);
         final FileWithMetadata other = createFileWithMeta("path/other.pdf", tags);
+        final FileWithMetadata aOther = createFileWithMeta("path/fileA.pdf", tags);
         final FileWithMetadata b1 = createFileWithMeta("path/fileB-1v2.pdf", tags);
         final FileWithMetadata b2 = createFileWithMeta("path/fileB-2v2.pdf", tags);
 
         // when
-        final Map<String, FileGroup> grouped = helper.groupFiles(List.of(a1, a2, a3, other, b1, b2));
+        final Map<String, FileGroup> grouped = helper.groupFiles(List.of(a1, a2, a3, aOther, other, b1, b2));
 
         // then
-        assertEquals(Set.of(BASE_NAME_A, BASE_NAME_B, BASE_NAME_OTHER), grouped.keySet());
+        assertEquals(Set.of(BASE_NAME_A, BASE_NAME_A_OTHER, BASE_NAME_OTHER, BASE_NAME_B), grouped.keySet());
         assertEquals(3, grouped.get(BASE_NAME_A).getFiles().size());
         assertTrue(grouped.get(BASE_NAME_A).isMulti());
-        assertEquals(2, grouped.get(BASE_NAME_B).getFiles().size());
-        assertTrue(grouped.get(BASE_NAME_B).isMulti());
+        assertEquals(1, grouped.get(BASE_NAME_A_OTHER).getFiles().size());
+        assertFalse(grouped.get(BASE_NAME_A_OTHER).isMulti());
         assertEquals(1, grouped.get(BASE_NAME_OTHER).getFiles().size());
         assertFalse(grouped.get(BASE_NAME_OTHER).isMulti());
+        assertEquals(2, grouped.get(BASE_NAME_B).getFiles().size());
+        assertTrue(grouped.get(BASE_NAME_B).isMulti());
     }
 }

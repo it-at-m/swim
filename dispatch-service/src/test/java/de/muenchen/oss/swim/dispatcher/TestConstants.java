@@ -23,10 +23,10 @@ public final class TestConstants {
     public static final String FOLDER_PATH = "test/inProcess/path/";
     public static final Map<String, String> TAGS = Map.of("SWIM_State", "processed");
     public static final FileWithMetadata FILE1 = new FileWithMetadata(new FileReference(BUCKET, "test/inProcess/path/test.pdf"), 0L, ZonedDateTime.now(), TAGS);
-    public static final String FILE1_BASE_NAME = "test";
+    public static final String FILE1_BASE_NAME = "test.pdf";
     public static final FileWithMetadata FILE2 = new FileWithMetadata(new FileReference(BUCKET, "test/inProcess/path/test2.pdf"), 0L, ZonedDateTime.now(),
             TAGS);
-    public static final String FILE2_BASE_NAME = "test2";
+    public static final String FILE2_BASE_NAME = "test2.pdf";
     public static final String USE_CASE_PATH = "test";
     public static final String USE_CASE_DISPATCH_PATH = USE_CASE_PATH + "/inProcess";
     public static final String TEST_PRESIGNED_URL = "https://s3.muenchen.de/test-bucket/test/inProcess/path/example.pdf";

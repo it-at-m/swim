@@ -47,15 +47,13 @@ public class GroupingHelper {
                 final String originalFileName = matcher.group(CHUNKED_FILE_BASE_NAME_GROUP);
                 if (groupedFiles.containsKey(originalFileName)) {
                     final FileGroup fileGroup = groupedFiles.get(originalFileName);
-                    if (!fileGroup.isMulti()) {
-                        throw new IllegalStateException("Is multi file pattern but group isn't multi");
-                    }
                     fileGroup.add(file);
                 } else {
                     groupedFiles.put(originalFileName, new FileGroup(true, file));
                 }
             } else {
-                groupedFiles.put(file.reference().getFileNameWithoutExtension(), new FileGroup(false, file));
+                // with file extension to not conflict with multi with same basename
+                groupedFiles.put(file.reference().getFileName(), new FileGroup(false, file));
             }
         }
         return groupedFiles;

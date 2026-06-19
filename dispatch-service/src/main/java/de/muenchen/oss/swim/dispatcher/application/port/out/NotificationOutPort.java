@@ -29,7 +29,7 @@ public interface NotificationOutPort {
      * @param errors The errors that where thrown.
      * @param additionalErrorMessage An additional error message, for special cases.
      */
-    void sendDispatchErrors(@NotEmpty List<String> recipients, @NotBlank String useCase, @NotEmpty Map<FileReference, Throwable> errors,
+    void sendDispatchErrors(@NotEmpty List<String> recipients, @NotBlank String useCase, Map<FileReference, Throwable> errors,
             @NotBlank String additionalErrorMessage);
 
     /**

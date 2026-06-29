@@ -7,8 +7,10 @@ import static de.muenchen.oss.swim.dispatcher.TestConstants.FILE1_GROUP;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.TAGS;
 import static de.muenchen.oss.swim.dispatcher.TestConstants.createFileWithMeta;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
@@ -37,11 +39,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
 class ValidationHelperTest {
+
+    public static final Map<String, String> EXAMPLE_TAGS = Map.of("state", "ok");
     @Autowired
     private SwimDispatcherProperties swimDispatcherProperties;
     @MockitoSpyBean
     @Autowired
     private ValidationHelper helper;
+    @Autowired
+    private ValidationHelper validationHelper;
 
     @Test
     void validateFileGroup_Multi() throws FileSizeException, FileChunkException {
@@ -71,11 +77,10 @@ class ValidationHelperTest {
     @Test
     void validateGroup_ok_whenAllChunksPresentAndTagsEqual() {
         // given
-        final Map<String, String> tags = Map.of("state", "ok");
         final List<FileWithMetadata> group = List.of(
-                createFileWithMeta("p/base-1v3.pdf", tags),
-                createFileWithMeta("p/base-2v3.pdf", tags),
-                createFileWithMeta("p/base-3v3.pdf", tags));
+                createFileWithMeta("p/base-1v3.pdf", EXAMPLE_TAGS),
+                createFileWithMeta("p/base-2v3.pdf", EXAMPLE_TAGS),
+                createFileWithMeta("p/base-3v3.pdf", EXAMPLE_TAGS));
 
         // then
         assertDoesNotThrow(() -> helper.validateGroup("base", group));
@@ -95,11 +100,10 @@ class ValidationHelperTest {
     @Test
     void validateGroup_throws_whenChunkMissing() {
         // given: total declares 3, but only 1 and 3 present and max time is over
-        final Map<String, String> tags = Map.of("same", "true");
         final Duration age = Duration.ofDays(2);
         final List<FileWithMetadata> group = List.of(
-                createFileWithMeta("p/y-1v3.pdf", tags, age),
-                createFileWithMeta("p/y-3v3.pdf", tags, age));
+                createFileWithMeta("p/y-1v3.pdf", EXAMPLE_TAGS, age),
+                createFileWithMeta("p/y-3v3.pdf", EXAMPLE_TAGS, age));
 
         // then
         assertThrows(FileChunkException.class, () -> helper.validateGroup("y", group));
@@ -108,10 +112,9 @@ class ValidationHelperTest {
     @Test
     void validateGroup_false_whenChunkMissingBellowTimeout() throws FileChunkException {
         // given: total declares 3, but only 1 and 3 present
-        final Map<String, String> tags = Map.of("same", "true");
         final List<FileWithMetadata> group = List.of(
-                createFileWithMeta("p/y-1v3.pdf", tags),
-                createFileWithMeta("p/y-3v3.pdf", tags));
+                createFileWithMeta("p/y-1v3.pdf", EXAMPLE_TAGS),
+                createFileWithMeta("p/y-3v3.pdf", EXAMPLE_TAGS));
 
         // then
         assertFalse(helper.validateGroup("y", group));
@@ -123,5 +126,30 @@ class ValidationHelperTest {
         assertThrows(FileSizeException.class,
                 () -> helper.validateFile(useCase,
                         new FileWithMetadata(new FileReference(BUCKET, "test.pdf"), useCase.getMaxFileSize().toBytes() + 1, null, TAGS)));
+    }
+
+    @Test
+    void missingChunks_oneMissing() {
+        // given
+        final List<FileWithMetadata> missingOne = List.of(
+                createFileWithMeta("p/y-1v3.pdf", EXAMPLE_TAGS),
+                createFileWithMeta("p/y-3v3.pdf", EXAMPLE_TAGS));
+        // call
+        final List<Integer> missing = validationHelper.getMissingChunks(missingOne);
+        // then
+        assertEquals(List.of(2), missing);
+    }
+
+    @Test
+    void missingChunks_complete() {
+        // given
+        final List<FileWithMetadata> complete = List.of(
+                createFileWithMeta("p/base-1v3.pdf", EXAMPLE_TAGS),
+                createFileWithMeta("p/base-2v3.pdf", EXAMPLE_TAGS),
+                createFileWithMeta("p/base-3v3.pdf", EXAMPLE_TAGS));
+        // call
+        final List<Integer> none = validationHelper.getMissingChunks(complete);
+        // then
+        assertTrue(none.isEmpty());
     }
 }

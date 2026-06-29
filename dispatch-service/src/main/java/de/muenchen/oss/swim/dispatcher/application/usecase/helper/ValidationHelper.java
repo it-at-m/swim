@@ -15,7 +15,10 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -67,34 +70,40 @@ public class ValidationHelper {
             throw new FileChunkException("The tags of the %d files %s are different.".formatted(files.size(), baseFileName));
         }
         // check all file chunks are present and throw error if over age limit
-        final boolean allChunksPresent = this.allChunksPresent(files);
+        final List<Integer> missingChunks = this.getMissingChunks(files);
+        final boolean allChunksPresent = missingChunks.isEmpty();
         final Duration newestFileAge = files.stream()
                 .map(FileWithMetadata::lastModified)
                 .max(Comparator.naturalOrder())
                 .map(i -> Duration.between(i, ZonedDateTime.now()))
                 .orElseThrow();
         if (!allChunksPresent && newestFileAge.compareTo(swimDispatcherProperties.getMaxFileChunkAge()) > 0) {
-            throw new FileChunkException("There are chunks missing for file %s".formatted(baseFileName));
+            throw new FileChunkException("The chunks %s are missing for file %s and all files are older than %s"
+                    .formatted(missingChunks, baseFileName, swimDispatcherProperties.getMaxFileChunkAge()));
         }
         // skip processing for group if chunks missing but bellow threshold
-        return allChunksPresent;
+        if (!allChunksPresent) {
+            log.info("The chunks {} are missing for file {}, but bellow age threshold of {}", missingChunks,
+                    baseFileName, swimDispatcherProperties.getMaxFileChunkAge());
+            return false;
+        }
+        return true;
     }
 
     /**
-     * Checks whether all chunks declared by the pattern exist in the provided list.
-     * Assumes each filename matches the chunk pattern and derives the expected total from the first
-     * file.
+     * Returns the chunk indices that are missing from the given list of files.
+     * The expected number of parts is derived from the first file name via CHUNKED_FILE_PATTERN.
      *
-     * @param files list of chunk files for the same base filename
-     * @return {@code true} if the indices form a complete 1..total sequence; otherwise {@code false}
+     * @param files list of chunk files that belong together
+     * @return a sorted list of missing chunk indices; empty if none are missing
      */
-    private boolean allChunksPresent(final List<FileWithMetadata> files) {
+    protected List<Integer> getMissingChunks(final List<FileWithMetadata> files) {
         final Matcher countMatcher = CHUNKED_FILE_PATTERN.matcher(files.getFirst().reference().getFileNameWithoutExtension());
         if (!countMatcher.matches()) {
             throw new IllegalArgumentException("File needs to match chunk pattern (counter)");
         }
         final int parts = Integer.parseInt(countMatcher.group(CHUNKED_FILE_COUNT_GROUP));
-        final List<Integer> indizes = files.stream()
+        final Set<Integer> present = files.stream()
                 .map(FileWithMetadata::reference)
                 .map(FileReference::getFileNameWithoutExtension)
                 .map(i -> {
@@ -105,8 +114,12 @@ public class ValidationHelper {
                     return indexMatcher.group(CHUNKED_FILE_INDEX_GROUP);
                 })
                 .map(Integer::parseInt)
-                .distinct().sorted().toList();
-        return indizes.size() == parts && indizes.getFirst() == 1 && indizes.getLast() == parts;
+                .collect(Collectors.toSet());
+
+        return IntStream.rangeClosed(1, parts)
+                .filter(i -> !present.contains(i))
+                .boxed()
+                .toList();
     }
 
     /**

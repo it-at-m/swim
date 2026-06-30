@@ -110,7 +110,7 @@ class ValidationHelperTest {
     }
 
     @Test
-    void validateGroup_false_whenChunkMissingBellowTimeout() throws FileChunkException {
+    void validateGroup_false_whenChunkMissingBelowTimeout() throws FileChunkException {
         // given: total declares 3, but only 1 and 3 present
         final List<FileWithMetadata> group = List.of(
                 createFileWithMeta("p/y-1v3.pdf", EXAMPLE_TAGS),

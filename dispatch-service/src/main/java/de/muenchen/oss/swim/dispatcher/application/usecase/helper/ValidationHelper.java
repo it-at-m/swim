@@ -81,9 +81,9 @@ public class ValidationHelper {
             throw new FileChunkException("The chunks %s are missing for file %s and all files are older than %s"
                     .formatted(missingChunks, baseFileName, swimDispatcherProperties.getMaxFileChunkAge()));
         }
-        // skip processing for group if chunks missing but bellow threshold
+        // skip processing for group if chunks missing but below threshold
         if (!allChunksPresent) {
-            log.info("The chunks {} are missing for file {}, but bellow age threshold of {}", missingChunks,
+            log.info("The chunks {} are missing for file {}, but below age threshold of {}", missingChunks,
                     baseFileName, swimDispatcherProperties.getMaxFileChunkAge());
             return false;
         }

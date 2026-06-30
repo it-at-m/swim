@@ -5,6 +5,9 @@ import de.muenchen.oss.swim.dispatcher.application.port.in.MarkFileFinishedInPor
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
+import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
+import de.muenchen.oss.swim.dispatcher.domain.model.streaming.FileEvent;
+import de.muenchen.oss.swim.dispatcher.domain.model.streaming.MultiFileEvent;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -21,13 +24,17 @@ public class StreamingInAdapter {
     private final ErrorHandlerInPort errorHandlerInPort;
 
     @Bean
-    protected Consumer<Message<FileEventDTO>> finished() {
-        return fileFinishedEventDTOMessage -> {
-            final FileEventDTO fileFinishedDTO = fileFinishedEventDTOMessage.getPayload();
+    protected Consumer<Message<FileEvent>> finished() {
+        return fileEventMessage -> {
+            final FileEvent event = fileEventMessage.getPayload();
+            final MultiFileEvent multiFileEvent = MultiFileEvent.fromFileEvent(event);
             try {
-                markFileFinishedInPort.markFileFinished(fileFinishedDTO.useCase(), fileFinishedDTO.presignedUrl());
-                if (StringUtils.isNotBlank(fileFinishedDTO.metadataPresignedUrl())) {
-                    markFileFinishedInPort.markFileFinished(fileFinishedDTO.useCase(), fileFinishedDTO.metadataPresignedUrl());
+                for (final PresignedFile file : multiFileEvent.files()) {
+                    final String useCase = multiFileEvent.useCase();
+                    markFileFinishedInPort.markFileFinished(useCase, file.presignedUrl());
+                    if (StringUtils.isNotBlank(file.metadataPresignedUrl())) {
+                        markFileFinishedInPort.markFileFinished(useCase, file.metadataPresignedUrl());
+                    }
                 }
             } catch (PresignedUrlException | UseCaseException e) {
                 throw new RuntimeException(e);
@@ -36,11 +43,14 @@ public class StreamingInAdapter {
     }
 
     @Bean
-    protected Consumer<Message<FileEventDTO>> dlq() {
-        return message -> {
-            final FileEventDTO fileFinishedDTO = message.getPayload();
-            final ErrorDetails error = this.errorDetailsFromHeaders(message.getHeaders());
-            errorHandlerInPort.handleError(fileFinishedDTO.useCase(), fileFinishedDTO.presignedUrl(), fileFinishedDTO.metadataPresignedUrl(), error);
+    protected Consumer<Message<FileEvent>> dlq() {
+        return fileEventMessage -> {
+            final FileEvent event = fileEventMessage.getPayload();
+            final MultiFileEvent multiFileEvent = MultiFileEvent.fromFileEvent(event);
+            final ErrorDetails error = this.errorDetailsFromHeaders(fileEventMessage.getHeaders());
+            for (final PresignedFile file : multiFileEvent.files()) {
+                errorHandlerInPort.handleError(multiFileEvent.useCase(), file, error);
+            }
         };
     }
 

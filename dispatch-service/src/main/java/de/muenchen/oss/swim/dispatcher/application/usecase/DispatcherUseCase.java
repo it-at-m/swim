@@ -4,32 +4,28 @@ import static de.muenchen.oss.swim.dispatcher.application.usecase.helper.FileHan
 import static de.muenchen.oss.swim.dispatcher.domain.model.DispatchAction.DISPATCH;
 
 import de.muenchen.oss.swim.dispatcher.application.port.in.DispatcherInPort;
-import de.muenchen.oss.swim.dispatcher.application.port.out.FileDispatchingOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.NotificationOutPort;
+import de.muenchen.oss.swim.dispatcher.application.usecase.helper.DispatchActionsHelper;
 import de.muenchen.oss.swim.dispatcher.application.usecase.helper.FileHandlingHelper;
+import de.muenchen.oss.swim.dispatcher.application.usecase.helper.GroupingHelper;
+import de.muenchen.oss.swim.dispatcher.application.usecase.helper.ValidationHelper;
 import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
+import de.muenchen.oss.swim.dispatcher.domain.exception.FileChunkException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.FileSizeException;
-import de.muenchen.oss.swim.dispatcher.domain.exception.FileSystemAccessException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.MetadataException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
-import de.muenchen.oss.swim.dispatcher.domain.helper.MetadataHelper;
 import de.muenchen.oss.swim.dispatcher.domain.model.DispatchAction;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileGroup;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.FileWithMetadata;
-import de.muenchen.oss.swim.dispatcher.domain.model.Metadata;
-import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -39,17 +35,18 @@ import org.springframework.stereotype.Service;
 public class DispatcherUseCase implements DispatcherInPort {
     private final SwimDispatcherProperties swimDispatcherProperties;
     private final FileSystemOutPort fileSystemOutPort;
-    private final FileDispatchingOutPort fileDispatchingOutPort;
     private final NotificationOutPort notificationOutPort;
     private final FileHandlingHelper fileHandlingHelper;
     private final DispatchMeter dispatchMeter;
-    private final MetadataHelper metadataHelper;
+    private final GroupingHelper groupingHelper;
+    private final DispatchActionsHelper dispatchActionsHelper;
+    private final ValidationHelper validationHelper;
 
     @Override
     public void triggerDispatching() {
         log.info("Starting dispatching");
         for (final UseCase useCase : swimDispatcherProperties.getUseCases()) {
-            final Map<String, Throwable> errors = new HashMap<>();
+            final Map<FileReference, Throwable> errors = new HashMap<>();
             try {
                 // handle files directly in directory
                 final String dispatchPath = useCase.getDispatchPath(swimDispatcherProperties);
@@ -71,11 +68,9 @@ public class DispatcherUseCase implements DispatcherInPort {
                 }
             } catch (final Exception e) {
                 log.error("Processing of use case {} failed", useCase.getName(), e);
-                final Map<String, Throwable> enrichedErrors = new HashMap<>();
-                enrichedErrors.put("!!! USE CASE PROCESSING !!!", new UseCaseException(
-                        "Unexpected error during dispatching, use case was not processed completely. Error: %s".formatted(e.getMessage()), e));
-                enrichedErrors.putAll(errors);
-                notificationOutPort.sendDispatchErrors(useCase.getMailAddresses(), useCase.getName(), enrichedErrors);
+                final String additionalMessage = "!!! USE CASE PROCESSING !!! Unexpected error during dispatching, use case was not processed completely. Error: %s"
+                        .formatted(e.getMessage());
+                notificationOutPort.sendDispatchErrors(useCase.getMailAddresses(), useCase.getName(), errors, additionalMessage);
             }
         }
         log.info("Finished dispatching");
@@ -83,14 +78,15 @@ public class DispatcherUseCase implements DispatcherInPort {
 
     /**
      * Process all files inside a folder recursively.
-     * See {@link DispatcherUseCase#processFile}.
+     * See {@link DispatcherUseCase#processFileGroup}.
      *
      * @param useCase The bucket of the folder.
      * @param folder The full path of the folder.
      * @return Error which occurred during processing (Key: file path, value: error).
      */
     private @NotNull
-    Map<String, Throwable> processDirectory(final UseCase useCase, final String folder, final boolean recursive) {
+    Map<FileReference, Throwable> processDirectory(final UseCase useCase, final String folder, final boolean recursive) {
+        // find files
         final List<FileWithMetadata> readyFiles = fileSystemOutPort.getMatchingFilesWithTags(
                 useCase.getBucket(),
                 folder,
@@ -98,58 +94,73 @@ public class DispatcherUseCase implements DispatcherInPort {
                 FILE_EXTENSION_PDF,
                 useCase.getRequiredTags(),
                 swimDispatcherProperties.getDispatchExcludeTags());
-        // for each file
         log.info("Found {} ready to process files for use case {} in folder {}", readyFiles.size(), useCase.getName(), folder);
-        final Map<String, Throwable> errors = new HashMap<>();
-        for (final FileWithMetadata file : readyFiles) {
-            if (!useCase.isSensitiveFilename()) {
-                log.info("Processing file {} for use case {}", file.reference().path(), useCase.getName());
-            }
+        // group and validate files
+        final Map<String, FileGroup> groupedFiles = groupingHelper.groupFiles(readyFiles);
+        final Map<FileReference, Throwable> errors = new HashMap<>();
+        // for each file group
+        for (final Map.Entry<String, FileGroup> entry : groupedFiles.entrySet()) {
+            final String baseFileName = entry.getKey();
+            final FileGroup fileGroup = entry.getValue();
+            final List<FileWithMetadata> files = fileGroup.getFiles();
             try {
-                this.processFile(useCase, file);
-            } catch (final FileSizeException | MetadataException | UseCaseException | RuntimeException e) {
-                log.warn("Error while processing file {} for use case {}", file.reference().path(), useCase.getName(), e);
-                // mark file as failed
-                fileHandlingHelper.markFileError(file.reference(), swimDispatcherProperties.getDispatchStateTagKey(), e);
+                final boolean validGroup = this.validationHelper.validateFileGroup(useCase, baseFileName, fileGroup);
+                // skip group if not valid
+                if (!validGroup) {
+                    log.info("Skipped invalid group {} for use case {}", baseFileName, useCase.getName());
+                    continue;
+                }
+                this.processFileGroup(useCase, baseFileName, fileGroup);
+            } catch (final MetadataException | UseCaseException | RuntimeException | FileSizeException | FileChunkException e) {
+                log.warn("Error while processing {} file(s) {} for use case {}", files.size(), baseFileName, useCase.getName(), e);
+                // mark files as failed
+                for (final FileWithMetadata file : files) {
+                    fileHandlingHelper.markFileError(file.reference(), swimDispatcherProperties.getDispatchStateTagKey(), e);
+                }
                 // store exception for later notification
-                errors.put(file.reference().path(), e);
+                for (final FileWithMetadata file : files) {
+                    errors.put(file.reference(), e);
+                }
             }
         }
         return errors;
     }
 
     /**
-     * Process a single file by executing according action (dispatch, reroute, ignore, ...)
-     * and mark file as finished.
+     * Process a file group by executing according action (dispatch, reroute, ignore, ...)
+     * and mark files as finished.
+     * If multiple files only dispatch is supported.
      *
-     * @param useCase The use case the file was found for.
-     * @param file The file to be processed.
-     * @throws FileSizeException If file is above configured
-     *             {@link UseCase#getMaxFileSize()}
+     * @param useCase The use case the files were found for.
+     * @param baseFileName The files name without the split suffix or file extension.
+     * @param fileGroup The files to be processed.
      * @throws MetadataException If metadata file required but could not be loaded
      * @throws UseCaseException If use case can't be resolved in reroute action.
      */
-    protected void processFile(final UseCase useCase, final FileWithMetadata file)
-            throws FileSizeException, MetadataException, UseCaseException {
-        // check file size
-        if (file.size() > useCase.getMaxFileSize().toBytes()) {
-            final String message = String.format("File %s too large. %d > %d", file.reference().path(), file.size(), useCase.getMaxFileSize().toBytes());
-            throw new FileSizeException(message);
+    protected void processFileGroup(final UseCase useCase, final String baseFileName, final FileGroup fileGroup)
+            throws MetadataException, UseCaseException {
+        final List<FileWithMetadata> files = fileGroup.getFiles();
+        if (!useCase.isSensitiveFilename()) {
+            log.info("Processing {} file(s) {} for use case {}", files.size(), baseFileName, useCase.getName());
         }
         // resolve action
-        final DispatchAction action = this.resolveDispatchAction(file.tags());
+        final DispatchAction action = dispatchActionsHelper.resolveDispatchAction(files.getFirst().tags());
+        // fail if multiple files but no dispatch
+        if (action != DISPATCH && fileGroup.isMulti()) {
+            throw new IllegalStateException("Other actions than DISPATCH are not allowed for multiple files");
+        }
         // execute action
         String actionName = action.name();
         switch (action) {
         case DELETE, IGNORE:
-            this.finishFile(useCase, file.reference());
+            this.fileHandlingHelper.finishFile(useCase, files.getFirst().reference());
             break;
         case REROUTE:
-            this.rerouteFileToUseCase(useCase, file.reference(), file.tags());
+            this.dispatchActionsHelper.rerouteFileToUseCase(useCase, files.getFirst().reference(), files.getFirst().tags());
             break;
         case DISPATCH:
-            final String destinationBinding = this.resolveDestinationBinding(useCase, file.reference());
-            this.dispatchFile(useCase, file.reference(), destinationBinding);
+            final String destinationBinding = dispatchActionsHelper.resolveDestinationBinding(useCase, fileGroup);
+            this.dispatchActionsHelper.dispatchFileGroup(useCase, fileGroup, destinationBinding);
             // use destination binding as actionName for more specific metrics
             actionName = destinationBinding;
             break;
@@ -157,145 +168,4 @@ public class DispatcherUseCase implements DispatcherInPort {
         // update metric
         dispatchMeter.incrementDispatched(useCase.getName(), actionName);
     }
-
-    /**
-     * Resolve dispatch action from tags.
-     * If tag isn't present defaults to {@link DispatchAction#DISPATCH}.
-     *
-     * @param tags The tags of the file.
-     * @return The resolved action.
-     */
-    protected @NotNull
-    DispatchAction resolveDispatchAction(final Map<String, String> tags) {
-        // dispatch if tag doesn't exist
-        if (!tags.containsKey(swimDispatcherProperties.getDispatchActionTagKey())) {
-            return DISPATCH;
-        }
-        // parse tag value
-        final String actionString = tags.get(swimDispatcherProperties.getDispatchActionTagKey());
-        if (actionString == null) {
-            throw new IllegalStateException("Action tag value cannot be null");
-        }
-        return DispatchAction.valueOf(actionString.toUpperCase(Locale.ROOT));
-    }
-
-    /**
-     * Dispatch a file to the use case destination binding.
-     *
-     * @param useCase The use case of the file.
-     * @param file The file.
-     * @param destination Destination binding to dispatch to.
-     * @throws MetadataException If metadata file required but could not be loaded.
-     */
-    protected void dispatchFile(final UseCase useCase, final FileReference file, final String destination) throws MetadataException {
-        // check metadata file exists if required
-        final String metadataPresignedUrl;
-        if (useCase.isRequiresMetadata()) {
-            // build metadata file
-            final FileReference metadataFile = file.getMetadataFile();
-            // continue if not existing
-            if (!fileSystemOutPort.fileExists(metadataFile)) {
-                final String message = String.format("Metadata file %s missing", metadataFile);
-                throw new MetadataException(message);
-            }
-            metadataPresignedUrl = fileSystemOutPort.getPresignedUrl(metadataFile);
-        } else {
-            metadataPresignedUrl = null;
-        }
-        // dispatch file
-        final String presignedUrl = fileSystemOutPort.getPresignedUrl(file);
-        final PresignedFile presignedFile = new PresignedFile(presignedUrl, metadataPresignedUrl);
-        fileDispatchingOutPort.dispatchFile(destination, useCase.getName(), presignedFile);
-        // mark file as dispatched
-        fileSystemOutPort.tagFile(file, Map.of(
-                swimDispatcherProperties.getDispatchStateTagKey(),
-                swimDispatcherProperties.getDispatchedStateTagValue()));
-    }
-
-    /**
-     * Resolve destination binding either via metadata file or use case.
-     * See {@link UseCase#isOverwriteDestinationViaMetadata()} and
-     * {@link UseCase#getDestinationBinding()}.
-     *
-     * @param useCase The use case to resolve the destination binding for.
-     * @param file The file to resolve the destination binding for.
-     * @return The resolved destination binding.
-     * @throws MetadataException If metadata file can't be loaded or parsed.
-     */
-    protected String resolveDestinationBinding(final UseCase useCase, final FileReference file) throws MetadataException {
-        // resolve via metadata file if enabled
-        if (useCase.isOverwriteDestinationViaMetadata()) {
-            try (InputStream metadataFileStream = this.fileSystemOutPort.readFile(file.getMetadataFile())) {
-                final Metadata metadata = metadataHelper.parseMetadataFile(metadataFileStream);
-                final String value = metadata.indexFields().get(swimDispatcherProperties.getMetadataDispatchBindingKey());
-                if (StringUtils.isNotBlank(value)) {
-                    return value;
-                }
-            } catch (final FileSystemAccessException | IOException e) {
-                throw new MetadataException("Destination via metadata: Error while loading metadata file", e);
-            }
-        }
-        // use UseCase destination binding
-        return useCase.getDestinationBinding();
-    }
-
-    /**
-     * Tag file and move to finished directory.
-     *
-     * @param useCase The use case of the file.
-     * @param file The file to finish.
-     */
-    protected void finishFile(final UseCase useCase, final FileReference file) {
-        // finish metadata file if required and exists
-        final FileReference metadataFile = file.getMetadataFile();
-        if (useCase.isRequiresMetadata() && this.fileSystemOutPort.fileExists(metadataFile)) {
-            this.fileHandlingHelper.finishFile(useCase, metadataFile);
-        }
-        // finish file
-        this.fileHandlingHelper.finishFile(useCase, file);
-    }
-
-    /**
-     * Reroute a file to another use case.
-     *
-     * @param useCase The use case of the file.
-     * @param file The file to reroute
-     * @param tags The tags of the file. Used for resolving target.
-     * @throws UseCaseException If target use case can't be resolved.
-     */
-    protected void rerouteFileToUseCase(final UseCase useCase, final FileReference file, final Map<String, String> tags) throws UseCaseException {
-        // resolve target use case
-        final String targetUseCaseName = tags.get(swimDispatcherProperties.getDispatchActionDestinationTagKey());
-        if (targetUseCaseName == null) {
-            final String message = String.format("Reroute action failed: No target use case specified in tag '%s' for file %s in use case %s",
-                    swimDispatcherProperties.getDispatchActionDestinationTagKey(), file.path(), useCase.getName());
-            throw new IllegalStateException(message);
-        }
-        if (useCase.getName().equals(targetUseCaseName)) {
-            final String message = String.format("Reroute action failed: Cannot reroute file %s to the same use case '%s'",
-                    file.path(), useCase.getName());
-            throw new IllegalStateException(message);
-        }
-        final UseCase targetUseCase;
-        try {
-            targetUseCase = swimDispatcherProperties.findUseCase(targetUseCaseName);
-        } catch (final UseCaseException e) {
-            final String message = String.format("Reroute action failed: Unknown use case %s", targetUseCaseName);
-            throw new UseCaseException(message, e);
-        }
-        // copy file to target use case
-        final String rawPath = useCase.getRawPath(swimDispatcherProperties, file.path());
-        final String destPath = String.format("%s/from_%s/%s", targetUseCase.getDispatchPath(swimDispatcherProperties), useCase.getName(), rawPath);
-        final FileReference destFile = new FileReference(targetUseCase.getBucket(), destPath);
-        fileSystemOutPort.copyFile(file, destFile, true);
-        // tag protocol processed if enabled
-        if (targetUseCase.isTagProtocolProcessed()) {
-            fileSystemOutPort.tagFile(destFile, Map.of(
-                    swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getProtocolProcessedFilesStateTagValue()));
-        }
-        // finish file
-        this.finishFile(useCase, file);
-        log.info("File {} in bucket {} rerouted from use case {} to use case {}", file.path(), file.bucket(), useCase.getName(), targetUseCase.getName());
-    }
-
 }

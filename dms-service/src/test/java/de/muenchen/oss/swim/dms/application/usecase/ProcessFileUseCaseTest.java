@@ -32,7 +32,6 @@ import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlExcept
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileReference;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

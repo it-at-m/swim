@@ -22,6 +22,7 @@ import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
+import de.muenchen.oss.swim.dms.domain.model.LoadedFile;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseIncoming;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseType;
@@ -35,6 +36,8 @@ import de.muenchen.oss.swim.libs.handlercore.domain.model.FileReference;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -141,17 +144,19 @@ class ProcessFileUseCaseTest {
     }
 
     @Test
-    void testProcessFile_DecodeGermanChars() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
+    void testLoadFile_DecodeGermanChars() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "static-inbox-incoming";
+        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         final String fileNameWithoutExtension = "test#a#o#u#s#A#O#Utest";
         final String fileName = String.format("%s.pdf", fileNameWithoutExtension);
         final String filePath = String.format("test/%s", fileName);
-        final FileReference fileIn = new FileReference(BUCKET, filePath);
+        final String encodedFilePath = URLEncoder.encode(filePath, StandardCharsets.UTF_8);
+        final PresignedFile fileIn = new PresignedFile("https://example.com/%s/%s".formatted(BUCKET, encodedFilePath), null);
         final FileReference fileDecoded = new FileReference(BUCKET, filePath.replaceFirst(fileNameWithoutExtension, "testäöüßÄÖÜtest"));
         // call
-        processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
+        final LoadedFile file = processFileUseCase.loadFile(useCase, fileIn);
         // test
-        verify(processFileUseCase).processInboxIncoming(any(), any(), any());
+        assertEquals(fileDecoded, file.decodedFileReference());
     }
 
     @Test
@@ -210,7 +215,6 @@ class ProcessFileUseCaseTest {
         final String fileNameWithoutExtension = "äasd";
         final String fileName = String.format("%s.pdf", fileNameWithoutExtension);
         final String filePath = String.format("test/%s", fileName);
-        final FileReference file = new FileReference(BUCKET, filePath);
         final String presignedUrl = String.format("http://localhost:9001/%s/%s", BUCKET, filePath);
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         when(fileSystemOutPort.getPresignedUrlFile(eq(presignedUrl))).thenReturn(DUMMY_STREAM);

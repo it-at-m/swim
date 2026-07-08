@@ -55,6 +55,25 @@ public class DmsMetadataHelper extends MetadataHelper {
     }
 
     /**
+     * Extract shadow file dms target from metadata file.
+     *
+     * @param metadata Parsed metadata file.
+     * @return The dms target.
+     */
+    public DmsTarget resolveShadowFileDmsTarget(@NotNull final Metadata metadata) throws MetadataException {
+        final Map<String, String> indexFields = metadata.indexFields();
+        final SwimDmsProperties.MetadataRequestContextProperty metadataKeys = swimDmsProperties.getMetadataShadowFile();
+        final String coo = indexFields.get(metadataKeys.cooKey());
+        final String owner = indexFields.get(metadataKeys.userKey());
+        final String jobOe = indexFields.get(metadataKeys.jobOeKey());
+        final String jobPosition = indexFields.get(metadataKeys.jobPositionKey());
+        if (StringUtils.isBlank(coo)) {
+            throw new MetadataException("%s must be set for shadow file".formatted(metadataKeys.cooKey()));
+        }
+        return new DmsTarget(coo, owner, jobOe, jobPosition);
+    }
+
+    /**
      * Resolve correct DmsTarget from user and group inbox values.
      *
      * @param userInboxCoo The value for the user inbox coo.

@@ -122,6 +122,9 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         case INBOX_INCOMING -> dmsHelper.processInboxIncoming(useCase, dmsTarget, files);
         // Incoming in Procedure
         case PROCEDURE_INCOMING -> dmsHelper.processProcedureIncoming(useCase, dmsTarget, files);
+        // shadow file
+        case SHADOW_FILE -> dmsHelper.processShadowFile(useCase, dmsTarget, files);
+        // fail unresolved metadata type
         case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
         }
     }

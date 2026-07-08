@@ -61,6 +61,12 @@ public class SwimDmsProperties {
     @NotBlank
     private String metadataIncomingJobpositionKey;
     /**
+     * Collection of var names in metadata file to get target shadow file.
+     */
+    @Valid
+    @NotNull
+    private MetadataRequestContextProperty metadataShadowFile;
+    /**
      * Var name in metadata file to get dms target resource type from.
      */
     @NotBlank
@@ -88,5 +94,12 @@ public class SwimDmsProperties {
         return this.getUseCases().stream()
                 .filter(i -> i.getName().equals(useCase)).findFirst()
                 .orElseThrow(() -> new UnknownUseCaseException(String.format("Unknown use case %s", useCase)));
+    }
+
+    public record MetadataRequestContextProperty(
+            @NotBlank String userKey,
+            @NotBlank String jobOeKey,
+            @NotBlank String jobPositionKey,
+            @NotBlank String cooKey) {
     }
 }

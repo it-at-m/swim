@@ -61,6 +61,11 @@ swim:
   metadata-incoming-user-key: "VG_Username"
   metadata-incoming-joboe-key: "VG_Joboe"
   metadata-incoming-jobposition-key: "VG_Jobposition"
+  metadata-shadow-file: # keys to use for resolving target shadow file, see Coo source metadata_file and Metadata
+    coo-key: "A_COO"
+    user-key: "A_username"
+    job-oe-key: "A_joboe"
+    job-position-key: "A_jobposition"
   # use cases
   use-cases:
     - name: # required
@@ -100,6 +105,7 @@ The `type` attribute of a use case defines what type of resource is created in t
 - `inbox_incoming`: Creates an Incoming (with `n` ContentObjects) inside a given Inbox.
 - `procedure_incoming`: Creates an Incoming (with `n` ContentObjects) inside a given Procedure or the OU work queue of the user.
 - `metadata_file`: Resolve target type via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Metadata file](#metadata-file).
+- `shadow_file`: Creates an ContentObject inside the shadow file structure (given File -> Procedure `YYYY_MM` -> Incoming `DD` -> ContentObject). The structure is created if not present.
 
 ContentObjects preserve the order the files have in the event.
 

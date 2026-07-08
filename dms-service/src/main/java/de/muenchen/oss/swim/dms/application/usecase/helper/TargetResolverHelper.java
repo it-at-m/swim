@@ -101,6 +101,7 @@ public class TargetResolverHelper {
         final DmsTarget metadataTarget = switch (resourceType) {
         case INBOX_CONTENT_OBJECT, INBOX_INCOMING -> dmsMetadataHelper.resolveInboxDmsTarget(metadata);
         case PROCEDURE_INCOMING -> dmsMetadataHelper.resolveIncomingDmsTarget(metadata);
+        case SHADOW_FILE -> dmsMetadataHelper.resolveShadowFileDmsTarget(metadata);
         case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
         };
         // combine resolves target with use case

@@ -61,7 +61,7 @@ class DmsHelperTest {
         dmsHelper.processInboxContentObject(useCase, DMS_TARGET, List.of(loadedFile));
 
         final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(DOCUMENT_PDF, null, DUMMY_STREAM);
-        verify(dmsOutPort).createContentObjectInInbox(eq(DMS_TARGET), eq(contentObjectRequest));
+        verify(dmsOutPort).createInboxContentObject(eq(DMS_TARGET), eq(contentObjectRequest));
     }
 
     @Test
@@ -91,7 +91,7 @@ class DmsHelperTest {
         final List<DmsContentObjectRequest> contentObjectRequests = List.of(
                 new DmsContentObjectRequest("document-1.pdf", null, DUMMY_STREAM),
                 new DmsContentObjectRequest("document-2.pdf", null, DUMMY_STREAM));
-        verify(dmsOutPort).createIncomingInInbox(eq(DMS_TARGET), eq(incomingRequest), eq(contentObjectRequests));
+        verify(dmsOutPort).createInboxIncoming(eq(DMS_TARGET), eq(incomingRequest), eq(contentObjectRequests));
     }
 
     @Test
@@ -104,7 +104,7 @@ class DmsHelperTest {
         final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(DOCUMENT, null);
         final List<DmsContentObjectRequest> contentObjectRequests = List.of(new DmsContentObjectRequest(DOCUMENT_PDF, null, DUMMY_STREAM));
         verify(dmsOutPort).createProcedureIncoming(eq(DMS_TARGET), eq(incomingRequest), eq(contentObjectRequests));
-        verify(dmsOutPort, never()).getIncomingCooByName(eq(DMS_TARGET), eq(DOCUMENT));
+        verify(dmsOutPort, never()).getIncomingCooByNamePrefix(eq(DMS_TARGET), eq(DOCUMENT));
     }
 
     @Test
@@ -112,7 +112,7 @@ class DmsHelperTest {
         final UseCase useCase = new UseCase();
         useCase.getIncoming().setReuseIncoming(true);
         final LoadedFile loadedFile = loadedFile(DOCUMENT_PDF, DUMMY_STREAM);
-        when(dmsOutPort.getIncomingCooByName(eq(DMS_TARGET), eq(DOCUMENT))).thenReturn(Optional.of("COO.incoming"));
+        when(dmsOutPort.getIncomingCooByNamePrefix(eq(DMS_TARGET), eq(DOCUMENT))).thenReturn(Optional.of("COO.incoming"));
 
         dmsHelper.processProcedureIncoming(useCase, DMS_TARGET, List.of(loadedFile));
 

@@ -152,7 +152,7 @@ class ProcessFileUseCaseTest {
         final String useCaseName = "static-inbox";
         try (CloseAwareInputStream fileStream = new CloseAwareInputStream()) {
             when(fileSystemOutPort.getPresignedUrlFile(eq(FILE_PRESIGNED_URL))).thenReturn(fileStream);
-            when(dmsOutPort.createContentObjectInInbox(any(), any())).thenThrow(new DmsException("DMS failed"));
+            when(dmsOutPort.createInboxContentObject(any(), any())).thenThrow(new DmsException("DMS failed"));
             // call & test
             assertThrows(DmsException.class, () -> processFileUseCase.processEvent(buildFileEvent(useCaseName, null)));
             assertTrue(fileStream.isClosed());

@@ -69,16 +69,20 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         log.info("Processing {} file(s) with first file {} for use case {}", event.files().size(), firstFileName, event.useCase());
         // load files
         final List<LoadedFile> files = new ArrayList<>();
-        for (final PresignedFile presignedFile : event.files()) {
-            files.add(this.loadFile(useCase, presignedFile));
+        try {
+            for (final PresignedFile presignedFile : event.files()) {
+                files.add(this.loadFile(useCase, presignedFile));
+            }
+            // process
+            this.processDmsResource(useCase, files);
+            // mark file as finished
+            fileEventOutPort.fileFinished(event);
+            log.info("Finished {} files with first file {} for use case {}", event.files().size(), firstFileName, event.useCase());
+            // update metric
+            dmsMeter.incrementProcessed(useCase.getName(), useCase.getType().name());
+        } finally {
+            this.closeLoadedFiles(files);
         }
-        // process
-        this.processDmsResource(useCase, files);
-        // mark file as finished
-        fileEventOutPort.fileFinished(event);
-        log.info("Finished {} files with first file {} for use case {}", event.files().size(), firstFileName, event.useCase());
-        // update metric
-        dmsMeter.incrementProcessed(useCase.getName(), useCase.getType().name());
     }
 
     /**
@@ -101,14 +105,17 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         }
         // load file
         final InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(presignedFile.presignedUrl());
-        // FIXME close InputStream at end
         // parse metadata file if present
         Metadata metadata = null;
         if (StringUtils.isNotBlank(presignedFile.metadataPresignedUrl())) {
             try (InputStream metadataFileStream = fileSystemOutPort.getPresignedUrlFile(presignedFile.metadataPresignedUrl())) {
                 metadata = dmsMetadataHelper.parseMetadataFile(metadataFileStream);
             } catch (final IOException e) {
+                closeFileStream(fileReference, fileStream);
                 throw new PresignedUrlException("Error while handling file InputStream", e);
+            } catch (MetadataException e) {
+                closeFileStream(fileReference, fileStream);
+                throw e;
             }
         }
         return new LoadedFile(fileReference, decodedFile, fileStream, metadata);
@@ -159,5 +166,19 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         return new FileReference(
                 file.bucket(),
                 decodedPath);
+    }
+
+    private void closeLoadedFiles(final List<LoadedFile> files) {
+        for (final LoadedFile file : files) {
+            this.closeFileStream(file.fileReference(), file.content());
+        }
+    }
+
+    private void closeFileStream(final FileReference fileReference, final InputStream fileStream) {
+        try {
+            fileStream.close();
+        } catch (final IOException e) {
+            log.warn("Failed to close file InputStream for {}", fileReference, e);
+        }
     }
 }

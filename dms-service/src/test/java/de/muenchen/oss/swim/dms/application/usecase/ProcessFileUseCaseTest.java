@@ -6,8 +6,10 @@ import static de.muenchen.oss.swim.dms.TestConstants.METADATA_DMS_TARGET_INCOMIN
 import static de.muenchen.oss.swim.dms.TestConstants.METADATA_DMS_TARGET_USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,6 +40,8 @@ import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileReference;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -128,6 +132,30 @@ class ProcessFileUseCaseTest {
     }
 
     @Test
+    void testProcessFile_closesFileStreamAfterSuccess() throws UnknownUseCaseException, PresignedUrlException, MetadataException, IOException {
+        final String useCaseName = "static-inbox";
+        try (CloseAwareInputStream fileStream = new CloseAwareInputStream()) {
+            when(fileSystemOutPort.getPresignedUrlFile(eq(FILE_PRESIGNED_URL))).thenReturn(fileStream);
+            // call
+            processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
+            // test
+            assertTrue(fileStream.isClosed());
+        }
+    }
+
+    @Test
+    void testProcessFile_closesFileStreamAfterRuntimeException() throws PresignedUrlException, IOException {
+        final String useCaseName = "static-inbox";
+        try (CloseAwareInputStream fileStream = new CloseAwareInputStream()) {
+            when(fileSystemOutPort.getPresignedUrlFile(eq(FILE_PRESIGNED_URL))).thenReturn(fileStream);
+            when(dmsOutPort.createContentObjectInInbox(any(), any())).thenThrow(new DmsException("DMS failed"));
+            // call & test
+            assertThrows(DmsException.class, () -> processFileUseCase.processEvent(buildFileEvent(useCaseName, null)));
+            assertTrue(fileStream.isClosed());
+        }
+    }
+
+    @Test
     void testProcessFile_StaticInboxIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "static-inbox-incoming";
         // call
@@ -152,6 +180,22 @@ class ProcessFileUseCaseTest {
         final LoadedFile file = processFileUseCase.loadFile(useCase, fileIn);
         // test
         assertEquals(fileDecoded, file.decodedFileReference());
+    }
+
+    @Test
+    void testLoadFile_closesFileStreamAfterMetadataException()
+            throws UnknownUseCaseException, PresignedUrlException, MetadataException, IOException {
+        final String useCaseName = "static-inbox-incoming";
+        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
+        try (CloseAwareInputStream fileStream = new CloseAwareInputStream()) {
+            when(fileSystemOutPort.getPresignedUrlFile(eq(FILE_PRESIGNED_URL))).thenReturn(fileStream);
+            when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL))).thenReturn(new ByteArrayInputStream(new byte[0]));
+            doThrow(new MetadataException("Metadata failed")).when(dmsMetadataHelper).parseMetadataFile(any());
+            // call & test
+            assertThrows(MetadataException.class,
+                    () -> processFileUseCase.loadFile(useCase, new PresignedFile(FILE_PRESIGNED_URL, METADATA_PRESIGNED_URL)));
+            assertTrue(fileStream.isClosed());
+        }
     }
 
     @Test
@@ -288,5 +332,23 @@ class ProcessFileUseCaseTest {
 
     private SingleFileEvent buildFileEvent(final String useCaseName, final String metadataPresignedUrl) {
         return new SingleFileEvent(useCaseName, new PresignedFile(FILE_PRESIGNED_URL, metadataPresignedUrl));
+    }
+
+    private static final class CloseAwareInputStream extends ByteArrayInputStream {
+        private boolean closed;
+
+        private CloseAwareInputStream() {
+            super("test".getBytes(StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public void close() throws IOException {
+            closed = true;
+            super.close();
+        }
+
+        private boolean isClosed() {
+            return closed;
+        }
     }
 }

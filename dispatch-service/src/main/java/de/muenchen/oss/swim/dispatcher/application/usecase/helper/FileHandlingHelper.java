@@ -3,7 +3,7 @@ package de.muenchen.oss.swim.dispatcher.application.usecase.helper;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
-import de.muenchen.oss.swim.dispatcher.domain.model.File;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -31,32 +31,48 @@ public class FileHandlingHelper {
      * @param stateTagKey The key of the state tag.
      * @param e The exception that was thrown.
      */
-    public void markFileError(final File file, final String stateTagKey, final Exception e) {
+    public void markFileError(final FileReference file, final String stateTagKey, final Throwable e) {
+        final String rawMessage = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
         // escape illegal chars from message
-        final String escapedMessage = e.getMessage().replaceAll(ILLEGAL_CHARS_PATTERN, " ");
+        final String escapedMessage = rawMessage.replaceAll(ILLEGAL_CHARS_PATTERN, " ");
         // shorten exception message for tag value max 256 chars
         final String shortenedExceptionMessage = escapedMessage.length() > TAG_MAX_VALUE_LENGTH ? escapedMessage.substring(0, TAG_MAX_VALUE_LENGTH)
                 : escapedMessage;
-        fileSystemOutPort.tagFile(file.bucket(), file.path(), Map.of(
+        fileSystemOutPort.tagFile(file, Map.of(
                 stateTagKey, swimDispatcherProperties.getErrorStateValue(),
                 swimDispatcherProperties.getErrorClassTagKey(), e.getClass().getName(),
                 swimDispatcherProperties.getErrorMessageTagKey(), shortenedExceptionMessage));
     }
 
     /**
+     * Tag file and move to finished directory.
+     *
+     * @param useCase The use case of the file.
+     * @param file The file to finish.
+     */
+    public void finishFile(final UseCase useCase, final FileReference file) {
+        // finish metadata file if required and exists
+        final FileReference metadataFile = file.getMetadataFile();
+        if (useCase.isRequiresMetadata() && this.fileSystemOutPort.fileExists(metadataFile)) {
+            this.markFileAsFinished(useCase, metadataFile);
+        }
+        // finish file
+        this.markFileAsFinished(useCase, file);
+    }
+
+    /**
      * Tag file as finished and move to finished dir.
      *
      * @param useCase Use case of the file.
-     * @param bucket Bucket the file is in.
-     * @param path Path of the file.
+     * @param file Reference of the file.
      */
-    public void finishFile(final UseCase useCase, final String bucket, final String path) {
+    private void markFileAsFinished(final UseCase useCase, final FileReference file) {
         // move file
-        final String destPath = useCase.getFinishedPath(swimDispatcherProperties, path);
-        fileSystemOutPort.moveFile(bucket, path, destPath);
-        log.info("Finished file {} in use case {}", path, useCase.getName());
+        final String destPath = useCase.getFinishedPath(swimDispatcherProperties, file.path());
+        fileSystemOutPort.moveFile(file, destPath);
+        log.info("Finished file {} in use case {}", file.path(), useCase.getName());
         // tag file in finished folder as finished
-        fileSystemOutPort.tagFile(bucket, destPath, Map.of(
+        fileSystemOutPort.tagFile(new FileReference(file.bucket(), destPath), Map.of(
                 swimDispatcherProperties.getDispatchStateTagKey(), swimDispatcherProperties.getDispatchFileFinishedTagValue()));
         // update metric
         dispatchMeter.incrementFinished(useCase.getName());

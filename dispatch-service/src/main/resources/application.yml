@@ -102,6 +102,7 @@ info:
     spring-cloud.version: @spring-cloud-dependencies.version@
 
 swim:
+  max-file-chunk-age: 1d
   # dirs
   dispatch-folder: inProcess
   finished-folder: finished

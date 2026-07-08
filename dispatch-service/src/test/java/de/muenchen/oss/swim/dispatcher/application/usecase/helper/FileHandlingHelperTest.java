@@ -9,6 +9,7 @@ import de.muenchen.oss.swim.dispatcher.TestConstants;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -42,9 +43,9 @@ class FileHandlingHelperTest {
         // setup
         final Exception testException = new RuntimeException("Test");
         // call
-        fileHandlingHelper.markFileError(FILE1, "SWIM_State", testException);
+        fileHandlingHelper.markFileError(FILE1.reference(), "SWIM_State", testException);
         // test
-        verify(fileSystemOutPort).tagFile(eq(BUCKET), eq(FILE1.path()), eq(Map.of(
+        verify(fileSystemOutPort).tagFile(eq(FILE1.reference()), eq(Map.of(
                 "SWIM_State", "error",
                 "errorClass", "java.lang.RuntimeException",
                 "errorMessage", "Test")));
@@ -55,10 +56,10 @@ class FileHandlingHelperTest {
         // setup
         final UseCase useCase = swimDispatcherProperties.getUseCases().getFirst();
         // call
-        fileHandlingHelper.finishFile(useCase, BUCKET, FILE1.path());
+        fileHandlingHelper.finishFile(useCase, FILE1.reference());
         // test
-        verify(fileSystemOutPort).moveFile(eq(BUCKET), eq(FILE1.path()), eq("test/finished/path/test.pdf"));
-        verify(fileSystemOutPort).tagFile(eq(BUCKET), eq("test/finished/path/test.pdf"), eq(Map.of(
+        verify(fileSystemOutPort).moveFile(eq(FILE1.reference()), eq("test/finished/path/test.pdf"));
+        verify(fileSystemOutPort).tagFile(eq(new FileReference(BUCKET, "test/finished/path/test.pdf")), eq(Map.of(
                 "SWIM_State", "finished")));
     }
 }

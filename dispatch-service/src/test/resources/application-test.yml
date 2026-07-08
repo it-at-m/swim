@@ -28,3 +28,4 @@ swim:
       path: path/test2
       tag-protocol-processed: true
   fallback-mail: swim@example.com
+  max-file-chunk-age: 1d

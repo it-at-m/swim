@@ -31,7 +31,7 @@ import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.FileReference;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.io.ByteArrayInputStream;
@@ -40,6 +40,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,7 +88,7 @@ class ProcessFileUseCaseTest {
     private static final String FILE_NAME_WITHOUT_EXTENSION = "test-COO.123.123.123-asd";
     private static final String FILE_NAME = String.format("%s.pdf", FILE_NAME_WITHOUT_EXTENSION);
     private static final String FILE_PATH = String.format("test-path/%s", FILE_NAME);
-    private static final File FILE = new File(BUCKET, FILE_PATH);
+    private static final FileReference FILE = new FileReference(BUCKET, FILE_PATH);
     private static final String FILE_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, FILE_PATH);
     private static final String METADAT_PATH = String.format("test-path/%s.json", FILE_NAME_WITHOUT_EXTENSION);
     private static final String METADATA_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, METADAT_PATH);
@@ -107,13 +110,13 @@ class ProcessFileUseCaseTest {
         // setup
         when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL))).thenReturn(getClass().getResourceAsStream("/files/example-metadata-user.json"));
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL));
         // test
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(targetResolverHelper, times(1)).resolveTargetCoo(eq(UseCaseType.INBOX_CONTENT_OBJECT), any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(1)).resolveInboxDmsTarget(any());
-        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, null);
-        verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(METADATA_DMS_TARGET_USER), eq(contentObjectRequest), eq(DUMMY_STREAM));
+        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, null, DUMMY_STREAM);
+        verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(METADATA_DMS_TARGET_USER), eq(contentObjectRequest));
         verify(dmsMeter, times(1)).incrementProcessed(eq(useCaseName), eq("INBOX_CONTENT_OBJECT"));
     }
 
@@ -121,21 +124,21 @@ class ProcessFileUseCaseTest {
     void testProcessFile_StaticInbox() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "static-inbox";
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
         // test
-        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, PATTERN_VALUE_TEST);
-        verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(STATIC_DMS_TARGET), eq(contentObjectRequest), eq(DUMMY_STREAM));
+        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, PATTERN_VALUE_TEST, DUMMY_STREAM);
+        verify(dmsOutPort, times(1)).createContentObjectInInbox(eq(STATIC_DMS_TARGET), eq(contentObjectRequest));
     }
 
     @Test
     void testProcessFile_StaticInboxIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "static-inbox-incoming";
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
         // test
         final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, null);
-        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, null);
-        verify(dmsOutPort, times(1)).createIncomingInInbox(eq(STATIC_DMS_TARGET), eq(incomingRequest), eq(contentObjectRequest), eq(DUMMY_STREAM));
+        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, null, DUMMY_STREAM);
+        verify(dmsOutPort, times(1)).createIncomingInInbox(eq(STATIC_DMS_TARGET), eq(incomingRequest), eq(List.of(contentObjectRequest)));
     }
 
     @Test
@@ -144,12 +147,12 @@ class ProcessFileUseCaseTest {
         final String fileNameWithoutExtension = "test#a#o#u#s#A#O#Utest";
         final String fileName = String.format("%s.pdf", fileNameWithoutExtension);
         final String filePath = String.format("test/%s", fileName);
-        final File fileIn = new File(BUCKET, filePath);
-        final File fileDecoded = new File(BUCKET, filePath.replaceFirst(fileNameWithoutExtension, "testäöüßÄÖÜtest"));
+        final FileReference fileIn = new FileReference(BUCKET, filePath);
+        final FileReference fileDecoded = new FileReference(BUCKET, filePath.replaceFirst(fileNameWithoutExtension, "testäöüßÄÖÜtest"));
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, null), fileIn);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
         // test
-        verify(processFileUseCase).processInboxIncoming(eq(fileDecoded), any(), any(), any(), any());
+        verify(processFileUseCase).processInboxIncoming(any(), any(), any());
     }
 
     @Test
@@ -160,15 +163,15 @@ class ProcessFileUseCaseTest {
         when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL)))
                 .thenReturn(getClass().getResourceAsStream("/files/example-metadata-target-type-incoming.json"));
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL));
         // test
         verify(targetResolverHelper, times(1)).resolveTypeFromMetadataFile(any());
         verify(targetResolverHelper, times(1)).resolveTargetCoo(eq(UseCaseType.PROCEDURE_INCOMING), any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(1)).resolveIncomingDmsTarget(any());
         final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, null);
-        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, null);
+        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, null, DUMMY_STREAM);
         verify(dmsOutPort, times(1)).createProcedureIncoming(eq(METADATA_DMS_TARGET_INCOMING), eq(incomingRequest),
-                eq(Map.of(contentObjectRequest, DUMMY_STREAM)));
+                eq(List.of(contentObjectRequest)));
     }
 
     @Test
@@ -180,7 +183,7 @@ class ProcessFileUseCaseTest {
         when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL)))
                 .thenReturn(getClass().getResourceAsStream("/files/example-metadata-subject.json"));
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, METADATA_PRESIGNED_URL));
         // test
         final String incomingSubject = "Test_Value_1 (TestKey_1)\nTest_Value_2 (TestKey_2)";
         testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, STATIC_DMS_TARGET, overwrittenIncomingName, incomingSubject, overwrittenContentObjectName);
@@ -192,7 +195,7 @@ class ProcessFileUseCaseTest {
     void testProcessFile_FilenameIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "filename-incoming";
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
         // test
         testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, null, FILE_NAME);
     }
@@ -201,24 +204,24 @@ class ProcessFileUseCaseTest {
     void testProcessFile_FilenameMapIncoming() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
         final String useCaseName = "map-incoming";
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
         // test
         testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, null, FILE_NAME);
         // setup catch all
         final String fileNameWithoutExtension = "äasd";
         final String fileName = String.format("%s.pdf", fileNameWithoutExtension);
         final String filePath = String.format("test/%s", fileName);
-        final File file = new File(BUCKET, filePath);
+        final FileReference file = new FileReference(BUCKET, filePath);
         final String presignedUrl = String.format("http://localhost:9001/%s/%s", BUCKET, filePath);
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         when(fileSystemOutPort.getPresignedUrlFile(eq(presignedUrl))).thenReturn(DUMMY_STREAM);
         // call catch all
-        processFileUseCase.processFile(new FileEvent(useCaseName, presignedUrl, null), file);
+        processFileUseCase.processEvent(new SingleFileEvent(useCaseName, new PresignedFile(presignedUrl, null)));
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getContext());
         // test catche all
         final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(fileNameWithoutExtension, null);
-        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(fileName, null);
-        verify(dmsOutPort, times(1)).createProcedureIncoming(eq(dmsTarget), eq(incomingRequest), eq(Map.of(contentObjectRequest, DUMMY_STREAM)));
+        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(fileName, null, DUMMY_STREAM);
+        verify(dmsOutPort, times(1)).createProcedureIncoming(eq(dmsTarget), eq(incomingRequest), eq(List.of(contentObjectRequest)));
     }
 
     @Test
@@ -226,7 +229,7 @@ class ProcessFileUseCaseTest {
         final String useCaseName = "filename-name-incoming";
         when(dmsOutPort.findObjectsByName(eq(DmsResourceType.PROCEDURE), eq(PATTERN_VALUE_TEST), any())).thenReturn(List.of("COO.123.123.123"));
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
         // test
         testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, "test", FILE_NAME);
         verify(dmsOutPort, times(1)).findObjectsByName(eq(DmsResourceType.PROCEDURE), eq(PATTERN_VALUE_TEST), any());
@@ -238,14 +241,14 @@ class ProcessFileUseCaseTest {
         // setup
         when(dmsOutPort.getProcedureName(eq(FILENAME_DMS_TARGET))).thenReturn(OVERWRITTEN_INCOMING_NAME);
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
         // test
         testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, FILE_NAME_WITHOUT_EXTENSION, null, FILE_NAME);
         verify(dmsOutPort, times(1)).getProcedureName(eq(FILENAME_DMS_TARGET));
         // setup failure
         when(dmsOutPort.getProcedureName(eq(FILENAME_DMS_TARGET))).thenReturn("asd");
         // call
-        final DmsException exception = assertThrows(DmsException.class, () -> processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE));
+        final DmsException exception = assertThrows(DmsException.class, () -> processFileUseCase.processEvent(buildFileEvent(useCaseName, null)));
         assertEquals("Procedure name asd doesn't contain resolved pattern test", exception.getMessage());
     }
 
@@ -255,20 +258,20 @@ class ProcessFileUseCaseTest {
         // setup
         when(dmsOutPort.getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME))).thenReturn(Optional.empty());
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
         // test
         testDefaults(useCaseName, UseCaseType.PROCEDURE_INCOMING, FILENAME_DMS_TARGET, OVERWRITTEN_INCOMING_NAME, null, FILE_NAME);
         verify(dmsOutPort, times(1)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME));
         // setup reuse
         when(dmsOutPort.getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME))).thenReturn(Optional.of("COO.321.321.321"));
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName, null), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
         // test
         verify(dmsOutPort, times(2)).getIncomingCooByName(eq(FILENAME_DMS_TARGET), eq(OVERWRITTEN_INCOMING_NAME));
         verify(dmsOutPort, times(1)).createProcedureIncoming(any(), any(), any());
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getContext());
-        verify(dmsOutPort, times(1)).createContentObject(eq(dmsTarget), eq(new DmsContentObjectRequest(FILE_NAME, null)), eq(DUMMY_STREAM));
+        verify(dmsOutPort, times(1)).addContentObjectsToIncoming(eq(dmsTarget), eq(List.of(new DmsContentObjectRequest(FILE_NAME, null, DUMMY_STREAM))));
     }
 
     @Test
@@ -278,13 +281,13 @@ class ProcessFileUseCaseTest {
         final UseCaseIncoming useCaseIncoming = new UseCaseIncoming();
         useCaseIncoming.setIncomingNamePattern("s/^(.+)-(.*)$/${2}/");
         useCase.setIncoming(useCaseIncoming);
-        final File file = new File(BUCKET, "test-asd.txt");
-        final File fileEmpty = new File(BUCKET, "test-.txt");
+        final FileReference file = new FileReference(BUCKET, "test-asd.txt");
+        final FileReference fileEmpty = new FileReference(BUCKET, "test-.txt");
         final Metadata metadata = new Metadata(null, Map.of());
         // call
-        final DmsContentObjectRequest contentObjectRequest = processFileUseCase.resolveContentObjectParameters(file, useCase, metadata);
+        final DmsContentObjectRequest contentObjectRequest = processFileUseCase.resolveContentObjectParameters(file, useCase, metadata, DUMMY_STREAM);
         final DmsIncomingRequest response = processFileUseCase.resolveIncomingParameters(file, useCase, metadata, contentObjectRequest);
-        final DmsContentObjectRequest contentObjectRequestEmpty = processFileUseCase.resolveContentObjectParameters(fileEmpty, useCase, metadata);
+        final DmsContentObjectRequest contentObjectRequestEmpty = processFileUseCase.resolveContentObjectParameters(fileEmpty, useCase, metadata, DUMMY_STREAM);
         final DmsIncomingRequest responseEmpty = processFileUseCase.resolveIncomingParameters(fileEmpty, useCase, metadata, contentObjectRequestEmpty);
         // test
         assertEquals("asd", response.name());
@@ -299,13 +302,13 @@ class ProcessFileUseCaseTest {
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(targetResolverHelper, times(1)).resolveTargetCoo(eq(targetType), any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(0)).resolveInboxDmsTarget(any());
-        verify(dmsOutPort, times(0)).createContentObjectInInbox(any(), any(), any());
+        verify(dmsOutPort, times(0)).createContentObjectInInbox(any(), any());
         final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(incomingName, incomingSubject);
-        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(contentObjectName, null);
-        verify(dmsOutPort, times(1)).createProcedureIncoming(eq(dmsTarget), eq(incomingRequest), eq(Map.of(contentObjectRequest, DUMMY_STREAM)));
+        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(contentObjectName, null, DUMMY_STREAM);
+        verify(dmsOutPort, times(1)).createProcedureIncoming(eq(dmsTarget), eq(incomingRequest), eq(List.of(contentObjectRequest)));
     }
 
-    private FileEvent buildFileEvent(final String useCaseName, final String metadataPresignedUrl) {
-        return new FileEvent(useCaseName, FILE_PRESIGNED_URL, metadataPresignedUrl);
+    private SingleFileEvent buildFileEvent(final String useCaseName, final String metadataPresignedUrl) {
+        return new SingleFileEvent(useCaseName, new PresignedFile(FILE_PRESIGNED_URL, metadataPresignedUrl));
     }
 }

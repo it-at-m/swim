@@ -9,7 +9,7 @@ import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseType;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.FileReference;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.util.List;
 import java.util.Locale;
@@ -55,7 +55,7 @@ public class TargetResolverHelper {
      * @param file The file to resolve the coo for.
      * @return The resolved coo.
      */
-    public DmsTarget resolveTargetCoo(final UseCaseType resourceType, final Metadata metadata, final UseCase useCase, final File file)
+    public DmsTarget resolveTargetCoo(final UseCaseType resourceType, final Metadata metadata, final UseCase useCase, final FileReference file)
             throws MetadataException {
         return switch (useCase.getCooSource().getType()) {
         case METADATA_FILE -> this.resolveMetadataTargetCoo(resourceType, metadata, useCase);
@@ -116,7 +116,7 @@ public class TargetResolverHelper {
      * @param file The file to resolve the target for.
      * @return Dms target resolved via dms object name.
      */
-    protected DmsTarget resolveTargetCooViaName(final DmsResourceType resourceType, final Metadata metadata, final UseCase useCase, final File file) {
+    protected DmsTarget resolveTargetCooViaName(final DmsResourceType resourceType, final Metadata metadata, final UseCase useCase, final FileReference file) {
         // validate required use case properties
         if (StringUtils.isBlank(useCase.getCooSource().getFilenameNamePattern())) {
             throw new IllegalArgumentException("DMS target coo via object name: Filename name pattern is required");

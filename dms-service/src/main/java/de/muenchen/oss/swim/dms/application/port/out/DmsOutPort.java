@@ -8,9 +8,7 @@ import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.springframework.validation.annotation.Validated;
 
@@ -20,24 +18,21 @@ public interface DmsOutPort {
      * Create ContentObject inside an Inbox.
      *
      * @param dmsTarget The target Inbox.
-     * @param contentObjectRequest The values for the new ContentObject.
-     * @param inputStream The content of the new ContentObject.
+     * @param contentObjectRequest The values and content of the new ContentObject.
      * @return The coo of the new ContentObject.
      */
-    String createContentObjectInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest,
-            @NotNull InputStream inputStream);
+    String createContentObjectInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest);
 
     /**
      * Create Incoming with ContentObject inside an Inbox.
      *
      * @param dmsTarget The target Inbox.
      * @param incomingRequest The values for the new Incoming.
-     * @param contentObjectRequest The values for the new ContentObject.
-     * @param inputStream The content of the new ContentObject.
+     * @param contentObjectRequests The values and content of the new ContentObject.
      * @return The coo of the new Incoming.
      */
     String createIncomingInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest,
-            @NotNull @Valid DmsContentObjectRequest contentObjectRequest, @NotNull InputStream inputStream);
+                                 @NotEmpty @Valid List<DmsContentObjectRequest> contentObjectRequests);
 
     /**
      * Create Incoming with ContentObjects.
@@ -47,19 +42,19 @@ public interface DmsOutPort {
      * @param dmsTarget The target. If {@link DmsTarget#getCoo()} is defined: Procedure, if not: OU work
      *            queue.
      * @param incomingRequest The values for the new Incoming.
-     * @param files The files to add as ContentObjects.
+     * @param contentObjectRequests The files to add as ContentObjects.
      * @return The coo of the new Incoming.
      */
     String createProcedureIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest,
-            @NotEmpty @Valid Map<DmsContentObjectRequest, InputStream> files);
+            @NotEmpty @Valid List<DmsContentObjectRequest> contentObjectRequests);
 
     /**
      * Add ContentObjects to existing Incoming.
      *
      * @param dmsTarget The Incoming to add the ContentObjects to.
-     * @param files The files to add as ContentObjects.
+     * @param contentObjectRequests The files to add as ContentObjects.
      */
-    void addContentObjectsToIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotEmpty @Valid Map<DmsContentObjectRequest, InputStream> files);
+    void addContentObjectsToIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotEmpty @Valid List<DmsContentObjectRequest> contentObjectRequests);
 
     /**
      * Get name of Procedure by coo.
@@ -82,12 +77,10 @@ public interface DmsOutPort {
      * Create ContentObject inside Incoming.
      *
      * @param dmsTarget The Incoming to create the ContentObject in.
-     * @param contentObjectRequest The values for the new ContentObject.
-     * @param inputStream The content of the new ContentObject.
+     * @param contentObjectRequest The values and content of the new ContentObject.
      * @return The coo of the new ContentObject.
      */
-    String createContentObject(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest,
-            @NotNull InputStream inputStream);
+    String createContentObject(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest);
 
     /**
      * Find dms object via name and resource type.

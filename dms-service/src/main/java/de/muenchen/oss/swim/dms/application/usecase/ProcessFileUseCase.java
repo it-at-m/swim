@@ -9,6 +9,7 @@ import de.muenchen.oss.swim.dms.domain.helper.DmsMetadataHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
+import de.muenchen.oss.swim.dms.domain.model.LoadedFile;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseType;
 import de.muenchen.oss.swim.libs.handlercore.application.port.in.ProcessFileInPort;
@@ -18,15 +19,19 @@ import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.FileReference;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.MultiFileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -59,48 +64,74 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     private final DmsMeter dmsMeter;
 
     @Override
-    public void processFile(final FileEvent event, final File file)
+    public void processEvent(final SingleFileEvent event)
             throws PresignedUrlException, UnknownUseCaseException, MetadataException {
-        log.info("Processing file {} for use case {}", file, event.useCase());
+        this.processEvent(MultiFileEvent.fromFileEvent(event));
+    }
+
+    @Override
+    public void processEvent(final MultiFileEvent event) throws PresignedUrlException, UnknownUseCaseException, MetadataException {
         final UseCase useCase = swimDmsProperties.findUseCase(event.useCase());
         log.debug("Resolved use case: {}", useCase);
-        // decode umlauts if enabled
-        final File decodedFile;
-        if (useCase.isDecodeGermanChars()) {
-            decodedFile = this.decodeGermanChars(file);
-        } else {
-            decodedFile = file;
+        final String firstFileName = FileReference.fromPresignedUrl(event.files().getFirst().presignedUrl()).path();
+        log.info("Processing {} file(s) with first file {} for use case {}", event.files().size(), firstFileName, event.useCase());
+        // load files
+        final List<LoadedFile> files = new ArrayList<>();
+        for (final PresignedFile presignedFile : event.files()) {
+            files.add(this.loadFile(useCase, presignedFile));
         }
-        // load file
-        try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(event.presignedUrl())) {
-            // parse metadata file if present
-            Metadata metadata = null;
-            if (StringUtils.isNotBlank(event.metadataPresignedUrl())) {
-                try (InputStream metadataFileStream = fileSystemOutPort.getPresignedUrlFile(event.metadataPresignedUrl())) {
-                    metadata = dmsMetadataHelper.parseMetadataFile(metadataFileStream);
-                }
-            }
-            // resolve and create dms resource
-            this.processDmsResource(decodedFile, useCase, metadata, fileStream);
-        } catch (final IOException e) {
-            throw new PresignedUrlException("Error while handling file InputStream", e);
-        }
+        // process
+        this.processDmsResource(useCase, files);
         // mark file as finished
         fileEventOutPort.fileFinished(event);
-        log.info("File {} in use case {} finished", file, useCase.getName());
+        log.info("Finished {} files with first file {} for use case {}", event.files().size(), firstFileName, event.useCase());
         // update metric
         dmsMeter.incrementProcessed(useCase.getName(), useCase.getType().name());
     }
 
     /**
+     * Resolves file metadata, content and metadata file (if present) for a PresignedFile.
+     *
+     * @param useCase The use case of the file.
+     * @param presignedFile The presigned URLs for a file.
+     * @return The resolved file.
+     * @throws PresignedUrlException If the presigned URL isn't valid.
+     * @throws MetadataException If the metadata file couldn't be parsed.
+     */
+    protected LoadedFile loadFile(final UseCase useCase, final PresignedFile presignedFile) throws PresignedUrlException, MetadataException {
+        final FileReference fileReference = FileReference.fromPresignedUrl(presignedFile.presignedUrl());
+        // decode umlauts if enabled
+        final FileReference decodedFile;
+        if (useCase.isDecodeGermanChars()) {
+            decodedFile = this.decodeGermanChars(fileReference);
+        } else {
+            decodedFile = null;
+        }
+        // load file
+        final InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(presignedFile.presignedUrl());
+        // FIXME close InputStream at end
+        // parse metadata file if present
+        Metadata metadata = null;
+        if (StringUtils.isNotBlank(presignedFile.metadataPresignedUrl())) {
+            try (InputStream metadataFileStream = fileSystemOutPort.getPresignedUrlFile(presignedFile.metadataPresignedUrl())) {
+                metadata = dmsMetadataHelper.parseMetadataFile(metadataFileStream);
+            } catch (final IOException e) {
+                throw new PresignedUrlException("Error while handling file InputStream", e);
+            }
+        }
+        return new LoadedFile(fileReference, decodedFile, fileStream, metadata);
+    }
+
+    /**
      * Resolve target dms resource type and process.
      *
-     * @param file The file to process.
      * @param useCase The use case of the file.
-     * @param fileStream The content of the file.
-     * @param metadata Parsed metadata file.
+     * @param files The files to process.
      */
-    private void processDmsResource(final File file, final UseCase useCase, final Metadata metadata, final InputStream fileStream) throws MetadataException {
+    private void processDmsResource(final UseCase useCase, final List<LoadedFile> files) throws MetadataException {
+        // use first file for resolving target
+        final Metadata metadata = files.getFirst().metadata();
+        final FileReference file = files.getFirst().decodedFileReference();
         // resolve target resource type
         final UseCaseType targetResource = this.targetResolverHelper.resolveUseCaseType(useCase, metadata);
         // get target coo
@@ -109,11 +140,11 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         // transfer to dms
         switch (targetResource) {
         // ContentObject in Inbox
-        case INBOX_CONTENT_OBJECT -> this.processInboxContentObject(file, useCase, dmsTarget, fileStream, metadata);
+        case INBOX_CONTENT_OBJECT -> this.processInboxContentObject(useCase, dmsTarget, files);
         // Incoming in Inbox
-        case INBOX_INCOMING -> this.processInboxIncoming(file, useCase, dmsTarget, fileStream, metadata);
+        case INBOX_INCOMING -> this.processInboxIncoming(useCase, dmsTarget, files);
         // Incoming in Procedure
-        case PROCEDURE_INCOMING -> this.processProcedureIncoming(file, useCase, dmsTarget, fileStream, metadata);
+        case PROCEDURE_INCOMING -> this.processProcedureIncoming(useCase, dmsTarget, files);
         case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
         }
     }
@@ -121,14 +152,14 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     /**
      * Process {@link UseCaseType#PROCEDURE_INCOMING} files.
      *
-     * @param file The file to process.
      * @param useCase The use case of the file.
      * @param dmsTarget The resolved dms target.
-     * @param fileStream The content of the file.
-     * @param metadata Parsed metadata file.
+     * @param files The file to process.
      */
-    protected void processProcedureIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget,
-            final InputStream fileStream, final Metadata metadata) throws MetadataException {
+    protected void processProcedureIncoming(final UseCase useCase, final DmsTarget dmsTarget, final List<LoadedFile> files) throws MetadataException {
+        // use first file for resolution
+        final FileReference file = files.getFirst().decodedFileReference();
+        final Metadata metadata = files.getFirst().metadata();
         // check target procedure name
         if (StringUtils.isNotBlank(useCase.getIncoming().getVerifyProcedureNamePattern())) {
             final String procedureName = this.dmsOutPort.getProcedureName(dmsTarget);
@@ -140,72 +171,85 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 throw new DmsException(message);
             }
         }
-        // resolve Incoming and ContentObject parameters
-        final DmsContentObjectRequest contentObjectRequest = this.resolveContentObjectParameters(file, useCase, metadata);
-        final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata, contentObjectRequest);
+        // resolve ContentObjects parameters
+        final List<DmsContentObjectRequest> contentObjects = new ArrayList<>();
+        for (final LoadedFile lf : files) {
+            contentObjects.add(this.resolveContentObjectParameters(lf.decodedFileReference(), useCase, lf.metadata(), lf.content()));
+        }
+        // resolve Incoming parameters (use first ContentObject)
+        final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata, contentObjects.getFirst());
         // check if incoming already exists
         if (useCase.getIncoming().isReuseIncoming()) {
             final Optional<String> incomingCoo = this.dmsOutPort.getIncomingCooByName(dmsTarget, incomingRequest.name());
             if (incomingCoo.isPresent()) {
-                // add ContentObject to Incoming
+                // add ContentObjects to Incoming
                 final DmsTarget incomingDmsTarget = new DmsTarget(incomingCoo.get(), dmsTarget.getUsername(), dmsTarget.getJoboe(), dmsTarget.getJobposition());
-                this.dmsOutPort.createContentObject(incomingDmsTarget, contentObjectRequest, fileStream);
+                this.dmsOutPort.addContentObjectsToIncoming(incomingDmsTarget, contentObjects);
                 return;
             }
         }
         // create Incoming
-        dmsOutPort.createProcedureIncoming(dmsTarget, incomingRequest, Map.of(contentObjectRequest, fileStream));
+        dmsOutPort.createProcedureIncoming(dmsTarget, incomingRequest, contentObjects);
     }
 
     /**
      * Process {@link UseCaseType#INBOX_CONTENT_OBJECT} files.
      *
-     * @param file The file to process.
      * @param useCase The use case of the file.
      * @param dmsTarget The resolved dms target.
-     * @param fileStream The content of the file.
-     * @param metadata Parsed metadata file.
+     * @param files The files to process.
      */
-    protected void processInboxContentObject(final File file, final UseCase useCase, final DmsTarget dmsTarget,
-            final InputStream fileStream, final Metadata metadata) {
-        final DmsContentObjectRequest contentObjectRequest = this.resolveContentObjectParameters(file, useCase, metadata);
+    protected void processInboxContentObject(final UseCase useCase, final DmsTarget dmsTarget, final List<LoadedFile> files) {
+        // fail if more than one file
+        if (files.size() > 1) {
+            throw new IllegalArgumentException("InboxContentObject can only be created with a single file");
+        }
+        final LoadedFile loadedFile = files.getFirst();
+        // resolve request context
+        final DmsContentObjectRequest contentObjectRequest = this.resolveContentObjectParameters(
+                loadedFile.decodedFileReference(), useCase, loadedFile.metadata(), loadedFile.content());
         // create ContentObject
-        this.dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectRequest, fileStream);
+        this.dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectRequest);
     }
 
     /**
      * Process {@link UseCaseType#INBOX_INCOMING} files.
      *
-     * @param file The file to process.
      * @param useCase The use case of the file.
      * @param dmsTarget The resolved dms target.
-     * @param fileStream The content of the file.
-     * @param metadata Parsed metadata file.
+     * @param files The file to process.
      */
-    protected void processInboxIncoming(final File file, final UseCase useCase, final DmsTarget dmsTarget,
-            final InputStream fileStream, final Metadata metadata) throws MetadataException {
-        final DmsContentObjectRequest contentObjectRequest = this.resolveContentObjectParameters(file, useCase, metadata);
-        final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata, contentObjectRequest);
+    protected void processInboxIncoming(final UseCase useCase, final DmsTarget dmsTarget, final List<LoadedFile> files) throws MetadataException {
+        // use first file for resolution
+        final FileReference file = files.getFirst().decodedFileReference();
+        final Metadata metadata = files.getFirst().metadata();
+        // resolve ContentObjects parameters
+        final List<DmsContentObjectRequest> contentObjects = new ArrayList<>();
+        for (final LoadedFile lf : files) {
+            contentObjects.add(this.resolveContentObjectParameters(lf.decodedFileReference(), useCase, lf.metadata(), lf.content()));
+        }
+        // resolve request context
+        final DmsIncomingRequest incomingRequest = this.resolveIncomingParameters(file, useCase, metadata, contentObjects.getFirst());
         // create Incoming
-        this.dmsOutPort.createIncomingInInbox(dmsTarget, incomingRequest, contentObjectRequest, fileStream);
+        this.dmsOutPort.createIncomingInInbox(dmsTarget, incomingRequest, contentObjects);
     }
 
     /**
-     * Decode german special chars in path of a {@link File}.
+     * Decode german special chars in path of a {@link FileReference}.
      * See {@link #UMLAUT_REPLACEMENTS} and {@link SwimDmsProperties#getDecodeGermanCharsPrefix()} for
      * replacements.
      *
      * @param file The file to decode the path in.
      * @return The file with the decoded path.
      */
-    private File decodeGermanChars(final File file) {
+    private FileReference decodeGermanChars(final FileReference file) {
         String decodedPath = file.path();
         for (final Map.Entry<String, String> entry : UMLAUT_REPLACEMENTS.entrySet()) {
             decodedPath = decodedPath.replace(
                     swimDmsProperties.getDecodeGermanCharsPrefix() + entry.getKey(),
                     entry.getValue());
         }
-        return new File(
+        return new FileReference(
                 file.bucket(),
                 decodedPath);
     }
@@ -244,8 +288,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param useCase The use case.
      * @return Resolved parameters for new ContentObject.
      */
-    protected DmsContentObjectRequest resolveContentObjectParameters(final File file, final UseCase useCase,
-            final Metadata metadata) {
+    protected DmsContentObjectRequest resolveContentObjectParameters(final FileReference file, final UseCase useCase,
+            final Metadata metadata, final InputStream content) {
         // resolve ContentObject name
         final String contentObjectName = String.format("%s.%s",
                 this.patternHelper.applyPattern(useCase.getContentObject().getFilenameOverwritePattern(), file.getFileNameWithoutExtension(), metadata),
@@ -255,7 +299,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         final String contentObjectSubject = StringUtils.isNotBlank(contentObjectSubjectPattern)
                 ? this.patternHelper.applyPattern(contentObjectSubjectPattern, file.getFileNameWithoutExtension(), metadata)
                 : null;
-        return new DmsContentObjectRequest(contentObjectName, contentObjectSubject);
+        return new DmsContentObjectRequest(contentObjectName, contentObjectSubject, content);
     }
 
     /**
@@ -266,8 +310,9 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param useCase The use case.
      * @return Resolved parameters for new Incoming.
      */
-    protected DmsIncomingRequest resolveIncomingParameters(final File file, final UseCase useCase,
+    protected DmsIncomingRequest resolveIncomingParameters(final FileReference file, final UseCase useCase,
             final Metadata metadata, final DmsContentObjectRequest contentObjectRequest) throws MetadataException {
+        // TODO use basename instead of filename?
         // resolve name for Incoming
         final String incomingName;
         if (StringUtils.isBlank(useCase.getIncoming().getIncomingNamePattern())) {

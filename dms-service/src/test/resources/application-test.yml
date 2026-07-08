@@ -97,3 +97,12 @@ swim:
         username: staticUsername
         joboe: staticJobOe
         jobposition: staticJobPosition
+    - name: shadow-file
+      type: shadow_file
+      coo-source:
+        type: static
+        target-coo: staticCoo
+      context:
+        username: staticUsername
+        joboe: staticJobOe
+        jobposition: staticJobPosition

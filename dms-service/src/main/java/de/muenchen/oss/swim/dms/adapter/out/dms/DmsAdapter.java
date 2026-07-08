@@ -91,7 +91,8 @@ public class DmsAdapter implements DmsOutPort {
     }
 
     @Override
-    public String createIncomingInInbox(final DmsTarget dmsTarget, final DmsIncomingRequest incomingRequest, List<DmsContentObjectRequest> contentObjectRequests) {
+    public String createIncomingInInbox(final DmsTarget dmsTarget, final DmsIncomingRequest incomingRequest,
+            List<DmsContentObjectRequest> contentObjectRequests) {
         log.debug("Putting Incoming {} in inbox {}", incomingRequest.name(), dmsTarget);
         // create ContentObject
         // TODO use list instead of map?

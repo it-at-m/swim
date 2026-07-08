@@ -32,7 +32,7 @@ public interface DmsOutPort {
      * @return The coo of the new Incoming.
      */
     String createIncomingInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest,
-                                 @NotEmpty @Valid List<DmsContentObjectRequest> contentObjectRequests);
+            @NotEmpty @Valid List<DmsContentObjectRequest> contentObjectRequests);
 
     /**
      * Create Incoming with ContentObjects.

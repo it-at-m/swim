@@ -34,17 +34,15 @@ import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseExce
 import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileReference;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

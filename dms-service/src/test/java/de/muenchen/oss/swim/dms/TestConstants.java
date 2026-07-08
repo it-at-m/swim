@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public final class TestConstants {
 
     public static final String SPRING_TEST_PROFILE = "test";
-    public static final String SPRING_NO_SECURITY_PROFILE = "no-security";
 
     public static final String BUCKET = "test-bucket";
     public static final InputStream DUMMY_STREAM = new ByteArrayInputStream("test".getBytes(StandardCharsets.UTF_8));

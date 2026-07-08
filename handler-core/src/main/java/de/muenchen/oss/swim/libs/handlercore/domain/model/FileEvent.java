@@ -1,5 +1,5 @@
 package de.muenchen.oss.swim.libs.handlercore.domain.model;
 
-public interface FileEvent {
-    String useCase();
+public sealed interface FileEvent
+        permits SingleFileEvent, MultiFileEvent {
 }

@@ -1,5 +1,7 @@
 package de.muenchen.oss.swim.dms.application.usecase;
 
+import static de.muenchen.oss.swim.dms.TestConstants.BUCKET;
+import static de.muenchen.oss.swim.dms.TestConstants.DUMMY_STREAM;
 import static de.muenchen.oss.swim.dms.TestConstants.METADATA_DMS_TARGET_INCOMING;
 import static de.muenchen.oss.swim.dms.TestConstants.METADATA_DMS_TARGET_USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,6 +15,8 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dms.TestConstants;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
+import de.muenchen.oss.swim.dms.application.usecase.helper.DmsHelper;
+import de.muenchen.oss.swim.dms.application.usecase.helper.RequestResolverHelper;
 import de.muenchen.oss.swim.dms.application.usecase.helper.TargetResolverHelper;
 import de.muenchen.oss.swim.dms.configuration.DmsMeter;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
@@ -24,7 +28,6 @@ import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.LoadedFile;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
-import de.muenchen.oss.swim.dms.domain.model.UseCaseIncoming;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseType;
 import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileEventOutPort;
 import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileSystemOutPort;
@@ -33,15 +36,11 @@ import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlExcept
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileReference;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +55,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 @SpringBootTest(
         classes = { SwimDmsProperties.class, ProcessFileUseCase.class, ObjectMapper.class, DmsMetadataHelper.class, PatternHelper.class,
-                TargetResolverHelper.class }
+                TargetResolverHelper.class, DmsHelper.class, RequestResolverHelper.class }
 )
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
@@ -84,7 +83,6 @@ class ProcessFileUseCaseTest {
     @Autowired
     private ProcessFileUseCase processFileUseCase;
 
-    private static final String BUCKET = "test-bucket";
     private static final String FILE_NAME_WITHOUT_EXTENSION = "test-COO.123.123.123-asd";
     private static final String FILE_NAME = String.format("%s.pdf", FILE_NAME_WITHOUT_EXTENSION);
     private static final String FILE_PATH = String.format("test-path/%s", FILE_NAME);
@@ -94,9 +92,8 @@ class ProcessFileUseCaseTest {
     private static final String METADATA_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, METADAT_PATH);
     private static final DmsTarget STATIC_DMS_TARGET = new DmsTarget("staticCoo", "staticUsername", "staticJobOe", "staticJobPosition");
     private static final DmsTarget FILENAME_DMS_TARGET = new DmsTarget("COO.123.123.123", "staticUsername", "staticJobOe", "staticJobPosition");
-    public static final String PATTERN_VALUE_TEST = "test";
-    public static final String OVERWRITTEN_INCOMING_NAME = PATTERN_VALUE_TEST;
-    private static final InputStream DUMMY_STREAM = new ByteArrayInputStream("test".getBytes(StandardCharsets.UTF_8));
+    private static final String PATTERN_VALUE_TEST = "test";
+    private static final String OVERWRITTEN_INCOMING_NAME = PATTERN_VALUE_TEST;
 
     @BeforeEach
     void setup() throws PresignedUrlException {
@@ -273,26 +270,6 @@ class ProcessFileUseCaseTest {
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getContext());
         verify(dmsOutPort, times(1)).addContentObjectsToIncoming(eq(dmsTarget), eq(List.of(new DmsContentObjectRequest(FILE_NAME, null, DUMMY_STREAM))));
-    }
-
-    @Test
-    void testResolveIncomingParameters_emptyPatternResult() throws MetadataException {
-        // setup
-        final UseCase useCase = new UseCase();
-        final UseCaseIncoming useCaseIncoming = new UseCaseIncoming();
-        useCaseIncoming.setIncomingNamePattern("s/^(.+)-(.*)$/${2}/");
-        useCase.setIncoming(useCaseIncoming);
-        final FileReference file = new FileReference(BUCKET, "test-asd.txt");
-        final FileReference fileEmpty = new FileReference(BUCKET, "test-.txt");
-        final Metadata metadata = new Metadata(null, Map.of());
-        // call
-        final DmsContentObjectRequest contentObjectRequest = processFileUseCase.resolveContentObjectParameters(file, useCase, metadata, DUMMY_STREAM);
-        final DmsIncomingRequest response = processFileUseCase.resolveIncomingParameters(file, useCase, metadata, contentObjectRequest);
-        final DmsContentObjectRequest contentObjectRequestEmpty = processFileUseCase.resolveContentObjectParameters(fileEmpty, useCase, metadata, DUMMY_STREAM);
-        final DmsIncomingRequest responseEmpty = processFileUseCase.resolveIncomingParameters(fileEmpty, useCase, metadata, contentObjectRequestEmpty);
-        // test
-        assertEquals("asd", response.name());
-        assertEquals("test-", responseEmpty.name());
     }
 
     private void testDefaults(final String useCaseName, final UseCaseType targetType, final DmsTarget dmsTarget, final String incomingName,

@@ -92,10 +92,9 @@ public class DmsAdapter implements DmsOutPort {
 
     @Override
     public String createIncomingInInbox(final DmsTarget dmsTarget, final DmsIncomingRequest incomingRequest,
-            List<DmsContentObjectRequest> contentObjectRequests) {
+            final List<DmsContentObjectRequest> contentObjectRequests) {
         log.debug("Putting Incoming {} in inbox {}", incomingRequest.name(), dmsTarget);
         // create ContentObject
-        // TODO use list instead of map?
         final DmsContentObjectRequest firstContentObject = contentObjectRequests.getFirst();
         final String contentObjectCoo = this.createContentObjectInInbox(dmsTarget, firstContentObject);
         // create Incoming from existing ContentObject

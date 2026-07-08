@@ -26,6 +26,7 @@ import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.helper.DmsMetadataHelper;
 import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
+import de.muenchen.oss.swim.dms.domain.model.DmsProcedureRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
@@ -42,6 +43,8 @@ import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +67,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
 @SuppressWarnings("PMD.UnitTestShouldIncludeAssert")
 class ProcessFileUseCaseTest {
+    private static final DateTimeFormatter SHADOW_PROCEDURE_NAME_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM");
+    private static final DateTimeFormatter SHADOW_INCOMING_NAME_PATTERN = DateTimeFormatter.ofPattern("dd");
+
     @MockitoSpyBean
     @Autowired
     private SwimDmsProperties swimDmsProperties;
@@ -294,6 +300,28 @@ class ProcessFileUseCaseTest {
         final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getContext());
         verify(dmsOutPort, times(1)).addContentObjectsToIncoming(eq(dmsTarget), eq(List.of(new DmsContentObjectRequest(FILE_NAME, null, DUMMY_STREAM))));
+    }
+
+    @Test
+    void testProcessFile_ShadowFile() throws UnknownUseCaseException, PresignedUrlException, MetadataException {
+        // setup
+        final String useCaseName = "shadow-file";
+        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
+        final String procedureName = LocalDate.now().format(SHADOW_PROCEDURE_NAME_PATTERN);
+        final String incomingName = LocalDate.now().format(SHADOW_INCOMING_NAME_PATTERN);
+        when(dmsOutPort.getProcedureCooByName(eq(STATIC_DMS_TARGET), eq(procedureName))).thenReturn(Optional.empty());
+        when(dmsOutPort.createFileProcedure(eq(STATIC_DMS_TARGET), eq(new DmsProcedureRequest(procedureName)))).thenReturn("COO.procedure");
+        // call
+        processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
+        // test
+        final DmsTarget procedureDmsTarget = new DmsTarget("COO.procedure", STATIC_DMS_TARGET);
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(incomingName, null);
+        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, null, DUMMY_STREAM);
+        verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
+        verify(targetResolverHelper, times(1)).resolveTargetCoo(eq(UseCaseType.SHADOW_FILE), any(), eq(useCase), eq(FILE));
+        verify(dmsOutPort, times(1)).createProcedureIncoming(eq(procedureDmsTarget), eq(incomingRequest), eq(List.of(contentObjectRequest)));
+        verify(fileEventOutPort, times(1)).fileFinished(any());
+        verify(dmsMeter, times(1)).incrementProcessed(eq(useCaseName), eq("SHADOW_FILE"));
     }
 
     private void testDefaults(final String useCaseName, final UseCaseType targetType, final DmsTarget dmsTarget, final String incomingName,

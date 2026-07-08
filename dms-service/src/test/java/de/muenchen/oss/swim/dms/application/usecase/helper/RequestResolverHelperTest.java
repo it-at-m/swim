@@ -178,4 +178,19 @@ class RequestResolverHelperTest {
         assertEquals("test-", responseEmpty.name());
     }
 
+    @Test
+    void testResolveIncomingParameters_usesResolvedContentObjectNameWhenPatternResultIsBlank() throws MetadataException {
+        // setup
+        final UseCase useCase = new UseCase();
+        final UseCaseIncoming incoming = new UseCaseIncoming();
+        incoming.setIncomingNamePattern("s/^(.+)-(.*)$/${2}/");
+        useCase.setIncoming(incoming);
+        final FileReference file = new FileReference(BUCKET, "original-.pdf");
+        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest("resolved-name.pdf", null, DUMMY_STREAM);
+        // call
+        final DmsIncomingRequest response = requestResolverHelper.resolveIncomingParameters(file, useCase, null, contentObjectRequest);
+        // test
+        assertEquals("resolved-name", response.name());
+    }
+
 }

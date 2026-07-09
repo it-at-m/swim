@@ -76,7 +76,7 @@ swim:
         joboe: # used to resolve user role under which the DMS action is executed, default role if not defined
         jobposition: # used to resolve user role under which the DMS action is executed, default role if not defined
       incoming:
-        incoming-name-pattern: # overwrite Incoming name via Regex pattern, if result is empty falls back to default filename without extension
+        incoming-name-pattern: # overwrite Incoming name via Regex pattern, if result is empty falls back to default filename without extension (of first file)
         incoming-subject-pattern: # pattern for subject of new Incoming; if this is defined metadata-subject needs to be false
         metadata-subject: # enables Incoming subject be built from metadata file, default false
         reuse-incoming: # if already existing Incoming (based on name) should be reused, when existing only ContentObject is created inside first matching

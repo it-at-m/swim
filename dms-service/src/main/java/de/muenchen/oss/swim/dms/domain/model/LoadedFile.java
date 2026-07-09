@@ -9,7 +9,6 @@ public record LoadedFile(
         FileReference decodedFileReference,
         InputStream content,
         Metadata metadata) {
-    // TODO rm and only allow fileReference?
     public FileReference decodedFileReference() {
         if (decodedFileReference != null) {
             return decodedFileReference;

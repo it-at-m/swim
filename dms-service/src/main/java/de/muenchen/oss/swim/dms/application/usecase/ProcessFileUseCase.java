@@ -112,8 +112,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 metadata = dmsMetadataHelper.parseMetadataFile(metadataFileStream);
             } catch (final IOException e) {
                 closeFileStream(fileReference, fileStream);
-                throw new PresignedUrlException("Error while handling file InputStream", e);
-            } catch (MetadataException e) {
+                throw new PresignedUrlException("Error while handling metadata file InputStream", e);
+            } catch (MetadataException | RuntimeException e) {
                 closeFileStream(fileReference, fileStream);
                 throw e;
             }

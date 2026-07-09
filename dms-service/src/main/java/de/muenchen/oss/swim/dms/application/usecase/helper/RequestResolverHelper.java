@@ -10,6 +10,7 @@ import de.muenchen.oss.swim.libs.handlercore.domain.model.FileReference;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +44,7 @@ public class RequestResolverHelper {
                 .map(i -> String.format(
                         "%s (%s)",
                         i.getValue(),
-                        i.getKey().replaceFirst("^" + swimDmsProperties.getMetadataSubjectPrefix(), "")))
+                        i.getKey().replaceFirst("^" + Pattern.quote(swimDmsProperties.getMetadataSubjectPrefix()), "")))
                 .collect(Collectors.joining("\n"));
     }
 

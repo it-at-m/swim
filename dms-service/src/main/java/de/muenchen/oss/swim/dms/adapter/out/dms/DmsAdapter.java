@@ -124,7 +124,12 @@ public class DmsAdapter implements DmsOutPort {
         final DmsTarget incomingTarget = new DmsTarget(coo, dmsTarget);
         if (contentObjectRequests.size() > 1) {
             final List<DmsContentObjectRequest> otherContentObjects = contentObjectRequests.subList(1, contentObjectRequests.size());
-            this.addContentObjectsToIncoming(incomingTarget, otherContentObjects);
+            try {
+                this.addContentObjectsToIncoming(incomingTarget, otherContentObjects);
+            } catch (final DmsException e) {
+                log.error("Incoming {} created but failed to add {} additional content objects", coo, otherContentObjects.size(), e);
+                throw e;
+            }
         }
         return coo;
     }

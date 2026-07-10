@@ -150,7 +150,7 @@ class DmsHelperTest {
     }
 
     private static LoadedFile loadedFile(final String fileName, final InputStream content) {
-        return new LoadedFile(new FileReference(BUCKET, fileName), null, content, new Metadata(null, Map.of()));
+        return new LoadedFile(new FileReference(BUCKET, fileName), content, new Metadata(null, Map.of()));
     }
 
 }

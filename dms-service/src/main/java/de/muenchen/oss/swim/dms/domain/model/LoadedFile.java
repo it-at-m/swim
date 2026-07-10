@@ -6,13 +6,6 @@ import java.io.InputStream;
 
 public record LoadedFile(
         FileReference fileReference,
-        FileReference decodedFileReference,
         InputStream content,
         Metadata metadata) {
-    public FileReference decodedFileReference() {
-        if (decodedFileReference != null) {
-            return decodedFileReference;
-        }
-        return fileReference;
-    }
 }

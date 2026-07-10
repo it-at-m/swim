@@ -36,7 +36,7 @@ public class DmsHelper {
      */
     public void processProcedureIncoming(final UseCase useCase, final DmsTarget dmsTarget, final List<LoadedFile> files) throws MetadataException {
         // use first file for resolution
-        final FileReference file = files.getFirst().decodedFileReference();
+        final FileReference file = files.getFirst().fileReference();
         final Metadata metadata = files.getFirst().metadata();
         // check target procedure name
         if (StringUtils.isNotBlank(useCase.getIncoming().getVerifyProcedureNamePattern())) {
@@ -52,7 +52,7 @@ public class DmsHelper {
         // resolve ContentObjects parameters
         final List<DmsContentObjectRequest> contentObjects = new ArrayList<>();
         for (final LoadedFile lf : files) {
-            contentObjects.add(requestResolverHelper.resolveContentObjectParameters(lf.decodedFileReference(), useCase, lf.metadata(), lf.content()));
+            contentObjects.add(requestResolverHelper.resolveContentObjectParameters(lf.fileReference(), useCase, lf.metadata(), lf.content()));
         }
         // resolve Incoming parameters (use first ContentObject)
         final DmsIncomingRequest incomingRequest = requestResolverHelper.resolveIncomingParameters(file, useCase, metadata, contentObjects.getFirst());
@@ -85,7 +85,7 @@ public class DmsHelper {
         final LoadedFile loadedFile = files.getFirst();
         // resolve request context
         final DmsContentObjectRequest contentObjectRequest = requestResolverHelper.resolveContentObjectParameters(
-                loadedFile.decodedFileReference(), useCase, loadedFile.metadata(), loadedFile.content());
+                loadedFile.fileReference(), useCase, loadedFile.metadata(), loadedFile.content());
         // create ContentObject
         this.dmsOutPort.createContentObjectInInbox(dmsTarget, contentObjectRequest);
     }
@@ -99,12 +99,12 @@ public class DmsHelper {
      */
     public void processInboxIncoming(final UseCase useCase, final DmsTarget dmsTarget, final List<LoadedFile> files) throws MetadataException {
         // use first file for resolution
-        final FileReference file = files.getFirst().decodedFileReference();
+        final FileReference file = files.getFirst().fileReference();
         final Metadata metadata = files.getFirst().metadata();
         // resolve ContentObjects parameters
         final List<DmsContentObjectRequest> contentObjects = new ArrayList<>();
         for (final LoadedFile lf : files) {
-            contentObjects.add(requestResolverHelper.resolveContentObjectParameters(lf.decodedFileReference(), useCase, lf.metadata(), lf.content()));
+            contentObjects.add(requestResolverHelper.resolveContentObjectParameters(lf.fileReference(), useCase, lf.metadata(), lf.content()));
         }
         // resolve Incoming parameters (use first ContentObject)
         final DmsIncomingRequest incomingRequest = requestResolverHelper.resolveIncomingParameters(file, useCase, metadata, contentObjects.getFirst());

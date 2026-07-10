@@ -34,19 +34,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class ProcessFileUseCase implements ProcessFileInPort {
-    /**
-     * Replacements for {@link UseCase#isDecodeGermanChars()}.
-     * Requires {@link SwimDmsProperties#getDecodeGermanCharsPrefix()} as prefix.
-     */
-    private static final Map<String, String> UMLAUT_REPLACEMENTS = Map.of(
-            "a", "ä",
-            "u", "ü",
-            "o", "ö",
-            "s", "ß",
-            "A", "Ä",
-            "U", "Ü",
-            "O", "Ö");
-
     private final SwimDmsProperties swimDmsProperties;
     private final FileSystemOutPort fileSystemOutPort;
     private final FileEventOutPort fileEventOutPort;
@@ -96,13 +83,6 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      */
     protected LoadedFile loadFile(final UseCase useCase, final PresignedFile presignedFile) throws PresignedUrlException, MetadataException {
         final FileReference fileReference = FileReference.fromPresignedUrl(presignedFile.presignedUrl());
-        // decode umlauts if enabled
-        final FileReference decodedFile;
-        if (useCase.isDecodeGermanChars()) {
-            decodedFile = this.decodeGermanChars(fileReference);
-        } else {
-            decodedFile = null;
-        }
         // load file
         final InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(presignedFile.presignedUrl());
         // parse metadata file if present
@@ -118,7 +98,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
                 throw e;
             }
         }
-        return new LoadedFile(fileReference, decodedFile, fileStream, metadata);
+        return new LoadedFile(fileReference, fileStream, metadata);
     }
 
     /**
@@ -130,7 +110,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     private void processDmsResource(final UseCase useCase, final List<LoadedFile> files) throws MetadataException {
         // use first file for resolving target
         final Metadata metadata = files.getFirst().metadata();
-        final FileReference file = files.getFirst().decodedFileReference();
+        final FileReference file = files.getFirst().fileReference();
         // resolve target resource type
         final UseCaseType targetResource = this.targetResolverHelper.resolveUseCaseType(useCase, metadata);
         // get target coo
@@ -146,26 +126,6 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         case PROCEDURE_INCOMING -> dmsHelper.processProcedureIncoming(useCase, dmsTarget, files);
         case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
         }
-    }
-
-    /**
-     * Decode german special chars in path of a {@link FileReference}.
-     * See {@link #UMLAUT_REPLACEMENTS} and {@link SwimDmsProperties#getDecodeGermanCharsPrefix()} for
-     * replacements.
-     *
-     * @param file The file to decode the path in.
-     * @return The file with the decoded path.
-     */
-    private FileReference decodeGermanChars(final FileReference file) {
-        String decodedPath = file.path();
-        for (final Map.Entry<String, String> entry : UMLAUT_REPLACEMENTS.entrySet()) {
-            decodedPath = decodedPath.replace(
-                    swimDmsProperties.getDecodeGermanCharsPrefix() + entry.getKey(),
-                    entry.getValue());
-        }
-        return new FileReference(
-                file.bucket(),
-                decodedPath);
     }
 
     private void closeLoadedFiles(final List<LoadedFile> files) {

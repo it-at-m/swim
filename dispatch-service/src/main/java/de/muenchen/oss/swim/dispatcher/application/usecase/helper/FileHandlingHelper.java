@@ -46,6 +46,7 @@ public class FileHandlingHelper {
 
     /**
      * Tag file and move to finished directory.
+     * The metadata file is also handled if {@link UseCase#isRequiresMetadata()} and file exists.
      *
      * @param useCase The use case of the file.
      * @param file The file to finish.

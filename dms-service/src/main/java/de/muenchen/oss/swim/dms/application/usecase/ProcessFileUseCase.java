@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +57,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         final List<LoadedFile> files = new ArrayList<>();
         try {
             for (final PresignedFile presignedFile : event.files()) {
-                files.add(this.loadFile(useCase, presignedFile));
+                files.add(this.loadFile(presignedFile));
             }
             // process
             this.processDmsResource(useCase, files);
@@ -75,13 +74,12 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     /**
      * Resolves file metadata, content and metadata file (if present) for a PresignedFile.
      *
-     * @param useCase The use case of the file.
      * @param presignedFile The presigned URLs for a file.
      * @return The resolved file.
      * @throws PresignedUrlException If the presigned URL isn't valid.
      * @throws MetadataException If the metadata file couldn't be parsed.
      */
-    protected LoadedFile loadFile(final UseCase useCase, final PresignedFile presignedFile) throws PresignedUrlException, MetadataException {
+    protected LoadedFile loadFile(final PresignedFile presignedFile) throws PresignedUrlException, MetadataException {
         final FileReference fileReference = FileReference.fromPresignedUrl(presignedFile.presignedUrl());
         // load file
         final InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(presignedFile.presignedUrl());

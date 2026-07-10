@@ -28,7 +28,6 @@ import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
-import de.muenchen.oss.swim.dms.domain.model.LoadedFile;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseType;
 import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileEventOutPort;
@@ -42,7 +41,6 @@ import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
@@ -168,16 +166,14 @@ class ProcessFileUseCaseTest {
 
     @Test
     void testLoadFile_closesFileStreamAfterMetadataException()
-            throws UnknownUseCaseException, PresignedUrlException, MetadataException, IOException {
-        final String useCaseName = "static-inbox-incoming";
-        final UseCase useCase = swimDmsProperties.findUseCase(useCaseName);
+            throws PresignedUrlException, MetadataException, IOException {
         try (CloseAwareInputStream fileStream = new CloseAwareInputStream()) {
             when(fileSystemOutPort.getPresignedUrlFile(eq(FILE_PRESIGNED_URL))).thenReturn(fileStream);
             when(fileSystemOutPort.getPresignedUrlFile(eq(METADATA_PRESIGNED_URL))).thenReturn(new ByteArrayInputStream(new byte[0]));
             doThrow(new MetadataException("Metadata failed")).when(dmsMetadataHelper).parseMetadataFile(any());
             // call & test
             assertThrows(MetadataException.class,
-                    () -> processFileUseCase.loadFile(useCase, new PresignedFile(FILE_PRESIGNED_URL, METADATA_PRESIGNED_URL)));
+                    () -> processFileUseCase.loadFile(new PresignedFile(FILE_PRESIGNED_URL, METADATA_PRESIGNED_URL)));
             assertTrue(fileStream.isClosed());
         }
     }

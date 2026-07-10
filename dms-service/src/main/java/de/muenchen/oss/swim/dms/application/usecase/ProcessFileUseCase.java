@@ -65,8 +65,8 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     public void processEvent(final MultiFileEvent event) throws PresignedUrlException, UnknownUseCaseException, MetadataException {
         final UseCase useCase = swimDmsProperties.findUseCase(event.useCase());
         log.debug("Resolved use case: {}", useCase);
-        final String firstFileName = FileReference.fromPresignedUrl(event.files().getFirst().presignedUrl()).path();
-        log.info("Processing {} file(s) with first file {} for use case {}", event.files().size(), firstFileName, event.useCase());
+        final String firstFilePath = FileReference.fromPresignedUrl(event.files().getFirst().presignedUrl()).path();
+        log.info("Processing {} file(s) with first file {} for use case {}", event.files().size(), firstFilePath, event.useCase());
         // load files
         final List<LoadedFile> files = new ArrayList<>();
         try {
@@ -77,7 +77,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             this.processDmsResource(useCase, files);
             // mark file as finished
             fileEventOutPort.fileFinished(event);
-            log.info("Finished {} files with first file {} for use case {}", event.files().size(), firstFileName, event.useCase());
+            log.info("Finished {} files with first file {} for use case {}", event.files().size(), firstFilePath, event.useCase());
             // update metric
             dmsMeter.incrementProcessed(useCase.getName(), useCase.getType().name());
         } finally {

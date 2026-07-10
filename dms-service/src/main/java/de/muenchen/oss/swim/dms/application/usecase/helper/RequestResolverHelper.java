@@ -80,7 +80,6 @@ public class RequestResolverHelper {
      */
     public DmsIncomingRequest resolveIncomingParameters(final FileReference file, final UseCase useCase,
             final Metadata metadata, final DmsContentObjectRequest contentObjectRequest) throws MetadataException {
-        // TODO use basename instead of filename?
         // resolve name for Incoming
         final String incomingName;
         if (StringUtils.isBlank(useCase.getIncoming().getIncomingNamePattern())) {

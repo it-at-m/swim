@@ -30,9 +30,9 @@ public class DmsHelper {
     /**
      * Process {@link UseCaseType#PROCEDURE_INCOMING} files.
      *
-     * @param useCase The use case of the file.
+     * @param useCase The use case of the files.
      * @param dmsTarget The resolved dms target.
-     * @param files The file to process.
+     * @param files The files to process.
      */
     public void processProcedureIncoming(final UseCase useCase, final DmsTarget dmsTarget, final List<LoadedFile> files) throws MetadataException {
         // use first file for resolution
@@ -73,7 +73,7 @@ public class DmsHelper {
     /**
      * Process {@link UseCaseType#INBOX_CONTENT_OBJECT} files.
      *
-     * @param useCase The use case of the file.
+     * @param useCase The use case of the files.
      * @param dmsTarget The resolved dms target.
      * @param files The files to process.
      */
@@ -93,7 +93,7 @@ public class DmsHelper {
     /**
      * Process {@link UseCaseType#INBOX_INCOMING} files.
      *
-     * @param useCase The use case of the file.
+     * @param useCase The use case of the files.
      * @param dmsTarget The resolved dms target.
      * @param files The file to process.
      */
@@ -106,7 +106,7 @@ public class DmsHelper {
         for (final LoadedFile lf : files) {
             contentObjects.add(requestResolverHelper.resolveContentObjectParameters(lf.decodedFileReference(), useCase, lf.metadata(), lf.content()));
         }
-        // resolve request context
+        // resolve Incoming parameters (use first ContentObject)
         final DmsIncomingRequest incomingRequest = requestResolverHelper.resolveIncomingParameters(file, useCase, metadata, contentObjects.getFirst());
         // create Incoming
         this.dmsOutPort.createIncomingInInbox(dmsTarget, incomingRequest, contentObjects);

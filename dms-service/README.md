@@ -97,9 +97,11 @@ See [Pattern](../handler-core/README.md#pattern).
 The `type` attribute of a use case defines what type of resource is created in the DMS.
 
 - `inbox_content_object`: Creates an ContentObject inside a given Inbox.
-- `inbox_incoming`: Creates an Incoming (with a ContentObject) inside a given Inbox.
-- `procedure_incoming`: Creates an Incoming (with a ContentObject) inside a given Procedure or the OU work queue of the user.
+- `inbox_incoming`: Creates an Incoming (with `n` ContentObjects) inside a given Inbox.
+- `procedure_incoming`: Creates an Incoming (with `n` ContentObjects) inside a given Procedure or the OU work queue of the user.
 - `metadata_file`: Resolve target type via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Metadata file](#metadata-file).
+
+ContentObjects preserve the order the files have in the event.
 
 ### Coo source
 

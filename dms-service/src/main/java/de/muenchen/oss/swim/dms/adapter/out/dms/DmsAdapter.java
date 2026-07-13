@@ -45,7 +45,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @Slf4j
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 public class DmsAdapter implements DmsOutPort {
-    public static final String DMS_EXCEPTION_MESSAGE = "Dms request failed with message: %s";
+    public static final String DMS_EXCEPTION_MESSAGE = "Dms request failed with code %s and message: %s";
     private final ObjectAndImportToInboxApi objectAndImportToInboxApi;
     private final IncomingFromInboxApi incomingFromInboxApi;
     private final IncomingsApi incomingsApi;
@@ -86,7 +86,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Invalid response while creating ContentObject in Inbox");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
         }
     }
 
@@ -118,7 +118,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response null while creating Incoming in Inbox");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
         }
         // add additional ContentObjects to Incoming
         if (contentObjectRequests.size() > 1) {
@@ -161,7 +161,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response null while putting file in procedure");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
         }
     }
 
@@ -186,7 +186,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response null while updating incoming");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
         }
     }
 
@@ -207,7 +207,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response null while looking up procedure name");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
         }
     }
 
@@ -236,7 +236,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response or content null while looking up procedure objects");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
         }
     }
 
@@ -262,7 +262,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response null while putting file in procedure");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
         }
     }
 
@@ -290,7 +290,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response or object list null while searching for objects via name");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
         }
     }
 }

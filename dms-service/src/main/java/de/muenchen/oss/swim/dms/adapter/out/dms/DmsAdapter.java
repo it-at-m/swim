@@ -271,7 +271,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response or content null while searching for Procedures");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
         }
     }
 
@@ -297,7 +297,7 @@ public class DmsAdapter implements DmsOutPort {
                 throw new DmsException("Response null while putting ContentObject in Procedure");
             }
         } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getResponseBodyAsString()), e);
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
         }
     }
 

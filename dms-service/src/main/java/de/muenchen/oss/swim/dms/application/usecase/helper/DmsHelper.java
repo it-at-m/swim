@@ -138,7 +138,7 @@ public class DmsHelper {
         // create ContentObject and Incoming (if not exist else reuse)
         final String incomingName = currentDate.format(SHADOW_INCOMING_NAME_PATTERN);
         final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(incomingName, null);
-        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(file.decodedFileReference().getFileName(), null, file.content());
+        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(file.fileReference().getFileName(), null, file.content());
         this.createOrReuseIncomingWithContentObject(true, procedureDmsTarget, incomingRequest, List.of(contentObjectRequest));
     }
 

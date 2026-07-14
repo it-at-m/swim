@@ -112,11 +112,10 @@ public class DmsHelper {
     /**
      * Process {@link UseCaseType#SHADOW_FILE } files.
      *
-     * @param useCase The use case of the files.
      * @param dmsTarget The resolved dms target.
      * @param files The files to process.
      */
-    public void processShadowFile(final UseCase useCase, final DmsTarget dmsTarget, final List<LoadedFile> files) {
+    public void processShadowFile(final DmsTarget dmsTarget, final List<LoadedFile> files) {
         // fail if more than one file
         if (files.size() != 1) {
             throw new IllegalArgumentException("Shadow file can only be created with a single file");

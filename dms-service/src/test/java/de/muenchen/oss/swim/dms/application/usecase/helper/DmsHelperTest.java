@@ -161,14 +161,13 @@ class DmsHelperTest {
     @Test
     void testProcessShadowFile_createsMissingProcedureAndIncoming() {
         // setup
-        final UseCase useCase = new UseCase();
         final LoadedFile loadedFile = loadedFile(DOCUMENT_PDF, DUMMY_STREAM);
         final String procedureName = LocalDate.now().format(SHADOW_PROCEDURE_NAME_PATTERN);
         final String incomingName = LocalDate.now().format(SHADOW_INCOMING_NAME_PATTERN);
         when(dmsOutPort.getProcedureCooByName(eq(DMS_TARGET), eq(procedureName))).thenReturn(Optional.empty());
         when(dmsOutPort.createFileProcedure(eq(DMS_TARGET), eq(new DmsProcedureRequest(procedureName)))).thenReturn(COO_PROCEDURE);
         // call
-        dmsHelper.processShadowFile(useCase, DMS_TARGET, List.of(loadedFile));
+        dmsHelper.processShadowFile(DMS_TARGET, List.of(loadedFile));
         // test
         final DmsTarget procedureDmsTarget = new DmsTarget(COO_PROCEDURE, DMS_TARGET);
         final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(incomingName, null);
@@ -180,7 +179,6 @@ class DmsHelperTest {
     @Test
     void testProcessShadowFile_reusesProcedureAndIncoming() {
         // setup
-        final UseCase useCase = new UseCase();
         final LoadedFile loadedFile = loadedFile(DOCUMENT_PDF, DUMMY_STREAM);
         final String procedureName = LocalDate.now().format(SHADOW_PROCEDURE_NAME_PATTERN);
         final String incomingName = LocalDate.now().format(SHADOW_INCOMING_NAME_PATTERN);
@@ -188,7 +186,7 @@ class DmsHelperTest {
         when(dmsOutPort.getProcedureCooByName(eq(DMS_TARGET), eq(procedureName))).thenReturn(Optional.of(COO_PROCEDURE));
         when(dmsOutPort.getIncomingCooByNamePrefix(eq(procedureDmsTarget), eq(incomingName))).thenReturn(Optional.of(COO_INCOMING));
         // call
-        dmsHelper.processShadowFile(useCase, DMS_TARGET, List.of(loadedFile));
+        dmsHelper.processShadowFile(DMS_TARGET, List.of(loadedFile));
         // test
         final DmsTarget incomingDmsTarget = new DmsTarget(COO_INCOMING, DMS_TARGET.getUsername(), DMS_TARGET.getJoboe(), DMS_TARGET.getJobposition());
         final List<DmsContentObjectRequest> contentObjectRequests = List.of(new DmsContentObjectRequest(DOCUMENT_PDF, null, DUMMY_STREAM));
@@ -200,13 +198,12 @@ class DmsHelperTest {
     @Test
     void testProcessShadowFile_rejectsMultipleFiles() {
         // setup
-        final UseCase useCase = new UseCase();
         final List<LoadedFile> files = List.of(
                 loadedFile(DOCUMENT_1_FILENAME, DUMMY_STREAM),
                 loadedFile(DOCUMENT_2_FILENAME, DUMMY_STREAM));
         // call
         final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> dmsHelper.processShadowFile(useCase, DMS_TARGET, files));
+                () -> dmsHelper.processShadowFile(DMS_TARGET, files));
         // test
         assertEquals("Shadow file can only be created with a single file", exception.getMessage());
         verifyNoInteractions(dmsOutPort);

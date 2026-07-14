@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
@@ -32,9 +31,6 @@ public class StreamingInAdapter {
                 for (final PresignedFile file : multiFileEvent.files()) {
                     final String useCase = multiFileEvent.useCase();
                     markFileFinishedInPort.markFileFinished(useCase, file.presignedUrl());
-                    if (StringUtils.isNotBlank(file.metadataPresignedUrl())) {
-                        markFileFinishedInPort.markFileFinished(useCase, file.metadataPresignedUrl());
-                    }
                 }
             } catch (PresignedUrlException | UseCaseException e) {
                 throw new RuntimeException(e);

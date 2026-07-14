@@ -10,7 +10,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.minio.BucketExistsArgs;
 import io.minio.GetPresignedObjectUrlArgs;
@@ -147,16 +148,15 @@ class SwimDmsServiceE2ETest {
         putObject(FILE_PATH, "%PDF-1.4 test file".getBytes(StandardCharsets.UTF_8), "application/pdf");
         putObject(METADATA_PATH, METADATA_BODY.getBytes(StandardCharsets.UTF_8), "application/json");
 
-        final FileEvent event = new FileEvent(
+        final SingleFileEvent event = new SingleFileEvent(
                 USE_CASE,
-                presignedUrl(FILE_PATH),
-                presignedUrl(METADATA_PATH));
+                new PresignedFile(presignedUrl(FILE_PATH), presignedUrl(METADATA_PATH)));
 
         try (KafkaProducer<String, String> producer = new KafkaProducer<>(producerProps())) {
             producer.send(new ProducerRecord<>(EVENT_TOPIC, objectMapper.writeValueAsString(event))).get();
         }
 
-        final FileEvent finishedEvent = readFinishedEvent();
+        final SingleFileEvent finishedEvent = readFinishedEvent();
 
         assertThat(finishedEvent).isEqualTo(event);
         WIRE_MOCK_SERVER.verify(postRequestedFor(urlEqualTo("/incomings"))
@@ -176,25 +176,24 @@ class SwimDmsServiceE2ETest {
 
     @Test
     void shouldSendFailedEventToDlq() throws Exception {
-        final FileEvent event = new FileEvent(
+        final SingleFileEvent event = new SingleFileEvent(
                 "unknown-use-case",
-                "http://localhost:9000/%s/%s".formatted(BUCKET, FILE_PATH),
-                null);
+                new PresignedFile("http://localhost:9000/%s/%s".formatted(BUCKET, FILE_PATH), null));
 
         try (KafkaProducer<String, String> producer = new KafkaProducer<>(producerProps())) {
             producer.send(new ProducerRecord<>(EVENT_TOPIC, objectMapper.writeValueAsString(event))).get();
         }
 
-        final FileEvent errorEvent = readEvent(ERROR_TOPIC, "swim-dms-error-e2e");
+        final SingleFileEvent errorEvent = readEvent(ERROR_TOPIC, "swim-dms-error-e2e");
 
         assertThat(errorEvent).isEqualTo(event);
     }
 
-    private FileEvent readFinishedEvent() {
+    private SingleFileEvent readFinishedEvent() {
         return readEvent(FINISHED_TOPIC, "swim-dms-finished-e2e");
     }
 
-    private FileEvent readEvent(final String topic, final String groupId) {
+    private SingleFileEvent readEvent(final String topic, final String groupId) {
         final Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(groupId, "true", embeddedKafkaBroker);
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -202,7 +201,7 @@ class SwimDmsServiceE2ETest {
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
             embeddedKafkaBroker.consumeFromAnEmbeddedTopic(consumer, topic);
             final ConsumerRecord<String, String> record = KafkaTestUtils.getSingleRecord(consumer, topic, Duration.ofSeconds(30));
-            return objectMapper.readValue(record.value(), FileEvent.class);
+            return objectMapper.readValue(record.value(), SingleFileEvent.class);
         } catch (final Exception e) {
             throw new AssertionError("Event could not be read from topic " + topic, e);
         }

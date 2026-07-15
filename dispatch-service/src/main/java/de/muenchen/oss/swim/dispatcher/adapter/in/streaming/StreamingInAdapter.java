@@ -25,9 +25,9 @@ public class StreamingInAdapter {
     protected Consumer<Message<FileEvent>> finished() {
         return fileEventMessage -> {
             final FileEvent event = fileEventMessage.getPayload();
+            final String useCase = event.useCase();
             try {
                 for (final PresignedFile file : event.files()) {
-                    final String useCase = event.useCase();
                     markFileFinishedInPort.markFileFinished(useCase, file.presignedUrl());
                 }
             } catch (PresignedUrlException | UseCaseException e) {
@@ -41,8 +41,9 @@ public class StreamingInAdapter {
         return fileEventMessage -> {
             final FileEvent event = fileEventMessage.getPayload();
             final ErrorDetails error = this.errorDetailsFromHeaders(fileEventMessage.getHeaders());
+            final String useCase = event.useCase();
             for (final PresignedFile file : event.files()) {
-                errorHandlerInPort.handleError(event.useCase(), file, error);
+                errorHandlerInPort.handleError(useCase, file, error);
             }
         };
     }

@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Event for processing a single file.
  * <p>
- * ATTENTION: This class need to match the one in the dispatch-service.
+ * ATTENTION: This class needs to match the one in the dispatch-service.
  *
  * @param useCase The use case of the event.
  * @param file The file to process.
@@ -27,7 +27,7 @@ public record SingleFileEvent(
             throw new IllegalArgumentException("useCase must not be null or blank");
         }
         if (file == null) {
-            throw new IllegalArgumentException("presignedUrl must not be null");
+            throw new IllegalArgumentException("file must not be null");
         }
     }
 

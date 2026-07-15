@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Event for processing a single file.
  * <p>
- * ATTENTION: This class need to match the one in the dispatch-service.
+ * ATTENTION: This class needs to match the one in the dispatch-service.
  *
  * @param useCase The use case of the event.
  * @param file The file to process.

@@ -110,6 +110,6 @@ swim:
   metadata-incoming-jobposition-key: "VG_Jobposition"
   metadata-shadow-file:
     coo-key: "A_COO"
-    user-key: "A_username"
-    job-oe-key: "A_joboe"
-    job-position-key: "A_jobposition"
+    user-key: "A_Username"
+    job-oe-key: "A_Joboe"
+    job-position-key: "A_Jobposition"

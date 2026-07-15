@@ -105,7 +105,7 @@ The `type` attribute of a use case defines what type of resource is created in t
 - `inbox_incoming`: Creates an Incoming (with `n` ContentObjects) inside a given Inbox.
 - `procedure_incoming`: Creates an Incoming (with `n` ContentObjects) inside a given Procedure or the OU work queue of the user.
 - `metadata_file`: Resolve target type via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Metadata file](#metadata-file).
-- `shadow_file`: Creates an ContentObject inside the shadow file structure (given File -> Procedure `YYYY_MM` -> Incoming `DD` -> ContentObject). The structure is created if not present.
+- `shadow_file`: Creates a ContentObject inside the shadow file structure (given File -> Procedure `YYYY_MM` -> Incoming `DD` -> ContentObject). The structure is created if not present.
 
 ContentObjects preserve the order the files have in the event.
 

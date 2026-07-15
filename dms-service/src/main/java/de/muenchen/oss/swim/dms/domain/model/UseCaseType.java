@@ -23,7 +23,7 @@ public enum UseCaseType {
     METADATA_FILE(null, null),
     /**
      * Processes a file as shadow file.
-     * Creates an ContentObject inside an Incoming.
+     * Creates a ContentObject inside an Incoming.
      * Also creates Procedure and Incoming if not present.
      */
     SHADOW_FILE(null, null);

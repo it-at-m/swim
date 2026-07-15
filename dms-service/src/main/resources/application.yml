@@ -99,15 +99,21 @@ info:
 swim:
   metadata-dms-target-key: "SWIM_DMS_Target"
   metadata-subject-prefix: "FdE_"
-  metadata-user-inbox-coo-key: "PPK_COO"
-  metadata-user-inbox-user-key: "PPK_Username"
-  metadata-group-inbox-coo-key: "GPK_COO"
-  metadata-group-inbox-user-key: "GPK_Username"
+  metadata-user-inbox:
+    coo-key: "PPK_COO"
+    user-key: "PPK_Username"
+    job-oe-key: "PPK_Joboe"
+    job-position-key: "PPK_Jobposition"
+  metadata-group-inbox:
+    coo-key: "GPK_COO"
+    user-key: "GPK_Username"
+    job-oe-key: "GPK_Joboe"
+    job-position-key: "GPK_Jobposition"
   metadata-incoming:
     coo-key: "VG_COO"
     user-key: "VG_Username"
-    joboe-key: "VG_Joboe"
-    jobposition-key: "VG_Jobposition"
+    job-oe-key: "VG_Joboe"
+    job-position-key: "VG_Jobposition"
   metadata-shadow-file:
     coo-key: "A_COO"
     user-key: "A_Username"

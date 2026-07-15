@@ -21,25 +21,17 @@ public class SwimDmsProperties {
     @NestedConfigurationProperty
     private List<UseCase> useCases = List.of();
     /**
-     * Var name in metadata file to get target user inbox coo from.
+     * Collection of var names in metadata file to get target user inbox.
      */
-    @NotBlank
-    private String metadataUserInboxCooKey;
+    @Valid
+    @NotNull
+    private MetadataRequestContextProperty metadataUserInbox;
     /**
-     * Var name in metadata file to get target user inbox owner from.
+     * Collection of var names in metadata file to get target group inbox.
      */
-    @NotBlank
-    private String metadataUserInboxUserKey;
-    /**
-     * Var name in metadata file to get target group inbox coo from.
-     */
-    @NotBlank
-    private String metadataGroupInboxCooKey;
-    /**
-     * Var name in metadata file to get target user inbox owner from.
-     */
-    @NotBlank
-    private String metadataGroupInboxUserKey;
+    @Valid
+    @NotNull
+    private MetadataRequestContextProperty metadataGroupInbox;
     /**
      * Collection of var names in metadata file to get target incoming.
      */

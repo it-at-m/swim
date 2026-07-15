@@ -29,13 +29,10 @@ public class DmsMetadataHelper extends MetadataHelper {
      * @throws MetadataException If required values are missing.
      */
     public DmsTarget resolveInboxDmsTarget(@NotNull final Metadata metadata) throws MetadataException {
-        final Map<String, String> indexFields = metadata.indexFields();
-        final String userInboxCoo = indexFields.get(swimDmsProperties.getMetadataUserInboxCooKey());
-        final String userInboxOwner = indexFields.get(swimDmsProperties.getMetadataUserInboxUserKey());
-        final String groupInboxCoo = indexFields.get(swimDmsProperties.getMetadataGroupInboxCooKey());
-        final String groupInboxOwner = indexFields.get(swimDmsProperties.getMetadataGroupInboxUserKey());
+        final DmsTarget userInboxDmsTarget = this.dmsTargetFromMetadataKeys(swimDmsProperties.getMetadataUserInbox(), metadata);
+        final DmsTarget groupInboxDmsTarget = this.dmsTargetFromMetadataKeys(swimDmsProperties.getMetadataGroupInbox(), metadata);
         // check combination of data is allowed and build DmsTarget
-        return this.dmsTargetFromUserAndGroupInbox(userInboxCoo, userInboxOwner, groupInboxCoo, groupInboxOwner);
+        return this.dmsTargetFromUserAndGroupInbox(userInboxDmsTarget, groupInboxDmsTarget);
     }
 
     /**
@@ -85,28 +82,23 @@ public class DmsMetadataHelper extends MetadataHelper {
     /**
      * Resolve correct DmsTarget from user and group inbox values.
      *
-     * @param userInboxCoo The value for the user inbox coo.
-     * @param userInboxOwner The value for the user inbox owner.
-     * @param groupInboxCoo The value for the group inbox coo.
-     * @param groupInboxOwner The value for the group inbox owner.
+     * @param userInboxDmsTarget The values for the user inbox.
+     * @param groupInboxDmsTarget The values for the group inbox.
      * @return The resolved DmsTarget coo and owner combination.
      * @throws MetadataException If the combination of user and group values isn't valid.
      */
-    protected DmsTarget dmsTargetFromUserAndGroupInbox(final String userInboxCoo, final String userInboxOwner, final String groupInboxCoo,
-            final String groupInboxOwner) throws MetadataException {
+    protected DmsTarget dmsTargetFromUserAndGroupInbox(final DmsTarget userInboxDmsTarget, final DmsTarget groupInboxDmsTarget) throws MetadataException {
         // check if user and group metadata provided
-        final boolean hasUserValue = StringUtils.isNotBlank(userInboxCoo) || StringUtils.isNotBlank(userInboxOwner);
-        final boolean hasGroupValue = StringUtils.isNotBlank(groupInboxCoo) || StringUtils.isNotBlank(groupInboxOwner);
-        if (hasUserValue && hasGroupValue) {
+        if (userInboxDmsTarget.hasValues() && groupInboxDmsTarget.hasValues()) {
             throw new MetadataException("User and group inbox metadata provided");
         }
         // user inbox
-        if (StringUtils.isNotBlank(userInboxCoo) && StringUtils.isNotBlank(userInboxOwner)) {
-            return new DmsTarget(userInboxCoo, userInboxOwner, null, null);
+        if (StringUtils.isNotBlank(userInboxDmsTarget.getCoo()) && StringUtils.isNotBlank(userInboxDmsTarget.getUsername())) {
+            return userInboxDmsTarget;
         }
         // group inbox
-        if (StringUtils.isNotBlank(groupInboxCoo) && StringUtils.isNotBlank(groupInboxOwner)) {
-            return new DmsTarget(groupInboxCoo, groupInboxOwner, null, null);
+        if (StringUtils.isNotBlank(groupInboxDmsTarget.getCoo()) && StringUtils.isNotBlank(groupInboxDmsTarget.getUsername())) {
+            return groupInboxDmsTarget;
         }
         throw new MetadataException("Neither user nor group inbox metadata found");
     }

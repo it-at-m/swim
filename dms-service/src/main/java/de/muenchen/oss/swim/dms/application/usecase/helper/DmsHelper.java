@@ -143,7 +143,7 @@ public class DmsHelper {
 
     /**
      * Create an ContentObject inside an Incoming.
-     * Searches for Incoming name and reuses
+     * Searches and reuses Incoming if it exists and reuse is enabled.
      *
      * @param reuseIncoming Wether to reuse Incomings.
      * @param dmsTarget The resolved dms target.

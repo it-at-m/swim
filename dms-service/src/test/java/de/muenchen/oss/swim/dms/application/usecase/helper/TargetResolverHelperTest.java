@@ -78,7 +78,7 @@ class TargetResolverHelperTest {
         useCase.setContext(new DmsRequestContext("fallback-user", "fallback-joboe", "fallback-jobposition"));
         final Metadata metadata = new Metadata(null, Map.of(
                 "A_COO", "COO.shadow.file",
-                "A_username", "shadow-user"));
+                "A_Username", "shadow-user"));
         // call
         final DmsTarget response = targetResolverHelper.resolveTargetCoo(UseCaseType.SHADOW_FILE, metadata, useCase, FILE);
         // test

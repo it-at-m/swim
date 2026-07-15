@@ -46,12 +46,8 @@ public class DmsMetadataHelper extends MetadataHelper {
      * @return The incoming or ou work queue target.
      */
     public DmsTarget resolveIncomingDmsTarget(@NotNull final Metadata metadata) {
-        final Map<String, String> indexFields = metadata.indexFields();
-        final String incomingCoo = indexFields.get(swimDmsProperties.getMetadataIncomingCooKey());
-        final String incomingOwner = indexFields.get(swimDmsProperties.getMetadataIncomingUserKey());
-        final String incomingJoboe = indexFields.get(swimDmsProperties.getMetadataIncomingJoboeKey());
-        final String incomingJobposition = indexFields.get(swimDmsProperties.getMetadataIncomingJobpositionKey());
-        return new DmsTarget(StringUtils.isNotBlank(incomingCoo) ? incomingCoo : null, incomingOwner, incomingJoboe, incomingJobposition);
+        final SwimDmsProperties.MetadataRequestContextProperty metadataKeys = swimDmsProperties.getMetadataIncoming();
+        return this.dmsTargetFromMetadataKeys(metadataKeys, metadata);
     }
 
     /**
@@ -61,16 +57,29 @@ public class DmsMetadataHelper extends MetadataHelper {
      * @return The dms target.
      */
     public DmsTarget resolveShadowFileDmsTarget(@NotNull final Metadata metadata) throws MetadataException {
-        final Map<String, String> indexFields = metadata.indexFields();
         final SwimDmsProperties.MetadataRequestContextProperty metadataKeys = swimDmsProperties.getMetadataShadowFile();
+        final DmsTarget dmsTarget = this.dmsTargetFromMetadataKeys(metadataKeys, metadata);
+        if (StringUtils.isBlank(dmsTarget.getCoo())) {
+            throw new MetadataException("%s must be set for shadow file".formatted(metadataKeys.cooKey()));
+        }
+        return dmsTarget;
+    }
+
+    /**
+     * Extract dms target from metadata with given keys.
+     *
+     * @param metadataKeys The keys to use for extraction.
+     * @param metadata Parsed metadata file.
+     * @return The resolved dms target.
+     */
+    protected DmsTarget dmsTargetFromMetadataKeys(@NotNull final SwimDmsProperties.MetadataRequestContextProperty metadataKeys,
+            @NotNull final Metadata metadata) {
+        final Map<String, String> indexFields = metadata.indexFields();
         final String coo = indexFields.get(metadataKeys.cooKey());
         final String owner = indexFields.get(metadataKeys.userKey());
         final String jobOe = indexFields.get(metadataKeys.jobOeKey());
         final String jobPosition = indexFields.get(metadataKeys.jobPositionKey());
-        if (StringUtils.isBlank(coo)) {
-            throw new MetadataException("%s must be set for shadow file".formatted(metadataKeys.cooKey()));
-        }
-        return new DmsTarget(coo, owner, jobOe, jobPosition);
+        return new DmsTarget(StringUtils.isNotBlank(coo) ? coo : null, owner, jobOe, jobPosition);
     }
 
     /**

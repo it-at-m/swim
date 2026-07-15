@@ -41,25 +41,11 @@ public class SwimDmsProperties {
     @NotBlank
     private String metadataGroupInboxUserKey;
     /**
-     * Var name in metadata file to get target incoming coo from.
+     * Collection of var names in metadata file to get target incoming.
      */
-    @NotBlank
-    private String metadataIncomingCooKey;
-    /**
-     * Var name in metadata file to get target incoming owner from.
-     */
-    @NotBlank
-    private String metadataIncomingUserKey;
-    /**
-     * Var name in metadata file to get target incoming joboe from.
-     */
-    @NotBlank
-    private String metadataIncomingJoboeKey;
-    /**
-     * Var name in metadata file to get target incoming jobposition from.
-     */
-    @NotBlank
-    private String metadataIncomingJobpositionKey;
+    @Valid
+    @NotNull
+    private MetadataRequestContextProperty metadataIncoming;
     /**
      * Collection of var names in metadata file to get target shadow file.
      */
@@ -77,11 +63,6 @@ public class SwimDmsProperties {
      */
     @NotBlank
     private String metadataSubjectPrefix;
-    /**
-     * Prefix for {@link UseCase#isDecodeGermanChars()}.
-     */
-    @NotBlank
-    private String decodeGermanCharsPrefix;
 
     /**
      * Resolve use case via name.

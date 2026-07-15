@@ -105,6 +105,7 @@ The `type` attribute of a use case defines what type of resource is created in t
 - `procedure_incoming`: Creates an Incoming (with `n` ContentObjects) inside a given Procedure or the OU work queue of the user.
 - `metadata_file`: Resolve target type via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Metadata file](#metadata-file).
 - `shadow_file`: Creates a ContentObject inside the shadow file structure (given File -> Procedure `YYYY_MM` -> Incoming `DD` -> ContentObject). The structure is created if not present.
+  - It needs to be ensured that no target File is accessed in parallel, to prevent duplicate Procedures or Incomings (e.g. via kafka partitioning and different COOs between use cases).
 
 ContentObjects preserve the order the files have in the event.
 

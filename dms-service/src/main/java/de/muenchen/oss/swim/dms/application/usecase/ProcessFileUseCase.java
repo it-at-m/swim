@@ -97,7 +97,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             } catch (final IOException e) {
                 closeFileStream(fileReference, fileStream);
                 throw new PresignedUrlException("Error while handling metadata file InputStream", e);
-            } catch (MetadataException | RuntimeException e) {
+            } catch (PresignedUrlException | MetadataException | RuntimeException e) {
                 closeFileStream(fileReference, fileStream);
                 throw e;
             }

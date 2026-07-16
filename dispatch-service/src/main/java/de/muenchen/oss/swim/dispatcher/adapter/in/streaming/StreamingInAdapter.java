@@ -7,7 +7,6 @@ import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
 import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
 import de.muenchen.oss.swim.dispatcher.domain.model.streaming.FileEvent;
-import de.muenchen.oss.swim.dispatcher.domain.model.streaming.MultiFileEvent;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -26,10 +25,9 @@ public class StreamingInAdapter {
     protected Consumer<Message<FileEvent>> finished() {
         return fileEventMessage -> {
             final FileEvent event = fileEventMessage.getPayload();
-            final MultiFileEvent multiFileEvent = MultiFileEvent.fromFileEvent(event);
+            final String useCase = event.useCase();
             try {
-                for (final PresignedFile file : multiFileEvent.files()) {
-                    final String useCase = multiFileEvent.useCase();
+                for (final PresignedFile file : event.files()) {
                     markFileFinishedInPort.markFileFinished(useCase, file.presignedUrl());
                 }
             } catch (PresignedUrlException | UseCaseException e) {
@@ -42,10 +40,10 @@ public class StreamingInAdapter {
     protected Consumer<Message<FileEvent>> dlq() {
         return fileEventMessage -> {
             final FileEvent event = fileEventMessage.getPayload();
-            final MultiFileEvent multiFileEvent = MultiFileEvent.fromFileEvent(event);
             final ErrorDetails error = this.errorDetailsFromHeaders(fileEventMessage.getHeaders());
-            for (final PresignedFile file : multiFileEvent.files()) {
-                errorHandlerInPort.handleError(multiFileEvent.useCase(), file, error);
+            final String useCase = event.useCase();
+            for (final PresignedFile file : event.files()) {
+                errorHandlerInPort.handleError(useCase, file, error);
             }
         };
     }

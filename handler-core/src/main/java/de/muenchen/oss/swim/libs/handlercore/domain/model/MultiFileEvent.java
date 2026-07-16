@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Event for processing multiple files.
  * <p>
- * ATTENTION: This class need to match the one in the dispatch-service.
+ * ATTENTION: This class needs to match the one in the dispatch-service.
  *
  * @param useCase The use case of the event.
  * @param files The files to process.
@@ -19,14 +19,4 @@ public record MultiFileEvent(
         @NotBlank String useCase,
         @NotEmpty List<@NotNull @Valid PresignedFile> files) implements FileEvent {
     public static final String TYPE_NAME = "multi";
-
-    public static MultiFileEvent fromFileEvent(final FileEvent fileEvent) {
-        if (fileEvent instanceof MultiFileEvent multi) {
-            return multi;
-        } else if (fileEvent instanceof SingleFileEvent(String sUc, PresignedFile sPf)) {
-            return new MultiFileEvent(sUc, List.of(sPf));
-        } else {
-            throw new IllegalArgumentException("Message payload is no valid event but '%s'".formatted(fileEvent.getClass()));
-        }
-    }
 }

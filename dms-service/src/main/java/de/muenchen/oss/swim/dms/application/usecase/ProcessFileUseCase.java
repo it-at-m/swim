@@ -15,6 +15,7 @@ import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileSystemOutP
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileReference;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.MultiFileEvent;
@@ -44,30 +45,35 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     @Override
     public void processEvent(final SingleFileEvent event)
             throws PresignedUrlException, UnknownUseCaseException, MetadataException {
-        this.processEvent(MultiFileEvent.fromFileEvent(event));
+        this.processFileEvent(event);
     }
 
     @Override
     public void processEvent(final MultiFileEvent event) throws PresignedUrlException, UnknownUseCaseException, MetadataException {
+        this.processFileEvent(event);
+    }
+
+    private void processFileEvent(final FileEvent event) throws PresignedUrlException, UnknownUseCaseException, MetadataException {
         final UseCase useCase = swimDmsProperties.findUseCase(event.useCase());
         log.debug("Resolved use case: {}", useCase);
-        final String firstFilePath = FileReference.fromPresignedUrl(event.files().getFirst().presignedUrl()).path();
-        log.info("Processing {} file(s) with first file {} for use case {}", event.files().size(), firstFilePath, event.useCase());
+        final List<PresignedFile> files = event.files();
+        final String firstFilePath = FileReference.fromPresignedUrl(files.getFirst().presignedUrl()).path();
+        log.info("Processing {} file(s) with first file {} for use case {}", files.size(), firstFilePath, event.useCase());
         // load files
-        final List<LoadedFile> files = new ArrayList<>();
+        final List<LoadedFile> loadedFiles = new ArrayList<>();
         try {
-            for (final PresignedFile presignedFile : event.files()) {
-                files.add(this.loadFile(presignedFile));
+            for (final PresignedFile presignedFile : files) {
+                loadedFiles.add(this.loadFile(presignedFile));
             }
             // process
-            this.processDmsResource(useCase, files);
+            this.processDmsResource(useCase, loadedFiles);
             // mark file as finished
             fileEventOutPort.fileFinished(event);
-            log.info("Finished {} files with first file {} for use case {}", event.files().size(), firstFilePath, event.useCase());
+            log.info("Finished {} files with first file {} for use case {}", files.size(), firstFilePath, event.useCase());
             // update metric
             dmsMeter.incrementProcessed(useCase.getName(), useCase.getType().name());
         } finally {
-            this.closeLoadedFiles(files);
+            this.closeLoadedFiles(loadedFiles);
         }
     }
 
@@ -91,7 +97,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
             } catch (final IOException e) {
                 closeFileStream(fileReference, fileStream);
                 throw new PresignedUrlException("Error while handling metadata file InputStream", e);
-            } catch (MetadataException | RuntimeException e) {
+            } catch (PresignedUrlException | MetadataException | RuntimeException e) {
                 closeFileStream(fileReference, fileStream);
                 throw e;
             }
@@ -122,6 +128,9 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         case INBOX_INCOMING -> dmsHelper.processInboxIncoming(useCase, dmsTarget, files);
         // Incoming in Procedure
         case PROCEDURE_INCOMING -> dmsHelper.processProcedureIncoming(useCase, dmsTarget, files);
+        // shadow file
+        case SHADOW_FILE -> dmsHelper.processShadowFile(dmsTarget, files);
+        // fail unresolved metadata type
         case METADATA_FILE -> throw new IllegalStateException("Target type metadata needs to be resolved to other types");
         }
     }

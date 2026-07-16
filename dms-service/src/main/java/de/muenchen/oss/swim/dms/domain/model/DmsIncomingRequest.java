@@ -3,7 +3,7 @@ package de.muenchen.oss.swim.dms.domain.model;
 import jakarta.validation.constraints.NotBlank;
 
 /**
- * Properties for creating a new Incoming with a ContentObject.
+ * Properties for creating a new Incoming.
  *
  * @param name The name of the new Incoming.
  * @param subject The subject of the new Incoming.

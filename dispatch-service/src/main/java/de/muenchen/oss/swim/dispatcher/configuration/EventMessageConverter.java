@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 /**
  * Spring {@link MessageConverter} that converts to and from {@link FileEvent}
  * implementations based on a discriminator header.
+ * <p>
+ * ATTENTION: This class needs to match the one in the dispatch-service.
  *
  * <p>
  * When the requested target type is {@code FileEvent}, the converter inspects the

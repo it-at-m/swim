@@ -69,9 +69,9 @@ swim:
     job-position-key: "VG_Jobposition"
   metadata-shadow-file: # keys to use for resolving target shadow file, see Coo source metadata_file and Metadata
     coo-key: "A_COO"
-    user-key: "A_username"
-    job-oe-key: "A_joboe"
-    job-position-key: "A_jobposition"
+    user-key: "A_Username"
+    job-oe-key: "A_Joboe"
+    job-position-key: "A_Jobposition"
   # use cases
   use-cases:
     - name: # required

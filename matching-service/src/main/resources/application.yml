@@ -5,6 +5,11 @@ spring:
     name: @project.artifactId@
     group: @project.groupId@
     version: @project.version@
+  web:
+    error:
+      whitelabel:
+        enabled: false
+      include-message: always
   # Spring data rest
   data:
     rest:
@@ -30,10 +35,6 @@ springdoc:
 server:
   shutdown: "graceful"
   port: 8080
-  error:
-    whitelabel:
-      enabled: false
-    include-message: always
 
 # Config for spring actuator endpoints
 management:

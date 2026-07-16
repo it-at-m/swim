@@ -3,10 +3,10 @@ package de.muenchen.oss.swim.matching.adapter.out.dms;
 import de.muenchen.refarch.integration.dms.ApiClient;
 import de.muenchen.refarch.integration.dms.api.ContentObjectsApi;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
-@Component
+@Configuration
 class ApiClientConfiguration {
     // FIXME remove workaround after response is streamed
     private static final int MAX_RESPONSE_BODY_SIZE = 100 * 1024 * 1024;

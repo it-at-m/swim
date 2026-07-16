@@ -1,16 +1,16 @@
 package de.muenchen.oss.swim.libs.handlercore.domain.helper;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import jakarta.validation.constraints.NotNull;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -20,7 +20,7 @@ public class MetadataHelper {
     public static final String METADATA_DOCUMENT_KEY = "Document";
     public static final String METADATA_INDEX_FIELDS_KEY = "IndexFields";
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     /**
      * Parse metadata file.
@@ -33,7 +33,7 @@ public class MetadataHelper {
         try {
             final JsonNode jsonNode = objectMapper.readTree(inputStream);
             return new Metadata(jsonNode, this.getIndexFields(jsonNode));
-        } catch (final IOException e) {
+        } catch (final JacksonException e) {
             throw new MetadataException("Error while parsing metadata json", e);
         }
     }
@@ -56,8 +56,8 @@ public class MetadataHelper {
         }
         final Map<String, String> indexFields = new HashMap<>();
         for (final JsonNode indexField : indexFieldsNode) {
-            final String key = indexField.path(METADATA_KEY_KEY).asText();
-            final String value = indexField.path(METADATA_VALUE_KEY).asText();
+            final String key = indexField.path(METADATA_KEY_KEY).asString();
+            final String value = indexField.path(METADATA_VALUE_KEY).asString();
             if (!key.isEmpty()) {
                 indexFields.put(key, value);
             }

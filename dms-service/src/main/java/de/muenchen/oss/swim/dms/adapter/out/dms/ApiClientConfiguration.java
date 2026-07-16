@@ -9,10 +9,10 @@ import de.muenchen.refarch.integration.dms.api.ProcedureObjectsApi;
 import de.muenchen.refarch.integration.dms.api.ProceduresApi;
 import de.muenchen.refarch.integration.dms.api.SearchObjNamesApi;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
-@Component
+@Configuration
 class ApiClientConfiguration {
     @Bean
     protected ApiClient apiClient(final DmsProperties dmsProperties) {

@@ -1,7 +1,7 @@
 package de.muenchen.oss.swim.matching.adapter.out.dms;
 
-import de.muenchen.refarch.integration.dms.ApiClient;
-import de.muenchen.refarch.integration.dms.api.ContentObjectsApi;
+import de.muenchen.oss.refarch.integration.dms.ApiClient;
+import de.muenchen.oss.refarch.integration.dms.api.ContentObjectsApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;

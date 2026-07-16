@@ -25,8 +25,8 @@
 
         <!-- Core Frameworks -->
         <spring-cloud-dependencies.version>2025.1.2</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
-        <refarch-dms-integration-fabasoft-rest-api.version>2.2.1</refarch-dms-integration-fabasoft-rest-api.version>
         <swim-handler-core.version>1.0.1</swim-handler-core.version>
+        <refarch-dms-integration-fabasoft-rest-api.version>4.0.0</refarch-dms-integration-fabasoft-rest-api.version>
 
         <!-- Linting & Formatting -->
         <spotless-maven-plugin.version>3.8.0</spotless-maven-plugin.version>
@@ -122,7 +122,7 @@
             <version>${spotbugs-annotations.version}</version>
         </dependency>
         <dependency>
-            <groupId>de.muenchen.refarch</groupId>
+            <groupId>de.muenchen.oss.refarch</groupId>
             <artifactId>refarch-dms-integration-fabasoft-rest-api</artifactId>
             <version>${refarch-dms-integration-fabasoft-rest-api.version}</version>
         </dependency>

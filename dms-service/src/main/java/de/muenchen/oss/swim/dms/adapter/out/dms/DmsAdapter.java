@@ -257,7 +257,6 @@ public class DmsAdapter implements DmsOutPort {
                     dmsTarget.getJoboe(),
                     dmsTarget.getJobposition()).block();
             if (response != null && response.getGiobjecttype() != null) {
-                // FIXME does this always contain an suffix?
                 final List<Objektreferenz> matchingProcedures = response.getGiobjecttype();
                 log.info("Found Procedures {} where name matches '{}'", matchingProcedures, procedureName);
                 if (matchingProcedures.size() > 1) {

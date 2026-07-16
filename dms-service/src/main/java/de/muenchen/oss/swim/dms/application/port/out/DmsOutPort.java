@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.dms.application.port.out;
 
 import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
+import de.muenchen.oss.swim.dms.domain.model.DmsProcedureRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsRequestContext;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
@@ -21,7 +22,7 @@ public interface DmsOutPort {
      * @param contentObjectRequest The values and content of the new ContentObject.
      * @return The coo of the new ContentObject.
      */
-    String createContentObjectInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest);
+    String createInboxContentObject(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest);
 
     /**
      * Create Incoming with ContentObject inside an Inbox.
@@ -31,7 +32,7 @@ public interface DmsOutPort {
      * @param contentObjectRequests The values and content of the new ContentObject.
      * @return The coo of the new Incoming.
      */
-    String createIncomingInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest,
+    String createInboxIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest,
             @NotEmpty @Valid List<DmsContentObjectRequest> contentObjectRequests);
 
     /**
@@ -69,9 +70,18 @@ public interface DmsOutPort {
      *
      * @param dmsTarget The Procedure to search in.
      * @param incomingNamePrefix The prefix the Incoming name needs to start with.
-     * @return The coo of the procedure. Null if it doesn't exist.
+     * @return The coo of the Incoming. Null if it doesn't exist.
      */
-    Optional<String> getIncomingCooByName(@NotNull @Valid DmsTarget dmsTarget, @NotNull String incomingNamePrefix);
+    Optional<String> getIncomingCooByNamePrefix(@NotNull @Valid DmsTarget dmsTarget, @NotNull String incomingNamePrefix);
+
+    /**
+     * Get the coo of the first Procedure where the name matches the given name.
+     *
+     * @param dmsTarget The File to search in.
+     * @param procedureName The name of the Procedure to search for.
+     * @return The coo of the Procedure. Null if it doesn't exist.
+     */
+    Optional<String> getProcedureCooByName(@NotNull @Valid DmsTarget dmsTarget, @NotNull String procedureName);
 
     /**
      * Create ContentObject inside Incoming.
@@ -81,6 +91,15 @@ public interface DmsOutPort {
      * @return The coo of the new ContentObject.
      */
     String createContentObject(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest);
+
+    /**
+     * Create Procedure inside a File.
+     *
+     * @param dmsTarget The target File.
+     * @param procedureRequest The values for the new Procedure.
+     * @return The coo of the new Procedure.
+     */
+    String createFileProcedure(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsProcedureRequest procedureRequest);
 
     /**
      * Find dms object via name and resource type.

@@ -49,18 +49,29 @@ swim:
     base-url:
     username:
     password:
-  decode-german-chars-prefix: '#' # prefix for <use case>.decode-german-chars
   # metadata keys (default values)
   metadata-subject-prefix: "FdE_" # prefix to build subject from metadata file, see Metadata
   metadata-dms-target-key: "SWIM_DMS_Target" # key to use for resolving dms target type, see Type metadata_file
-  metadata-user-inbox-coo-key: "PPK_COO" # key to use for resolving target user inbox, see Coo source metadata_file and Metadata
-  metadata-user-inbox-user-key: "PPK_Username"
-  metadata-group-inbox-coo-key: "GPK_COO" # key to use for resolving target group inbox, see Coo source metadata_file and Metadata
-  metadata-group-inbox-user-key: "GPK_Username"
-  metadata-incoming-coo-key: "VG_COO" # key to use for resolving target incoming, see Coo source metadata_file and Metadata
-  metadata-incoming-user-key: "VG_Username"
-  metadata-incoming-joboe-key: "VG_Joboe"
-  metadata-incoming-jobposition-key: "VG_Jobposition"
+  metadata-user-inbox: # keys to use for resolving target user inbox, see Coo source metadata_file and Metadata
+    coo-key: "PPK_COO"
+    user-key: "PPK_Username"
+    job-oe-key: "PPK_Joboe"
+    job-position-key: "PPK_Jobposition"
+  metadata-group-inbox: # keys to use for resolving target group inbox, see Coo source metadata_file and Metadata
+    coo-key: "GPK_COO"
+    user-key: "GPK_Username"
+    job-oe-key: "GPK_Joboe"
+    job-position-key: "GPK_Jobposition"
+  metadata-incoming: # keys to use for resolving target incoming, see Coo source metadata_file and Metadata
+    coo-key: "VG_COO"
+    user-key: "VG_Username"
+    job-oe-key: "VG_Joboe"
+    job-position-key: "VG_Jobposition"
+  metadata-shadow-file: # keys to use for resolving target shadow file, see Coo source metadata_file and Metadata
+    coo-key: "A_COO"
+    user-key: "A_Username"
+    job-oe-key: "A_Joboe"
+    job-position-key: "A_Jobposition"
   # use cases
   use-cases:
     - name: # required
@@ -100,6 +111,8 @@ The `type` attribute of a use case defines what type of resource is created in t
 - `inbox_incoming`: Creates an Incoming (with `n` ContentObjects) inside a given Inbox.
 - `procedure_incoming`: Creates an Incoming (with `n` ContentObjects) inside a given Procedure or the OU work queue of the user.
 - `metadata_file`: Resolve target type via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Metadata file](#metadata-file).
+- `shadow_file`: Creates a ContentObject inside the shadow file structure (given File -> Procedure `YYYY_MM` -> Incoming `DD` -> ContentObject). The structure is created if not present.
+  - It needs to be ensured that no target File is accessed in parallel, to prevent duplicate Procedures or Incomings (e.g. via kafka partitioning and different COOs between use cases).
 
 ContentObjects preserve the order the files have in the event.
 

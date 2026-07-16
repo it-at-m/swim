@@ -55,7 +55,7 @@ class DmsMetadataHelperTest {
 
     @Test
     void testResolveIncomingDmsTarget() throws MetadataException {
-        // test inbox
+        // test incoming
         final Metadata metadata = dmsMetadataHelper.parseMetadataFile(getClass().getResourceAsStream("/files/example-metadata-incoming.json"));
         final DmsTarget dmsTarget = dmsMetadataHelper.resolveIncomingDmsTarget(metadata);
         assertEquals(METADATA_DMS_TARGET_INCOMING, dmsTarget);

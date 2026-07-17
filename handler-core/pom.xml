@@ -97,6 +97,12 @@
             <version>${spotbugs-annotations.version}</version>
         </dependency>
 
+        <!-- Validation -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

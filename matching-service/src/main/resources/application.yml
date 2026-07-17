@@ -32,13 +32,8 @@ springdoc:
     oauth:
       scopes: profile,openid
 
-server:
-  shutdown: "graceful"
-  port: 8080
-
 # Config for spring actuator endpoints
 management:
-  server.port: ${server.port}
   endpoints:
     access:
       default: none

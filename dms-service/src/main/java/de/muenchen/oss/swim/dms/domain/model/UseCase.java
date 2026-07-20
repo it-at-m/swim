@@ -43,9 +43,4 @@ public class UseCase {
     @NotNull
     @Valid
     private DmsRequestContext context = new DmsRequestContext(null, null, null);
-    /**
-     * If the filename contains custom encoded chars/umlauts (e.g. #u -> ü).
-     * If true will be replaced before processing.
-     */
-    private boolean decodeGermanChars = false;
 }

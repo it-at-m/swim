@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.dispatcher.adapter.out.mail;
 
 import de.muenchen.oss.swim.dispatcher.application.port.out.NotificationOutPort;
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.io.ByteArrayInputStream;
@@ -25,17 +26,23 @@ public class MailAdapter implements NotificationOutPort {
     private final JavaMailSender mailSender;
     private final MessageSource messageSource;
 
-    private final static String SUBJECT_OK = "OK";
-    private final static String SUBJECT_ERROR = "ERROR";
+    private static final String SUBJECT_OK = "OK";
+    private static final String SUBJECT_ERROR = "ERROR";
 
     @Override
-    public void sendDispatchErrors(final List<String> recipients, final String useCase, final Map<String, Throwable> errors) {
+    public void sendDispatchErrors(final List<String> recipients, final String useCase, final Map<FileReference, Throwable> errors) {
+        this.sendDispatchErrors(recipients, useCase, errors, null);
+    }
+
+    @Override
+    public void sendDispatchErrors(final List<String> recipients, final String useCase, final Map<FileReference, Throwable> errors,
+            final String additionalErrorMessage) {
         final String subject = this.buildSubject(true, String.format(this.getMessage("dispatchErrors.subject"), useCase));
         final String body = String.format(
                 this.getMessage("dispatchErrors.message"),
-                useCase, errors.size(),
+                useCase, additionalErrorMessage != null ? additionalErrorMessage : "", errors.size(),
                 errors.entrySet().stream()
-                        .map(e -> String.format("- %s: %s", e.getKey(), e.getValue().getMessage()))
+                        .map(e -> String.format("- %s: %s", e.getKey().path(), e.getValue().getMessage()))
                         .reduce((a, b) -> String.format("%s%n%s", a, b)).orElse(""));
         this.sendMail(recipients, subject, body, Map.of());
     }

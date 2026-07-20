@@ -1,9 +1,10 @@
 package de.muenchen.oss.swim.libs.handlercore.domain.model;
 
-import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 
-public record FileEvent(
-        @NotBlank String useCase,
-        @NotBlank String presignedUrl,
-        String metadataPresignedUrl) {
+public sealed interface FileEvent
+        permits SingleFileEvent, MultiFileEvent {
+    String useCase();
+
+    List<PresignedFile> files();
 }

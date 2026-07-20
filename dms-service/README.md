@@ -49,18 +49,29 @@ swim:
     base-url:
     username:
     password:
-  decode-german-chars-prefix: '#' # prefix for <use case>.decode-german-chars
   # metadata keys (default values)
   metadata-subject-prefix: "FdE_" # prefix to build subject from metadata file, see Metadata
   metadata-dms-target-key: "SWIM_DMS_Target" # key to use for resolving dms target type, see Type metadata_file
-  metadata-user-inbox-coo-key: "PPK_COO" # key to use for resolving target user inbox, see Coo source metadata_file and Metadata
-  metadata-user-inbox-user-key: "PPK_Username"
-  metadata-group-inbox-coo-key: "GPK_COO" # key to use for resolving target group inbox, see Coo source metadata_file and Metadata
-  metadata-group-inbox-user-key: "GPK_Username"
-  metadata-incoming-coo-key: "VG_COO" # key to use for resolving target incoming, see Coo source metadata_file and Metadata
-  metadata-incoming-user-key: "VG_Username"
-  metadata-incoming-joboe-key: "VG_Joboe"
-  metadata-incoming-jobposition-key: "VG_Jobposition"
+  metadata-user-inbox: # keys to use for resolving target user inbox, see Coo source metadata_file and Metadata
+    coo-key: "PPK_COO"
+    user-key: "PPK_Username"
+    job-oe-key: "PPK_Joboe"
+    job-position-key: "PPK_Jobposition"
+  metadata-group-inbox: # keys to use for resolving target group inbox, see Coo source metadata_file and Metadata
+    coo-key: "GPK_COO"
+    user-key: "GPK_Username"
+    job-oe-key: "GPK_Joboe"
+    job-position-key: "GPK_Jobposition"
+  metadata-incoming: # keys to use for resolving target incoming, see Coo source metadata_file and Metadata
+    coo-key: "VG_COO"
+    user-key: "VG_Username"
+    job-oe-key: "VG_Joboe"
+    job-position-key: "VG_Jobposition"
+  metadata-shadow-file: # keys to use for resolving target shadow file, see Coo source metadata_file and Metadata
+    coo-key: "A_COO"
+    user-key: "A_Username"
+    job-oe-key: "A_Joboe"
+    job-position-key: "A_Jobposition"
   # use cases
   use-cases:
     - name: # required
@@ -76,7 +87,7 @@ swim:
         joboe: # used to resolve user role under which the DMS action is executed, default role if not defined
         jobposition: # used to resolve user role under which the DMS action is executed, default role if not defined
       incoming:
-        incoming-name-pattern: # overwrite Incoming name via Regex pattern, if result is empty falls back to default filename without extension
+        incoming-name-pattern: # overwrite Incoming name via Regex pattern, if result is empty falls back to default filename without extension (of first file)
         incoming-subject-pattern: # pattern for subject of new Incoming; if this is defined metadata-subject needs to be false
         metadata-subject: # enables Incoming subject be built from metadata file, default false
         reuse-incoming: # if already existing Incoming (based on name) should be reused, when existing only ContentObject is created inside first matching
@@ -84,7 +95,6 @@ swim:
       content_object:
         subject-pattern: # pattern for subject of new ContentObject, currently only works inside Inbox
         filename-overwrite-pattern: # overwrite ContentObject name via Regex pattern
-      decode-german-chars: # if german special chars should be decoded, default false. See section "Decode german chars"
 ```
 
 ### Pattern
@@ -98,9 +108,13 @@ See [Pattern](../handler-core/README.md#pattern).
 The `type` attribute of a use case defines what type of resource is created in the DMS.
 
 - `inbox_content_object`: Creates an ContentObject inside a given Inbox.
-- `inbox_incoming`: Creates an Incoming (with a ContentObject) inside a given Inbox.
-- `procedure_incoming`: Creates an Incoming (with a ContentObject) inside a given Procedure or the OU work queue of the user.
+- `inbox_incoming`: Creates an Incoming (with `n` ContentObjects) inside a given Inbox.
+- `procedure_incoming`: Creates an Incoming (with `n` ContentObjects) inside a given Procedure or the OU work queue of the user.
 - `metadata_file`: Resolve target type via metadata file. See [Configuration](#configuration) `metadata-dms-target-key` and [Metadata file](#metadata-file).
+- `shadow_file`: Creates a ContentObject inside the shadow file structure (given File -> Procedure `YYYY_MM` -> Incoming `DD` -> ContentObject). The structure is created if not present.
+  - It needs to be ensured that no target File is accessed in parallel, to prevent duplicate Procedures or Incomings (e.g. via kafka partitioning and different COOs between use cases).
+
+ContentObjects preserve the order the files have in the event.
 
 ### Coo source
 
@@ -181,17 +195,3 @@ If a metadata file is required but missing or is invalid (syntax, value combinat
   }
 }
 ```
-
-### Decode german chars
-
-Some german special chars/umlauts (e.g. üß) can lead to problems in different programms (e.g. Word barcodes).
-For this a simple encoding was introduced which replaces the configured prefix (see `swim.decode-german-chars-prefix`)
-joined with the simple form of a character to the special char. Needs to be enabled per use case via `decode-german-chars`.
-
-- `#a` -> `ä`
-- `#o` -> `ö`
-- `#u` -> `ü`
-- `#s` -> `ß`
-- `#A` -> `Ä`
-- `#O` -> `Ö`
-- `#U` -> `Ü`

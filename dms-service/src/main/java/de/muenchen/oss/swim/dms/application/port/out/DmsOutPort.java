@@ -2,12 +2,13 @@ package de.muenchen.oss.swim.dms.application.port.out;
 
 import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsIncomingRequest;
+import de.muenchen.oss.swim.dms.domain.model.DmsProcedureRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsRequestContext;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.validation.annotation.Validated;
@@ -18,35 +19,43 @@ public interface DmsOutPort {
      * Create ContentObject inside an Inbox.
      *
      * @param dmsTarget The target Inbox.
-     * @param contentObjectRequest The values for the new ContentObject.
-     * @param inputStream The content of the new ContentObject.
+     * @param contentObjectRequest The values and content of the new ContentObject.
      * @return The coo of the new ContentObject.
      */
-    String createContentObjectInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest,
-            @NotNull InputStream inputStream);
+    String createInboxContentObject(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest);
 
     /**
-     * Create Incoming inside an Inbox-
+     * Create Incoming with ContentObject inside an Inbox.
      *
      * @param dmsTarget The target Inbox.
      * @param incomingRequest The values for the new Incoming.
-     * @param inputStream The content of the new ContentObject.
+     * @param contentObjectRequests The values and content of the new ContentObject.
      * @return The coo of the new Incoming.
      */
-    String createIncomingInInbox(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest, @NotNull InputStream inputStream);
+    String createInboxIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest,
+            @NotEmpty @Valid List<DmsContentObjectRequest> contentObjectRequests);
 
     /**
-     * Create Incoming.
+     * Create Incoming with ContentObjects.
      * Either inside given Procedure {@link DmsTarget#getCoo()} or OU work queue of
      * {@link DmsTarget#getUsername()}.
      *
      * @param dmsTarget The target. If {@link DmsTarget#getCoo()} is defined: Procedure, if not: OU work
      *            queue.
      * @param incomingRequest The values for the new Incoming.
-     * @param inputStream The content of the new ContentObject.
+     * @param contentObjectRequests The files to add as ContentObjects.
      * @return The coo of the new Incoming.
      */
-    String createProcedureIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest, @NotNull InputStream inputStream);
+    String createProcedureIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest,
+            @NotEmpty @Valid List<DmsContentObjectRequest> contentObjectRequests);
+
+    /**
+     * Add ContentObjects to existing Incoming.
+     *
+     * @param dmsTarget The Incoming to add the ContentObjects to.
+     * @param contentObjectRequests The files to add as ContentObjects.
+     */
+    void addContentObjectsToIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotEmpty @Valid List<DmsContentObjectRequest> contentObjectRequests);
 
     /**
      * Get name of Procedure by coo.
@@ -61,20 +70,36 @@ public interface DmsOutPort {
      *
      * @param dmsTarget The Procedure to search in.
      * @param incomingNamePrefix The prefix the Incoming name needs to start with.
-     * @return The coo of the procedure. Null if it doesn't exist.
+     * @return The coo of the Incoming. Null if it doesn't exist.
      */
-    Optional<String> getIncomingCooByName(@NotNull @Valid DmsTarget dmsTarget, @NotNull String incomingNamePrefix);
+    Optional<String> getIncomingCooByNamePrefix(@NotNull @Valid DmsTarget dmsTarget, @NotNull String incomingNamePrefix);
+
+    /**
+     * Get the coo of the first Procedure where the name matches the given name.
+     *
+     * @param dmsTarget The File to search in.
+     * @param procedureName The name of the Procedure to search for.
+     * @return The coo of the Procedure. Null if it doesn't exist.
+     */
+    Optional<String> getProcedureCooByName(@NotNull @Valid DmsTarget dmsTarget, @NotNull String procedureName);
 
     /**
      * Create ContentObject inside Incoming.
      *
      * @param dmsTarget The Incoming to create the ContentObject in.
-     * @param contentObjectRequest The values for the new ContentObject.
-     * @param inputStream The content of the new ContentObject.
+     * @param contentObjectRequest The values and content of the new ContentObject.
      * @return The coo of the new ContentObject.
      */
-    String createContentObject(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest,
-            @NotNull InputStream inputStream);
+    String createContentObject(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsContentObjectRequest contentObjectRequest);
+
+    /**
+     * Create Procedure inside a File.
+     *
+     * @param dmsTarget The target File.
+     * @param procedureRequest The values for the new Procedure.
+     * @return The coo of the new Procedure.
+     */
+    String createFileProcedure(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsProcedureRequest procedureRequest);
 
     /**
      * Find dms object via name and resource type.

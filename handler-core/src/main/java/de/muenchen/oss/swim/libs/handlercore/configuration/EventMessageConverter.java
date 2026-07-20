@@ -1,21 +1,20 @@
 package de.muenchen.oss.swim.libs.handlercore.configuration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.StreamingException;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.MultiFileEvent;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Spring {@link MessageConverter} that converts to and from {@link FileEvent}
@@ -48,7 +47,7 @@ import org.springframework.stereotype.Component;
 public class EventMessageConverter implements MessageConverter {
     public static final String TYPE_HEADER = "swim_event_type";
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     @Override
     public Object fromMessage(@NonNull final Message<?> message, @NonNull final Class<?> targetClass) {
@@ -70,7 +69,7 @@ public class EventMessageConverter implements MessageConverter {
         final String jsonPayload;
         try {
             jsonPayload = objectMapper.writeValueAsString(payload);
-        } catch (final JsonProcessingException e) {
+        } catch (final JacksonException e) {
             throw new IllegalArgumentException("Payload couldn't be converted to JSON", e);
         }
         // build message
@@ -120,17 +119,17 @@ public class EventMessageConverter implements MessageConverter {
 
     /**
      * Converts the message payload (expected to be a JSON {@code byte[]}) into the resolved
-     * {@link FileEvent} implementation using the {@link ObjectMapper}.
+     * {@link FileEvent} implementation using the {@link JsonMapper}.
      *
      * @throws IllegalArgumentException if the payload type is unsupported.
      * @throws StreamingException if JSON deserialization fails.
      */
     private FileEvent convert(final Message<?> message, final Class<?> targetClass) {
         final Object payload = message.getPayload();
-        if (payload instanceof byte[]) {
+        if (payload instanceof byte[] bytes) {
             try {
-                return (FileEvent) objectMapper.readValue((byte[]) payload, targetClass);
-            } catch (final IOException e) {
+                return (FileEvent) objectMapper.readValue(bytes, targetClass);
+            } catch (final JacksonException e) {
                 throw new StreamingException("Error while converting JSON to FileEvent", e);
             }
         } else {

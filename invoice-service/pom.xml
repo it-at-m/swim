@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.16</version>
+        <version>4.0.7</version>
         <relativePath />
     </parent>
 
@@ -24,8 +24,8 @@
         <maven.compiler.release>${java.version}</maven.compiler.release>
 
         <!-- Core Frameworks -->
-        <spring-cloud-dependencies.version>2025.0.3</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
-        <swim-handler-core.version>0.5.1</swim-handler-core.version>
+        <swim-handler-core.version>2.0.0</swim-handler-core.version>
+        <spring-cloud-dependencies.version>2025.1.2</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
 
         <!-- Linting & Formatting -->
         <spotless-maven-plugin.version>3.8.0</spotless-maven-plugin.version>
@@ -49,7 +49,6 @@
 
         <!-- cxf/WSDL -->
         <cxf.version>4.2.2</cxf.version>
-        <jakarta.xml.bind-api.version>4.0.5</jakarta.xml.bind-api.version>
         <jaxws-rt.version>4.0.5</jaxws-rt.version>
 
         <!-- Additional required dependencies -->
@@ -81,7 +80,7 @@
         <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -99,20 +98,6 @@
             <version>${swim-handler-core.version}</version>
         </dependency>
 
-        <!-- json etc. -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-        </dependency>
-
         <!-- cxf/WSDL -->
         <dependency>
             <groupId>org.apache.cxf</groupId>
@@ -127,7 +112,6 @@
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>${jakarta.xml.bind-api.version}</version>
         </dependency>
         <dependency>
             <groupId>com.sun.xml.ws</groupId>
@@ -171,7 +155,7 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
 

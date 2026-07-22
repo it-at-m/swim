@@ -3,8 +3,6 @@ package de.muenchen.oss.swim.libs.handlercore.domain.helper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import java.io.ByteArrayInputStream;
@@ -14,11 +12,13 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
-@SpringBootTest(classes = { MetadataHelper.class, ObjectMapper.class })
+@SpringBootTest(classes = { MetadataHelper.class, JsonMapper.class })
 class MetadataHelperTest {
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper objectMapper;
     @Autowired
     private MetadataHelper metadataHelper;
 

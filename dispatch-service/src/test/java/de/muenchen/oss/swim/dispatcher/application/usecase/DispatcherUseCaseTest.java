@@ -25,7 +25,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dispatcher.TestConstants;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileDispatchingOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
@@ -57,9 +56,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
-        classes = { SwimDispatcherProperties.class, DispatcherUseCase.class, FileHandlingHelper.class, ObjectMapper.class, MetadataHelper.class,
+        classes = { SwimDispatcherProperties.class, DispatcherUseCase.class, FileHandlingHelper.class, JsonMapper.class, MetadataHelper.class,
                 GroupingHelper.class, DispatchActionsHelper.class, ValidationHelper.class }
 )
 @EnableConfigurationProperties

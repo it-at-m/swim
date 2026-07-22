@@ -5,6 +5,12 @@ spring:
     name: @project.artifactId@
     group: @project.groupId@
     version: @project.version@
+  web:
+    error:
+      include-exception: false
+      include-stacktrace: never
+      whitelabel:
+        enabled: false
   cloud:
     stream:
       default:
@@ -31,18 +37,8 @@ spring:
             trusted:
               packages: '*'
 
-server:
-  shutdown: "graceful"
-  port: 8080
-  error:
-    include-exception: false
-    include-stacktrace: never
-    whitelabel:
-      enabled: false
-
 # Config for spring actuator endpoints
 management:
-  server.port: ${server.port}
   endpoints:
     access:
       default: none

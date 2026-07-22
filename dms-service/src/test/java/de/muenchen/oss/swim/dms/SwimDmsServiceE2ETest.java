@@ -8,7 +8,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
@@ -47,6 +46,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(classes = SwimDmsServiceApplication.class)
 @ActiveProfiles(TestConstants.SPRING_TEST_PROFILE)
@@ -97,7 +97,7 @@ class SwimDmsServiceE2ETest {
     private EmbeddedKafkaBroker embeddedKafkaBroker;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper objectMapper;
 
     @Autowired
     private MeterRegistry meterRegistry;
@@ -178,7 +178,7 @@ class SwimDmsServiceE2ETest {
     void shouldSendFailedEventToDlq() throws Exception {
         final SingleFileEvent event = new SingleFileEvent(
                 "unknown-use-case",
-                new PresignedFile("http://localhost:9000/%s/%s".formatted(BUCKET, FILE_PATH), null));
+                new PresignedFile("http://%s:%d/%s/%s".formatted(MINIO.getHost(), MINIO.getMappedPort(9000), BUCKET, FILE_PATH), null));
 
         try (KafkaProducer<String, String> producer = new KafkaProducer<>(producerProps())) {
             producer.send(new ProducerRecord<>(EVENT_TOPIC, objectMapper.writeValueAsString(event))).get();
@@ -194,7 +194,7 @@ class SwimDmsServiceE2ETest {
     }
 
     private SingleFileEvent readEvent(final String topic, final String groupId) {
-        final Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(groupId, "true", embeddedKafkaBroker);
+        final Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(embeddedKafkaBroker, groupId, true);
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);

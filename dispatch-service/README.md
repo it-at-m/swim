@@ -109,7 +109,7 @@ To allow a preceding system to change the routing behaviour there is the propert
 
 ## Multi Events
 
-Files matching the pattern `-\d+v\d+$` (e.g. `-1v3.pdf`) are grouped into a single event for joint processing.
+Filenames (without extension) matching the pattern `-\d+v\d+$` (e.g. `...-1v3.pdf`) are grouped into a single event for joint processing.
 This leads to two different types of events, which are determined by the `swim_event_type` header in the Kafka messages:
 - `single`: For processing a single file (for backwards compatibility, events without that header are handled as single events).
 - `multi`: For processing multiple files together (e.g. after splitting a file, where the chunks still belong to the same context).

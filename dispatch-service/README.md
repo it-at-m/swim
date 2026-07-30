@@ -106,3 +106,12 @@ To allow a preceding system to change the routing behaviour there is the propert
 - `dispatch` (default if action tag not set): Default routing behaviour
 - `reroute`: Reroute a message to another use case. Target use case is resolved via `swim.dispatch-action-destination-tag-key`
 - `delete`, `ignore`: File is marked as finished without further processing
+
+## Multi Events
+
+Files matching the pattern `-\d+v\d+$` (e.g. `-1v3.pdf`) are grouped into a single event for joint processing.
+This leads to two different types of events, which are determined by the `swim_event_type` header in the Kafka messages:
+- `single`: For processing a single file (for backwarts compatibility events without that header are handled as single events).
+- `multi`: For processing multiple files together (e.g. after splitting a file, where the junks still belong to the same context).
+
+The [handler-core](../handler-core) has two different interface methods to allow application to handle the different types differently or only support one.

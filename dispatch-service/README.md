@@ -114,11 +114,11 @@ This leads to two different types of events, which are determined by the `swim_e
 - `single`: For processing a single file (for backwards compatibility, events without that header are handled as single events).
 - `multi`: For processing multiple files together (e.g. after splitting a file, where the chunks still belong to the same context).
 
-During dispatching the group of files in multi events is validated for completeness. 
-This is done by extracting the index (1. matching group) and the junk count (2. matching group) from the above pattern and 
-validating that each junk is present before dispatching the event.
-To prevent errors from occurring when file junks are still uploaded, there is a configurable delay `max-file-chunk-age` (see [Configuration](#configuration)), 
-after which missing junks lead to an error.
+During dispatching, the group of files in multi-events is validated for completeness.
+This is done by extracting the index (1. matching group) and the junk count (2. matching group) from the above pattern and
+validating that each chunk is present before dispatching the event.
+To prevent errors from occurring when file junks are still uploaded, there is a configurable delay `max-file-chunk-age` (see [Configuration](#configuration)),
+after which missing chunks lead to an error.
 
 For handling these events the [handler-core](../handler-core) has two different interface methods, 
 which allow an application to handle the different types differently or support only one.

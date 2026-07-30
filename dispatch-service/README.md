@@ -46,7 +46,7 @@ swim:
     access-key:
     secret-key:
   # file chunking
-  max-file-chunk-age: 1d # after which file age an error should be thrown if file chunks are missing
+  max-file-chunk-age: 1d # after which file age an error should be thrown if file chunks are missing, see section "Multi Events"
   # dirs
   dispatch-folder: inProcess # subfolder to search for files to process under
   finished-folder: finished # subfolder to move finished files to
@@ -109,9 +109,16 @@ To allow a preceding system to change the routing behaviour there is the propert
 
 ## Multi Events
 
-Filenames (without extension) matching the pattern `-\d+v\d+$` (e.g. `...-1v3.pdf`) are grouped into a single event for joint processing.
+Filenames (without extension) matching the pattern `-(\d+)v(\d+)$` (e.g. `...-1v3.pdf`) are grouped into a single event for joint processing.
 This leads to two different types of events, which are determined by the `swim_event_type` header in the Kafka messages:
 - `single`: For processing a single file (for backwards compatibility, events without that header are handled as single events).
 - `multi`: For processing multiple files together (e.g. after splitting a file, where the chunks still belong to the same context).
 
-The [handler-core](../handler-core) has two different interface methods to allow an application to handle the different types differently or support only one.
+During dispatching the group of files in multi events is validated for completeness. 
+This is done by extracting the index (1. matching group) and the junk count (2. matching group) from the above pattern and 
+validating that each junk is present before dispatching the event.
+To prevent errors from occurring when file junks are still uploaded, there is a configurable delay `max-file-chunk-age` (see [Configuration](#configuration)), 
+after which missing junks lead to an error.
+
+For handling these events the [handler-core](../handler-core) has two different interface methods, 
+which allow an application to handle the different types differently or support only one.

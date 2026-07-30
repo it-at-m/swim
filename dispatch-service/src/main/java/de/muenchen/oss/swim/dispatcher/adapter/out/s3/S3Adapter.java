@@ -199,7 +199,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .bucket(fileReference.bucket())
                 .object(fileReference.path())
                 .method(Method.GET)
-                .expiry(s3Properties.getPresignedUrlExpiry())
+                .expiry((int) s3Properties.getPresignedUrlExpiry().toSeconds())
                 .build();
         try {
             return minioClient.getPresignedObjectUrl(getPresignedObjectUrlArgs);

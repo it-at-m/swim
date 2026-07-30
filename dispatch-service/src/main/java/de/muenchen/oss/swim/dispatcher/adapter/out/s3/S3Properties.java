@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.dispatcher.adapter.out.s3;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.time.Duration;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -19,7 +20,7 @@ class S3Properties {
      * Default: 7d
      */
     @NotNull
-    private int presignedUrlExpiry = 7 * 24 * 60 * 60;
+    private Duration presignedUrlExpiry = Duration.ofDays(7);
     /**
      * Timeout for connecting to S3.
      * Default: 30s

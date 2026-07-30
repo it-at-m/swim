@@ -45,6 +45,7 @@ swim:
     url:
     access-key:
     secret-key:
+    presigned-url-expiry: 7d
     connection-timeout: 30s
     read-timeout: 60s
     write-timeout: 60s

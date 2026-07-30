@@ -45,6 +45,9 @@ swim:
     url:
     access-key:
     secret-key:
+    connection-timeout: 30s
+    read-timeout: 60s
+    write-timeout: 60s
   # file chunking
   max-file-chunk-age: 1d # after which file age an error should be thrown if file chunks are missing
   # dirs

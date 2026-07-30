@@ -20,4 +20,22 @@ class S3Properties {
      */
     @NotNull
     private int presignedUrlExpiry = 7 * 24 * 60 * 60;
+    /**
+     * Timeout for connecting to S3.
+     * Default: 30s
+     */
+    @NotNull
+    private Duration connectionTimeout = Duration.ofSeconds(30);
+    /**
+     * Timeout for reading from S3.
+     * Default: 60s
+     */
+    @NotNull
+    private Duration readTimeout = Duration.ofSeconds(60);
+    /**
+     * Timeout for writing to S3.
+     * Default: 60s
+     */
+    @NotNull
+    private Duration writeTimeout = Duration.ofSeconds(60);
 }

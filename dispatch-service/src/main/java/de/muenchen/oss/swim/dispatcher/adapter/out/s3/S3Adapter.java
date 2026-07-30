@@ -79,8 +79,8 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .credentials(s3Properties.getAccessKey(), s3Properties.getSecretKey())
                 .httpClient(HttpUtils.newDefaultHttpClient(
                         s3Properties.getConnectionTimeout().toMillis(),
-                        s3Properties.getReadTimeout().toMillis(),
-                        s3Properties.getWriteTimeout().toMillis()))
+                        s3Properties.getWriteTimeout().toMillis(),
+                        s3Properties.getReadTimeout().toMillis()))
                 .build();
         this.swimDispatcherProperties = swimDispatcherProperties;
     }
@@ -199,7 +199,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .bucket(fileReference.bucket())
                 .object(fileReference.path())
                 .method(Method.GET)
-                .expiry((int) s3Properties.getPresignedUrlExpiry().toSeconds())
+                .expiry(Math.toIntExact(s3Properties.getPresignedUrlExpiry().toSeconds()))
                 .build();
         try {
             return minioClient.getPresignedObjectUrl(getPresignedObjectUrlArgs);

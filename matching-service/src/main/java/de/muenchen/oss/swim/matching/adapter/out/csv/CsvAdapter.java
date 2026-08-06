@@ -1,18 +1,18 @@
 package de.muenchen.oss.swim.matching.adapter.out.csv;
 
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.muenchen.oss.swim.matching.application.port.out.ExportParsingOutPort;
 import de.muenchen.oss.swim.matching.domain.exception.CsvParsingException;
 import de.muenchen.oss.swim.matching.domain.model.DmsInbox;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.MappingIterator;
+import tools.jackson.dataformat.csv.CsvMapper;
+import tools.jackson.dataformat.csv.CsvSchema;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +40,7 @@ public class CsvAdapter implements ExportParsingOutPort {
                 lines++;
                 try {
                     dtos.add(iterator.nextValue());
-                } catch (final IOException e) {
+                } catch (final JacksonException e) {
                     skippedLines++;
                     log.debug("Failed to parse line {}: {}", lines, e.getMessage());
                 }
@@ -52,7 +52,7 @@ public class CsvAdapter implements ExportParsingOutPort {
                 throw new CsvParsingException(String.format("Failed to parse any records from CSV file with %d lines", lines));
             }
             return dmsExportMapper.fromDtos(dtos);
-        } catch (final IOException e) {
+        } catch (final JacksonException e) {
             throw new CsvParsingException("Error parsing CSV file", e);
         }
     }

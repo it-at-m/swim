@@ -5,7 +5,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dipa.TestConstants;
 import de.muenchen.oss.swim.dipa.application.port.out.DipaOutPort;
 import de.muenchen.oss.swim.dipa.configuration.DipaMeter;
@@ -19,8 +18,8 @@ import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileSystemOutP
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +30,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(
         classes = { SwimDipaProperties.class, ProcessFileUseCase.class, ObjectMapper.class, PatternHelper.class }
@@ -58,7 +58,6 @@ class ProcessFileUseCaseTest {
     private static final String FILE_NAME_WITHOUT_EXTENSION = "test_asd";
     private static final String FILE_NAME = String.format("%s.pdf", FILE_NAME_WITHOUT_EXTENSION);
     private static final String FILE_PATH = String.format("test-path/%s", FILE_NAME);
-    private static final File FILE = new File(BUCKET, FILE_PATH);
     private static final String FILE_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, FILE_PATH);
     private static final DipaRequestContext REQUEST_CONTEXT = new DipaRequestContext("staticUsername");
 
@@ -71,7 +70,7 @@ class ProcessFileUseCaseTest {
     void testProcessFile_HrSubfileStatic() throws UnknownUseCaseException, PresignedUrlException {
         final String useCaseName = "hr_subfile_incoming-static";
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName));
         // test
         verify(swimDipaProperties, times(1)).findUseCase(eq(useCaseName));
         final HrSubfileContext context = new HrSubfileContext(REQUEST_CONTEXT, "staticPersNr", "staticCategory");
@@ -85,7 +84,7 @@ class ProcessFileUseCaseTest {
     void testProcessFile_HrSubfileFilename() throws UnknownUseCaseException, PresignedUrlException {
         final String useCaseName = "hr_subfile_incoming-filename";
         // call
-        processFileUseCase.processFile(buildFileEvent(useCaseName), FILE);
+        processFileUseCase.processEvent(buildFileEvent(useCaseName));
         // test
         verify(swimDipaProperties, times(1)).findUseCase(eq(useCaseName));
         final HrSubfileContext context = new HrSubfileContext(REQUEST_CONTEXT, "test", "asd");
@@ -95,7 +94,7 @@ class ProcessFileUseCaseTest {
         verify(dipaMeter, times(1)).incrementProcessed(eq(useCaseName), eq("HR_SUBFILE_INCOMING"));
     }
 
-    private FileEvent buildFileEvent(final String useCaseName) {
-        return new FileEvent(useCaseName, FILE_PRESIGNED_URL, null);
+    private SingleFileEvent buildFileEvent(final String useCaseName) {
+        return new SingleFileEvent(useCaseName, new PresignedFile(FILE_PRESIGNED_URL, null));
     }
 }

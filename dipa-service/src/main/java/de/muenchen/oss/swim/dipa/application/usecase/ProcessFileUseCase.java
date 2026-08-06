@@ -15,8 +15,10 @@ import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileSystemOutP
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
 import de.muenchen.oss.swim.libs.handlercore.domain.helper.PatternHelper;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.FileReference;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.MultiFileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
@@ -36,11 +38,13 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     private final DipaMeter dipaMeter;
 
     @Override
-    public void processFile(final FileEvent event, final File file) throws UnknownUseCaseException, PresignedUrlException {
+    public void processEvent(final SingleFileEvent event) throws PresignedUrlException, UnknownUseCaseException {
+        final PresignedFile presignedFile = event.file();
+        final FileReference file = FileReference.fromPresignedUrl(presignedFile.presignedUrl());
         log.info("Processing file {} for use case {}", file, event.useCase());
         final UseCase useCase = swimDipaProperties.findUseCase(event.useCase());
         log.debug("Resolved use case: {}", useCase);
-        try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(event.presignedUrl())) {
+        try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(presignedFile.presignedUrl())) {
             switch (useCase.getType()) {
             case HR_SUBFILE_INCOMING -> this.processHrSubfileIncoming(useCase, file, fileStream);
             case null, default -> throw new IllegalStateException("UseCaseType not implemented");
@@ -55,6 +59,11 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         dipaMeter.incrementProcessed(useCase.getName(), useCase.getType().name());
     }
 
+    @Override
+    public void processEvent(final MultiFileEvent event) {
+        throw new IllegalArgumentException("Handling of multi event is not supported");
+    }
+
     /**
      * Process creation of Incoming with ContentObject inside HrSubfile.
      * See {@link UseCaseType#HR_SUBFILE_INCOMING}.
@@ -63,7 +72,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param file File to create the Incoming for.
      * @param fileContent Content of the ContentObject.
      */
-    protected void processHrSubfileIncoming(final UseCase useCase, final File file, final InputStream fileContent) {
+    protected void processHrSubfileIncoming(final UseCase useCase, final FileReference file, final InputStream fileContent) {
         final HrSubfileContext requestContext = this.buildHrSubfileContext(useCase, file);
         final IncomingRequest request = this.buildIncomingRequest(useCase, file, fileContent);
         this.dipaOutPort.createHrSubfileIncoming(requestContext, request);
@@ -77,7 +86,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param fileContent Content of the ContentObject to create.
      * @return Built Incoming request.
      */
-    protected IncomingRequest buildIncomingRequest(final UseCase useCase, final File file, final InputStream fileContent) {
+    protected IncomingRequest buildIncomingRequest(final UseCase useCase, final FileReference file, final InputStream fileContent) {
         final String incomingSubject;
         if (StringUtils.isNotBlank(useCase.getIncoming().getIncomingSubjPattern())) {
             incomingSubject = this.patternHelper.applyPattern(useCase.getIncoming().getIncomingSubjPattern(), file.getFileNameWithoutExtension(),
@@ -97,7 +106,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param fileContent Content of the new ContentObject.
      * @return Built ContentObject request.
      */
-    protected ContentObjectRequest buildContentObjectRequest(final UseCase useCase, final File file, final InputStream fileContent) {
+    protected ContentObjectRequest buildContentObjectRequest(final UseCase useCase, final FileReference file, final InputStream fileContent) {
         final String contentObjectName = this.patternHelper.applyPattern(useCase.getContentObject().getFilenameOverwritePattern(),
                 file.getFileNameWithoutExtension(), null);
         final String contentObjectExtension = file.getFileExtension();
@@ -111,7 +120,7 @@ public class ProcessFileUseCase implements ProcessFileInPort {
      * @param file File to build the context for. Used for patterns.
      * @return The resolved context.
      */
-    protected HrSubfileContext buildHrSubfileContext(final UseCase useCase, final File file) {
+    protected HrSubfileContext buildHrSubfileContext(final UseCase useCase, final FileReference file) {
         final UseCaseSource source = useCase.getTargetSource();
         return switch (useCase.getTargetSource().getType()) {
         case STATIC -> new HrSubfileContext(useCase.getContext(), source.getStaticPersNr(), source.getStaticCategory());

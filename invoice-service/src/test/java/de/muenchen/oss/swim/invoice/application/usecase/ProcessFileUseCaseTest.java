@@ -11,8 +11,8 @@ import de.muenchen.oss.swim.invoice.configuration.InvoiceMeter;
 import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileEventOutPort;
 import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,15 +44,14 @@ class ProcessFileUseCaseTest {
     private static final String FILE_NAME_WITHOUT_EXTENSION = "test-COO.123.123.123-asd";
     private static final String FILE_NAME = String.format("%s.pdf", FILE_NAME_WITHOUT_EXTENSION);
     private static final String FILE_PATH = String.format("test-path/%s", FILE_NAME);
-    private static final File FILE = new File(BUCKET, FILE_PATH);
     private static final String FILE_PRESIGNED_URL = String.format("http://localhost:9001/%s/%s", BUCKET, FILE_PATH);
     private static final String USE_CASE = "test-usecase";
-    private static final FileEvent FILE_EVENT = new FileEvent(USE_CASE, FILE_PRESIGNED_URL, null);
+    private static final SingleFileEvent FILE_EVENT = new SingleFileEvent(USE_CASE, new PresignedFile(FILE_PRESIGNED_URL, null));
 
     @Test
     void testProcessFile() throws PresignedUrlException {
         // call
-        processFileUseCase.processFile(FILE_EVENT, FILE);
+        processFileUseCase.processEvent(FILE_EVENT);
         // test
         verify(invoiceServiceOutPort, times(1)).createInvoice(eq(FILE_NAME), any());
         verify(fileEventOutPort, times(1)).fileFinished(eq(FILE_EVENT));

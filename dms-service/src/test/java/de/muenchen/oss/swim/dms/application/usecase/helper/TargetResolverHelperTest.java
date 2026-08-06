@@ -3,7 +3,6 @@ package de.muenchen.oss.swim.dms.application.usecase.helper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.dms.TestConstants;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
@@ -26,9 +25,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
-        classes = { SwimDmsProperties.class, TargetResolverHelper.class, ObjectMapper.class, DmsMetadataHelper.class, PatternHelper.class }
+        classes = { SwimDmsProperties.class, TargetResolverHelper.class, JsonMapper.class, DmsMetadataHelper.class, PatternHelper.class }
 )
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)

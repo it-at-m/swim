@@ -1,18 +1,18 @@
 package de.muenchen.oss.swim.dms.adapter.out.dms;
 
-import de.muenchen.refarch.integration.dms.ApiClient;
-import de.muenchen.refarch.integration.dms.api.ContentObjectsApi;
-import de.muenchen.refarch.integration.dms.api.IncomingFromInboxApi;
-import de.muenchen.refarch.integration.dms.api.IncomingsApi;
-import de.muenchen.refarch.integration.dms.api.ObjectAndImportToInboxApi;
-import de.muenchen.refarch.integration.dms.api.ProcedureObjectsApi;
-import de.muenchen.refarch.integration.dms.api.ProceduresApi;
-import de.muenchen.refarch.integration.dms.api.SearchObjNamesApi;
+import de.muenchen.oss.refarch.integration.dms.ApiClient;
+import de.muenchen.oss.refarch.integration.dms.api.ContentObjectsApi;
+import de.muenchen.oss.refarch.integration.dms.api.IncomingFromInboxApi;
+import de.muenchen.oss.refarch.integration.dms.api.IncomingsApi;
+import de.muenchen.oss.refarch.integration.dms.api.ObjectAndImportToInboxApi;
+import de.muenchen.oss.refarch.integration.dms.api.ProcedureObjectsApi;
+import de.muenchen.oss.refarch.integration.dms.api.ProceduresApi;
+import de.muenchen.oss.refarch.integration.dms.api.SearchObjNamesApi;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
-@Component
+@Configuration
 class ApiClientConfiguration {
     @Bean
     protected ApiClient apiClient(final DmsProperties dmsProperties) {

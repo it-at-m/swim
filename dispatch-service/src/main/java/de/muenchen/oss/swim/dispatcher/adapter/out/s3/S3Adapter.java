@@ -1,9 +1,5 @@
 package de.muenchen.oss.swim.dispatcher.adapter.out.s3;
 
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvParser;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.ReadProtocolOutPort;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
@@ -49,9 +45,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IteratorUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.MappingIterator;
+import tools.jackson.dataformat.csv.CsvMapper;
+import tools.jackson.dataformat.csv.CsvReadFeature;
+import tools.jackson.dataformat.csv.CsvSchema;
 
 @Service
 @Slf4j
@@ -69,8 +69,8 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
     private final S3Properties s3Properties;
     private final SwimDispatcherProperties swimDispatcherProperties;
 
-    /* default */ S3Adapter(@Autowired final S3Properties s3Properties, @Autowired final ProtocolMapper protocolMapper,
-            @Autowired final SwimDispatcherProperties swimDispatcherProperties) {
+    /* default */ S3Adapter(final S3Properties s3Properties, final ProtocolMapper protocolMapper,
+            final SwimDispatcherProperties swimDispatcherProperties) {
         this.protocolMapper = protocolMapper;
         this.s3Properties = s3Properties;
         this.minioClient = MinioClient.builder()
@@ -392,12 +392,12 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
             try (MappingIterator<CsvProtocolEntry> iterator = csvMapper
                     .readerFor(CsvProtocolEntry.class)
                     .with(schema)
-                    .with(CsvParser.Feature.SKIP_EMPTY_LINES)
-                    .without(CsvParser.Feature.FAIL_ON_MISSING_HEADER_COLUMNS)
+                    .with(CsvReadFeature.SKIP_EMPTY_LINES)
+                    .without(CsvReadFeature.FAIL_ON_MISSING_HEADER_COLUMNS)
                     .readValues(reader)) {
                 return protocolMapper.toDomain(iterator.readAll());
             }
-        } catch (IOException e) {
+        } catch (JacksonException | IOException e) {
             final String message = String.format("Error while parsing protocol from file %s", fileReference);
             throw new ProtocolException(message, e);
         }

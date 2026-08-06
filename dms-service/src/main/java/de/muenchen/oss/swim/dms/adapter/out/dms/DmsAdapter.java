@@ -1,5 +1,30 @@
 package de.muenchen.oss.swim.dms.adapter.out.dms;
 
+import de.muenchen.oss.refarch.integration.dms.api.ContentObjectsApi;
+import de.muenchen.oss.refarch.integration.dms.api.IncomingFromInboxApi;
+import de.muenchen.oss.refarch.integration.dms.api.IncomingsApi;
+import de.muenchen.oss.refarch.integration.dms.api.ObjectAndImportToInboxApi;
+import de.muenchen.oss.refarch.integration.dms.api.ProcedureObjectsApi;
+import de.muenchen.oss.refarch.integration.dms.api.ProceduresApi;
+import de.muenchen.oss.refarch.integration.dms.api.SearchObjNamesApi;
+import de.muenchen.oss.refarch.integration.dms.model.CreateContentObjectAnfrageDTO;
+import de.muenchen.oss.refarch.integration.dms.model.CreateContentObjectAntwortDTO;
+import de.muenchen.oss.refarch.integration.dms.model.CreateIncomingAntwortDTO;
+import de.muenchen.oss.refarch.integration.dms.model.CreateIncomingBasisAnfrageDTO;
+import de.muenchen.oss.refarch.integration.dms.model.CreateIncomingFromInboxRequestDTO;
+import de.muenchen.oss.refarch.integration.dms.model.CreateObjectAndImportToInboxDTO;
+import de.muenchen.oss.refarch.integration.dms.model.CreateObjectAndImportToInboxResponseDTO;
+import de.muenchen.oss.refarch.integration.dms.model.CreateProcedureDTO;
+import de.muenchen.oss.refarch.integration.dms.model.DmsObjektResponse;
+import de.muenchen.oss.refarch.integration.dms.model.Objektreferenz;
+import de.muenchen.oss.refarch.integration.dms.model.ReadProcedureObjectsAntwortDTO;
+import de.muenchen.oss.refarch.integration.dms.model.ReadProcedureResponseDTO;
+import de.muenchen.oss.refarch.integration.dms.model.SearchObjNameAnfrageDTO;
+import de.muenchen.oss.refarch.integration.dms.model.SearchObjNameAntwortDTO;
+import de.muenchen.oss.refarch.integration.dms.model.SearchProcedureRequestDTO;
+import de.muenchen.oss.refarch.integration.dms.model.SearchProcedureResponseDTO;
+import de.muenchen.oss.refarch.integration.dms.model.UpdateIncomingAnfrageDTO;
+import de.muenchen.oss.refarch.integration.dms.model.UpdateIncomingAntwortDTO;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.model.DmsContentObjectRequest;
@@ -8,31 +33,6 @@ import de.muenchen.oss.swim.dms.domain.model.DmsProcedureRequest;
 import de.muenchen.oss.swim.dms.domain.model.DmsRequestContext;
 import de.muenchen.oss.swim.dms.domain.model.DmsResourceType;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
-import de.muenchen.refarch.integration.dms.api.ContentObjectsApi;
-import de.muenchen.refarch.integration.dms.api.IncomingFromInboxApi;
-import de.muenchen.refarch.integration.dms.api.IncomingsApi;
-import de.muenchen.refarch.integration.dms.api.ObjectAndImportToInboxApi;
-import de.muenchen.refarch.integration.dms.api.ProcedureObjectsApi;
-import de.muenchen.refarch.integration.dms.api.ProceduresApi;
-import de.muenchen.refarch.integration.dms.api.SearchObjNamesApi;
-import de.muenchen.refarch.integration.dms.model.CreateContentObjectAnfrageDTO;
-import de.muenchen.refarch.integration.dms.model.CreateContentObjectAntwortDTO;
-import de.muenchen.refarch.integration.dms.model.CreateIncomingAntwortDTO;
-import de.muenchen.refarch.integration.dms.model.CreateIncomingBasisAnfrageDTO;
-import de.muenchen.refarch.integration.dms.model.CreateIncomingFromInboxRequestDTO;
-import de.muenchen.refarch.integration.dms.model.CreateObjectAndImportToInboxDTO;
-import de.muenchen.refarch.integration.dms.model.CreateObjectAndImportToInboxResponseDTO;
-import de.muenchen.refarch.integration.dms.model.CreateProcedureDTO;
-import de.muenchen.refarch.integration.dms.model.DmsObjektResponse;
-import de.muenchen.refarch.integration.dms.model.Objektreferenz;
-import de.muenchen.refarch.integration.dms.model.ReadProcedureObjectsAntwortDTO;
-import de.muenchen.refarch.integration.dms.model.ReadProcedureResponseDTO;
-import de.muenchen.refarch.integration.dms.model.SearchObjNameAnfrageDTO;
-import de.muenchen.refarch.integration.dms.model.SearchObjNameAntwortDTO;
-import de.muenchen.refarch.integration.dms.model.SearchProcedureRequestDTO;
-import de.muenchen.refarch.integration.dms.model.SearchProcedureResponseDTO;
-import de.muenchen.refarch.integration.dms.model.UpdateIncomingAnfrageDTO;
-import de.muenchen.refarch.integration.dms.model.UpdateIncomingAntwortDTO;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -74,7 +74,7 @@ public class DmsAdapter implements DmsOutPort {
             request.setFilesubj(List.of(List.of(contentObjectRequest.subject())));
         }
         try {
-            final AbstractResource file = new NamedInputStreamResource(contentObjectRequest.name(), contentObjectRequest.inputStream());
+            final Resource file = new NamedInputStreamResource(contentObjectRequest.name(), contentObjectRequest.inputStream());
             final CreateObjectAndImportToInboxResponseDTO response = objectAndImportToInboxApi.createObjectAndImportToInbox(
                     request,
                     DMS_APPLICATION,
@@ -148,7 +148,7 @@ public class DmsAdapter implements DmsOutPort {
         request.filesubj(incomingRequest.subject());
         request.useou(true);
         try {
-            final List<AbstractResource> attachments = contentObjectRequests.stream()
+            final List<Resource> attachments = contentObjectRequests.stream()
                     .map(i -> new NamedInputStreamResource(i.name(), i.inputStream())).collect(Collectors.toList());
             final CreateIncomingAntwortDTO response = incomingsApi.createIncoming(
                     request,
@@ -173,7 +173,7 @@ public class DmsAdapter implements DmsOutPort {
     public void addContentObjectsToIncoming(final DmsTarget dmsTarget, final List<DmsContentObjectRequest> contentObjectRequests) {
         log.debug("Updating Incoming {} with {} files", dmsTarget, contentObjectRequests.size());
         final UpdateIncomingAnfrageDTO request = new UpdateIncomingAnfrageDTO();
-        final List<AbstractResource> attachments = contentObjectRequests.stream()
+        final List<Resource> attachments = contentObjectRequests.stream()
                 .map(i -> new NamedInputStreamResource(i.name(), i.inputStream())).collect(Collectors.toList());
         try {
             final UpdateIncomingAntwortDTO response = incomingsApi.updateIncoming(
@@ -257,7 +257,6 @@ public class DmsAdapter implements DmsOutPort {
                     dmsTarget.getJoboe(),
                     dmsTarget.getJobposition()).block();
             if (response != null && response.getGiobjecttype() != null) {
-                // FIXME does this always contain an suffix?
                 final List<Objektreferenz> matchingProcedures = response.getGiobjecttype();
                 log.info("Found Procedures {} where name matches '{}'", matchingProcedures, procedureName);
                 if (matchingProcedures.size() > 1) {
@@ -280,7 +279,7 @@ public class DmsAdapter implements DmsOutPort {
         final CreateContentObjectAnfrageDTO createContentObjectAnfrageDTO = new CreateContentObjectAnfrageDTO();
         createContentObjectAnfrageDTO.referrednumber(dmsTarget.getCoo());
         try {
-            final AbstractResource file = new NamedInputStreamResource(contentObjectRequest.name(), contentObjectRequest.inputStream());
+            final Resource file = new NamedInputStreamResource(contentObjectRequest.name(), contentObjectRequest.inputStream());
             final CreateContentObjectAntwortDTO response = this.contentObjectsApi.createContentObject(
                     createContentObjectAnfrageDTO,
                     DMS_APPLICATION,

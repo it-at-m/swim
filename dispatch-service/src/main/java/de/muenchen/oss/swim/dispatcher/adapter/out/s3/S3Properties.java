@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import lombok.Data;
+import org.hibernate.validator.constraints.time.DurationMax;
 import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
@@ -28,6 +29,7 @@ class S3Properties {
     @NotNull
     @DurationUnit(ChronoUnit.SECONDS)
     @DurationMin(hours = 1)
+    @DurationMax(days = 7)
     private Duration presignedUrlExpiry = Duration.ofDays(7);
     /**
      * Timeout for connecting to S3.

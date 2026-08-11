@@ -28,7 +28,7 @@ logging:
     format:
       console: # set to empty to disable structured logging for testing
   level:
-    "de.muenchen.swim.dms": debug
+    "de.muenchen.oss.swim.dms": debug
 
 swim:
   dms:

@@ -1,6 +1,7 @@
 package de.muenchen.oss.swim.dms.adapter.out.dms;
 
 import de.muenchen.oss.refarch.integration.dms.api.ContentObjectsApi;
+import de.muenchen.oss.refarch.integration.dms.api.DepositObjectsApi;
 import de.muenchen.oss.refarch.integration.dms.api.IncomingFromInboxApi;
 import de.muenchen.oss.refarch.integration.dms.api.IncomingsApi;
 import de.muenchen.oss.refarch.integration.dms.api.ObjectAndImportToInboxApi;
@@ -57,6 +58,7 @@ public class DmsAdapter implements DmsOutPort {
     private final ProcedureObjectsApi procedureObjectsApi;
     private final ContentObjectsApi contentObjectsApi;
     private final SearchObjNamesApi searchObjNamesApi;
+    private final DepositObjectsApi depositObjectsApi;
 
     private static final String DMS_APPLICATION = "SWIM";
     private static final String DMS_OBJECT_TYPE_INBOX = "FSCVGOV@1.1001:Inbox";
@@ -346,6 +348,25 @@ public class DmsAdapter implements DmsOutPort {
                 return coos;
             } else {
                 throw new DmsException("Response or object list null while searching for objects via name");
+            }
+        } catch (final WebClientResponseException e) {
+            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
+        }
+    }
+
+    @Override
+    public void archiveObject(final DmsTarget dmsTarget) {
+        try {
+            final DmsObjektResponse response = this.depositObjectsApi.depositObject(
+                    dmsTarget.getCoo(),
+                    DMS_APPLICATION,
+                    dmsTarget.getUsername(),
+                    dmsTarget.getJoboe(),
+                    dmsTarget.getJobposition()).block();
+            if (response != null) {
+                log.info("Archived object {}", dmsTarget);
+            } else {
+                throw new DmsException("Response or object list null while archiving object");
             }
         } catch (final WebClientResponseException e) {
             throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);

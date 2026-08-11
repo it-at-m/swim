@@ -1,5 +1,6 @@
 package de.muenchen.oss.swim.dms.configuration;
 
+import de.muenchen.oss.swim.dms.application.usecase.CleanupShadowFilesUseCase;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseIncoming;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
@@ -55,6 +56,29 @@ public class SwimDmsProperties {
      */
     @NotBlank
     private String metadataSubjectPrefix;
+    /**
+     * Attributes used for the shadow file cleanup, see {@link CleanupShadowFilesUseCase}.
+     */
+    private ShadowFileCleanup shadowFileCleanup = new ShadowFileCleanup();
+
+    @Data
+    public static class ShadowFileCleanup {
+        /**
+         * The cron definition to use for triggering the scheduled cleanup.
+         */
+        @NotBlank
+        private String cron;
+        /**
+         * User to use for cleaning up shadow files.
+         */
+        @NotBlank
+        private String username;
+        /**
+         * List of shadow files to clean up via {@link CleanupShadowFilesUseCase}
+         */
+        @NotNull
+        private List<@NotBlank String> coos = List.of();
+    }
 
     /**
      * Resolve use case via name.

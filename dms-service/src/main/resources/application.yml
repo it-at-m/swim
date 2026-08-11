@@ -114,3 +114,5 @@ swim:
     user-key: "A_Username"
     job-oe-key: "A_Joboe"
     job-position-key: "A_Jobposition"
+  shadow-file-cleanup:
+    cron: "0 0 3 ? * MON#1"

@@ -2,6 +2,7 @@ package de.muenchen.oss.swim.dms.adapter.out.dms;
 
 import de.muenchen.oss.refarch.integration.dms.ApiClient;
 import de.muenchen.oss.refarch.integration.dms.api.ContentObjectsApi;
+import de.muenchen.oss.refarch.integration.dms.api.DepositObjectsApi;
 import de.muenchen.oss.refarch.integration.dms.api.IncomingFromInboxApi;
 import de.muenchen.oss.refarch.integration.dms.api.IncomingsApi;
 import de.muenchen.oss.refarch.integration.dms.api.ObjectAndImportToInboxApi;
@@ -57,5 +58,10 @@ class ApiClientConfiguration {
     @Bean
     protected IncomingFromInboxApi incomingFromInboxApi(final ApiClient apiClient) {
         return new IncomingFromInboxApi(apiClient);
+    }
+
+    @Bean
+    protected DepositObjectsApi depositObjectsApi(final ApiClient apiClient) {
+        return new DepositObjectsApi(apiClient);
     }
 }

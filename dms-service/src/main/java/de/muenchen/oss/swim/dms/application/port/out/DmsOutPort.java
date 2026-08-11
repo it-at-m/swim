@@ -110,4 +110,11 @@ public interface DmsOutPort {
      * @return The COOs of all matching objects.
      */
     List<String> findObjectsByName(@NotNull DmsResourceType resourceType, @NotNull String objectName, @NotNull @Valid DmsRequestContext requestContext);
+
+    /**
+     * Archive a given object.
+     *
+     * @param dmsTarget The object to archive.
+     */
+    void archiveObject(@NotNull @Valid DmsTarget dmsTarget);
 }

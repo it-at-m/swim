@@ -27,8 +27,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DmsHelper {
-    private static final DateTimeFormatter SHADOW_PROCEDURE_NAME_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM");
-    private static final DateTimeFormatter SHADOW_INCOMING_NAME_PATTERN = DateTimeFormatter.ofPattern("dd");
+    public static final DateTimeFormatter SHADOW_PROCEDURE_NAME_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM");
+    public static final DateTimeFormatter SHADOW_INCOMING_NAME_PATTERN = DateTimeFormatter.ofPattern("dd");
 
     private final RequestResolverHelper requestResolverHelper;
     private final PatternHelper patternHelper;

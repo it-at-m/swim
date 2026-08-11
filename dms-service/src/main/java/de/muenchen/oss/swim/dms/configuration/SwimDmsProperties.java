@@ -59,6 +59,8 @@ public class SwimDmsProperties {
     /**
      * Attributes used for the shadow file cleanup, see {@link CleanupShadowFilesUseCase}.
      */
+    @NotNull
+    @Valid
     private ShadowFileCleanup shadowFileCleanup = new ShadowFileCleanup();
 
     @Data

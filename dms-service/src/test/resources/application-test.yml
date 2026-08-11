@@ -1,4 +1,6 @@
 swim:
+  shadow-file-cleanup:
+    username: "test"
   use-cases:
     - name: metadata-inbox
       type: inbox_content_object

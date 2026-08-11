@@ -9,15 +9,24 @@ import de.muenchen.oss.refarch.integration.dms.api.ObjectAndImportToInboxApi;
 import de.muenchen.oss.refarch.integration.dms.api.ProcedureObjectsApi;
 import de.muenchen.oss.refarch.integration.dms.api.ProceduresApi;
 import de.muenchen.oss.refarch.integration.dms.api.SearchObjNamesApi;
+import io.netty.channel.ChannelOption;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
 
 @Configuration
 class ApiClientConfiguration {
     @Bean
     protected ApiClient apiClient(final DmsProperties dmsProperties) {
-        final WebClient webClient = WebClient.builder().build();
+        final HttpClient httpClient = HttpClient.create()
+                .responseTimeout(dmsProperties.getReadTimeout())
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
+                        Math.toIntExact(dmsProperties.getConnectionTimeout().toMillis()));
+        final WebClient webClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .build();
         final ApiClient apiClient = new ApiClient(webClient);
         apiClient.setBasePath(dmsProperties.getBaseUrl());
         apiClient.setUsername(dmsProperties.getUsername());

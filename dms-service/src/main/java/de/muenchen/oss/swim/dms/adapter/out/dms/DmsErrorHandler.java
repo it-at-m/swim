@@ -25,7 +25,7 @@ class DmsErrorHandler {
                 dmsError = e.getResponseBodyAs(DmsErrorResponse.class);
             } catch (final RuntimeException ignored) {
             }
-            final HttpStatus httpStatus = HttpStatus.valueOf(e.getStatusCode().value());
+            final HttpStatus httpStatus = HttpStatus.resolve(e.getStatusCode().value());
             final String message = String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), dmsError);
             throw new DmsException(dmsMapper.toDomain(dmsError), httpStatus, message, e);
         } catch (final Exception e) {

@@ -1,5 +1,6 @@
 package de.muenchen.oss.swim.dms.domain.exception;
 
+import java.io.Serializable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ public class DmsException extends RuntimeException {
     public record DmsError(
             Integer code,
             String message,
-            String source) {
+            String source) implements Serializable {
     }
 
     @RequiredArgsConstructor

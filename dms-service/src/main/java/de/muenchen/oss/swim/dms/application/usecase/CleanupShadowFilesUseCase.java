@@ -5,6 +5,7 @@ import static de.muenchen.oss.swim.dms.application.usecase.helper.DmsHelper.SHAD
 import de.muenchen.oss.swim.dms.application.port.in.CleanupShadowFilesInPort;
 import de.muenchen.oss.swim.dms.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.dms.configuration.SwimDmsProperties;
+import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -29,18 +30,28 @@ public class CleanupShadowFilesUseCase implements CleanupShadowFilesInPort {
         // for each File coo
         for (final String fileCoo : cleanupProperties.getCoos()) {
             log.debug("Processing Procedure {} in File {}", procedureName, fileCoo);
-            final DmsTarget fileDmsTarget = new DmsTarget(fileCoo, cleanupProperties.getUsername(), null, null);
+            final DmsTarget fileDmsTarget = new DmsTarget(
+                    fileCoo,
+                    cleanupProperties.getUsername(),
+                    cleanupProperties.getJobOe(),
+                    cleanupProperties.getJobPosition());
             try {
                 // search for Procedure
                 final Optional<String> procedureCoo = dmsOutPort.getProcedureCooByName(fileDmsTarget, procedureName);
                 // archive Procedure if present
                 if (procedureCoo.isPresent()) {
-                    log.debug("Archiving Procedure {}", procedureCoo);
+                    log.debug("Archiving Procedure {}", procedureCoo.get());
                     final DmsTarget procedureDmsTarget = new DmsTarget(procedureCoo.get(), fileDmsTarget);
                     dmsOutPort.archiveObject(procedureDmsTarget);
                 }
             } catch (final RuntimeException e) {
-                log.error("Error while cleaning up shadow file Procedure {} in File {}", procedureName, fileCoo, e);
+                if (e instanceof DmsException de &&
+                        de.getDmsError() != null && de.getDmsError().code() != null &&
+                        de.getDmsError().code().equals(DmsException.DmsErrorCodes.OBJECT_ARCHIVED.getCode())) {
+                    log.warn("Procedure is already archived: {}", de.getDmsError().message());
+                } else {
+                    log.error("Error while cleaning up shadow file Procedure {} in File {}", procedureName, fileCoo, e);
+                }
             }
         }
         log.info("Finished cleaning up shadow files");

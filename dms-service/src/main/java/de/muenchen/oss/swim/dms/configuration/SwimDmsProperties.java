@@ -76,7 +76,15 @@ public class SwimDmsProperties {
         @NotBlank
         private String username;
         /**
-         * List of shadow files to clean up via {@link CleanupShadowFilesUseCase}
+         * Job oe to use for cleaning up shadow files.
+         */
+        private String jobOe;
+        /**
+         * Job position to use for cleaning up shadow files.
+         */
+        private String jobPosition;
+        /**
+         * List of shadow file COOs to clean up via {@link CleanupShadowFilesUseCase}
          */
         @NotNull
         private List<@NotBlank String> coos = List.of();

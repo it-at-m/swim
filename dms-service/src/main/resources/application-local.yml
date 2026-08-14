@@ -32,7 +32,10 @@ logging:
 
 swim:
   dms:
-    base-url: "https://dmsresteai-test-dmsresteai.apps.capk.muenchen.de/api"
+    base-url: "https://cap-eakte-resteai-test-bay-eakte-resteai.apps.test.capk.muenchen.de/api"
+  shadow-file-cleanup:
+    # cron: "0 * * * * *"
+    username: test.example
   use-cases:
     - name: test-meta
       type: inbox_content_object

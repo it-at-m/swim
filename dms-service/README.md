@@ -74,7 +74,7 @@ swim:
     job-position-key: "A_Jobposition"
   # shadow file archiving (see section "Leader Election")
   shadow-file-archiving:
-    cron: "0 0 3 ? * MON#1" # Cron for triggering the archiving (default: first monday a month 3:00)
+    cron: "0 0 3 1,2,4 * *" # Cron for triggering the archiving (default: 1.,2. and 4. day a month at 3:00)
     username: # Username to use for archiving the shadow files
     coos: # List of File COOs which contain shadow files
   # use cases

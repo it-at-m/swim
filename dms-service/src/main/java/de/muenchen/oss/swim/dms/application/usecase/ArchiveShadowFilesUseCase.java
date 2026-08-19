@@ -33,11 +33,15 @@ public class ArchiveShadowFilesUseCase implements ArchiveShadowFilesInPort {
             log.debug("Processing SubjectArea {}", subjectAreaCoo);
             final DmsTarget dmsTarget = new DmsTarget(subjectAreaCoo, archiveProperties.getUsername(), archiveProperties.getJobOe(),
                     archiveProperties.getJobPosition());
-            final List<String> fileCoos = dmsOutPort.getSubjectAreaFiles(dmsTarget);
-            // for each File in the SubjectArea
-            for (final String fileCoo : fileCoos) {
-                log.info("Processing Procedure {} in File {}", procedureName, fileCoo);
-                archiveProcedure(fileCoo, procedureName, dmsTarget);
+            try {
+                final List<String> fileCoos = dmsOutPort.getSubjectAreaFiles(dmsTarget);
+                // for each File in the SubjectArea
+                for (final String fileCoo : fileCoos) {
+                    log.info("Processing Procedure {} in File {}", procedureName, fileCoo);
+                    archiveProcedure(fileCoo, procedureName, dmsTarget);
+                }
+            } catch (final RuntimeException e) {
+                log.error("Error while loading Files for SubjectArea {}", subjectAreaCoo, e);
             }
         }
         log.info("Finished archiving shadow files");

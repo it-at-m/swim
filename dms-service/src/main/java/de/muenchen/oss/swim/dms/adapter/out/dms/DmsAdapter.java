@@ -8,6 +8,7 @@ import de.muenchen.oss.refarch.integration.dms.api.ObjectAndImportToInboxApi;
 import de.muenchen.oss.refarch.integration.dms.api.ProcedureObjectsApi;
 import de.muenchen.oss.refarch.integration.dms.api.ProceduresApi;
 import de.muenchen.oss.refarch.integration.dms.api.SearchObjNamesApi;
+import de.muenchen.oss.refarch.integration.dms.api.SubjectAreasApi;
 import de.muenchen.oss.refarch.integration.dms.model.CreateContentObjectAnfrageDTO;
 import de.muenchen.oss.refarch.integration.dms.model.CreateContentObjectAntwortDTO;
 import de.muenchen.oss.refarch.integration.dms.model.CreateIncomingAntwortDTO;
@@ -20,6 +21,7 @@ import de.muenchen.oss.refarch.integration.dms.model.DmsObjektResponse;
 import de.muenchen.oss.refarch.integration.dms.model.Objektreferenz;
 import de.muenchen.oss.refarch.integration.dms.model.ReadProcedureObjectsAntwortDTO;
 import de.muenchen.oss.refarch.integration.dms.model.ReadProcedureResponseDTO;
+import de.muenchen.oss.refarch.integration.dms.model.ReadSubjectAreaObjectsAntwortDTO;
 import de.muenchen.oss.refarch.integration.dms.model.SearchObjNameAnfrageDTO;
 import de.muenchen.oss.refarch.integration.dms.model.SearchObjNameAntwortDTO;
 import de.muenchen.oss.refarch.integration.dms.model.SearchProcedureRequestDTO;
@@ -58,6 +60,7 @@ public class DmsAdapter implements DmsOutPort {
     private final ContentObjectsApi contentObjectsApi;
     private final SearchObjNamesApi searchObjNamesApi;
     private final DepositObjectsApi depositObjectsApi;
+    private final SubjectAreasApi subjectAreasApi;
 
     private static final String DMS_APPLICATION = "SWIM";
     private static final String DMS_OBJECT_TYPE_INBOX = "FSCVGOV@1.1001:Inbox";
@@ -306,7 +309,7 @@ public class DmsAdapter implements DmsOutPort {
                 requestContext.getJobposition()).block());
         if (response != null && response.getGiobjecttype() != null) {
             final List<String> coos = response.getGiobjecttype().stream().map(Objektreferenz::getObjaddress).toList();
-            log.info("Found following coos for {}: {}", objectName, coos);
+            log.info("Found following {} COOs for {}: {}", resourceType.name(), objectName, coos);
             return coos;
         } else {
             throw new DmsException("Response or object list null while searching for objects via name");
@@ -323,6 +326,23 @@ public class DmsAdapter implements DmsOutPort {
                 dmsTarget.getJobposition()).block());
         if (response != null) {
             log.info("Archived object {}", dmsTarget.getCoo());
+        } else {
+            throw new DmsException("Response null while archiving object");
+        }
+    }
+
+    @Override
+    public List<String> getSubjectAreaFiles(final DmsTarget dmsTarget) {
+        final ReadSubjectAreaObjectsAntwortDTO response = errorHandler.handleError(() -> subjectAreasApi.readSubjectAreaObject(
+                dmsTarget.getCoo(),
+                DMS_APPLICATION,
+                dmsTarget.getUsername(),
+                dmsTarget.getJoboe(),
+                dmsTarget.getJobposition()).block());
+        if (response != null && response.getGiobjecttype() != null) {
+            final List<String> coos = response.getGiobjecttype().stream().map(Objektreferenz::getObjaddress).toList();
+            log.debug("Found following File COOs for SubjectArea {}: {}", dmsTarget, coos);
+            return coos;
         } else {
             throw new DmsException("Response or object list null while archiving object");
         }

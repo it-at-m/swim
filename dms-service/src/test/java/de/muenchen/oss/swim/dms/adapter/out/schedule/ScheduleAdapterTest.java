@@ -4,7 +4,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import de.muenchen.oss.swim.dms.application.port.in.CleanupShadowFilesInPort;
+import de.muenchen.oss.swim.dms.application.port.in.ArchiveShadowFilesInPort;
 import de.muenchen.oss.swim.dms.configuration.LeaderState;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,26 +19,26 @@ class ScheduleAdapterTest {
     private LeaderState leaderState;
 
     @Mock
-    private CleanupShadowFilesInPort cleanupShadowFilesInPort;
+    private ArchiveShadowFilesInPort archiveShadowFilesInPort;
 
     @InjectMocks
     private ScheduleAdapter scheduleAdapter;
 
     @Test
-    void triggerShadowFileCleanup_whenLeader_runsCleanup() {
+    void triggerArchiveShadowFiles_whenLeader_runs() {
         when(leaderState.isLeader()).thenReturn(true);
 
-        scheduleAdapter.triggerShadowFileCleanup();
+        scheduleAdapter.triggerArchiveShadowFiles();
 
-        verify(cleanupShadowFilesInPort).cleanupShadowFiles();
+        verify(archiveShadowFilesInPort).archiveShadowFiles();
     }
 
     @Test
-    void triggerShadowFileCleanup_whenNotLeader_skipsCleanup() {
+    void triggerArchiveShadowFiles_whenNotLeader_skips() {
         when(leaderState.isLeader()).thenReturn(false);
 
-        scheduleAdapter.triggerShadowFileCleanup();
+        scheduleAdapter.triggerArchiveShadowFiles();
 
-        verify(cleanupShadowFilesInPort, never()).cleanupShadowFiles();
+        verify(archiveShadowFilesInPort, never()).archiveShadowFiles();
     }
 }

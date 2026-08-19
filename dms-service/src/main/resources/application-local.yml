@@ -33,7 +33,7 @@ logging:
 swim:
   dms:
     base-url: "https://cap-eakte-resteai-test-bay-eakte-resteai.apps.test.capk.muenchen.de/api"
-  shadow-file-cleanup:
+  shadow-file-archiving:
     # cron: "0 * * * * *"
     username: test.example
   use-cases:

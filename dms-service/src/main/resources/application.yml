@@ -29,6 +29,9 @@ spring:
             auto:
               offset:
                 reset: latest
+    kubernetes:
+      leader:
+        enabled: true
   kafka:
     consumer:
       properties:
@@ -114,5 +117,5 @@ swim:
     user-key: "A_Username"
     job-oe-key: "A_Joboe"
     job-position-key: "A_Jobposition"
-  shadow-file-cleanup:
-    cron: "0 0 3 ? * MON#1"
+  shadow-file-archiving:
+    cron: "0 0 3 1,2,4 * *"

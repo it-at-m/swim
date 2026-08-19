@@ -1,5 +1,5 @@
 swim:
-  shadow-file-cleanup:
+  shadow-file-archiving:
     username: "test"
   use-cases:
     - name: metadata-inbox

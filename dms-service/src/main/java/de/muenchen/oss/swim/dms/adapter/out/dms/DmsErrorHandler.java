@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+/**
+ * Handles and translates errors from DMS requests.
+ */
 @Component
 @RequiredArgsConstructor
 class DmsErrorHandler {
@@ -16,6 +19,13 @@ class DmsErrorHandler {
 
     private final DmsMapper dmsMapper;
 
+    /**
+     * Executes a DMS request and translates errors into {@link DmsException} instances.
+     *
+     * @param callable The DMS request to execute.
+     * @param <T> The request result type.
+     * @return The request result.
+     */
     protected <T> T handleError(final Callable<T> callable) {
         try {
             return callable.call();

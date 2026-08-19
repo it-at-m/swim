@@ -9,6 +9,7 @@ import de.muenchen.oss.refarch.integration.dms.api.ObjectAndImportToInboxApi;
 import de.muenchen.oss.refarch.integration.dms.api.ProcedureObjectsApi;
 import de.muenchen.oss.refarch.integration.dms.api.ProceduresApi;
 import de.muenchen.oss.refarch.integration.dms.api.SearchObjNamesApi;
+import de.muenchen.oss.refarch.integration.dms.api.SubjectAreasApi;
 import io.netty.channel.ChannelOption;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -72,5 +73,10 @@ class ApiClientConfiguration {
     @Bean
     protected DepositObjectsApi depositObjectsApi(final ApiClient apiClient) {
         return new DepositObjectsApi(apiClient);
+    }
+
+    @Bean
+    protected SubjectAreasApi subjectAreasApi(final ApiClient apiClient) {
+        return new SubjectAreasApi(apiClient);
     }
 }

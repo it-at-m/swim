@@ -112,9 +112,17 @@ public interface DmsOutPort {
     List<String> findObjectsByName(@NotNull DmsResourceType resourceType, @NotNull String objectName, @NotNull @Valid DmsRequestContext requestContext);
 
     /**
-     * Archive a given object.
+     * Archive a given object (set z.A.).
      *
      * @param dmsTarget The object to archive.
      */
     void archiveObject(@NotNull @Valid DmsTarget dmsTarget);
+
+    /**
+     * Get the COOs of all Files under a specific SubjectArea.
+     *
+     * @param dmsTarget The SubjectArea.
+     * @return List of COOs of sub Files.
+     */
+    List<String> getSubjectAreaFiles(@NotNull @Valid DmsTarget dmsTarget);
 }

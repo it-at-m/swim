@@ -237,13 +237,15 @@ public class DmsAdapter implements DmsOutPort {
                 dmsTarget.getJobposition()).block());
         if (response != null && response.getGiobjecttype() != null) {
             final List<Objektreferenz> matchingProcedures = response.getGiobjecttype();
-            log.info("Found Procedures {} where name matches '{}'", matchingProcedures, procedureName);
+            log.debug("Found Procedures {} where name matches '{}'", matchingProcedures, procedureName);
             if (matchingProcedures.size() > 1) {
                 log.warn("Using first of multiple matching Procedures with name {} for {}", procedureName, dmsTarget);
             }
             if (matchingProcedures.isEmpty()) {
                 return Optional.empty();
             }
+            final String coo = matchingProcedures.getFirst().getObjaddress();
+            log.info("Found Procedure {} where name matches '{}'", coo, procedureName);
             return Optional.ofNullable(matchingProcedures.getFirst().getObjaddress());
         } else {
             throw new DmsException("Response or content null while searching for Procedures");

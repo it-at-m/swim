@@ -76,7 +76,7 @@ swim:
   shadow-file-archiving:
     cron: "0 0 3 1,2,4 * *" # Cron for triggering the archiving (default: 1.,2. and 4. day a month at 3:00)
     username: # Username to use for archiving the shadow files
-    coos: # List of File COOs which contain shadow files
+    subject-area-coos: # List of SubjectArea COOs which contain shadow files
   # use cases
   use-cases:
     - name: # required

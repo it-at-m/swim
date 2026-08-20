@@ -87,7 +87,7 @@ public class SwimDmsProperties {
          * List of shadow file SubjectAreas to run archiving for via {@link ArchiveShadowFilesUseCase}
          */
         @NotNull
-        private List<@NotBlank String> coos = List.of();
+        private List<@NotBlank String> subjectAreaCoos = List.of();
     }
 
     /**

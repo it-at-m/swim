@@ -129,7 +129,7 @@ class ArchiveShadowFilesUseCaseTest {
         final SwimDmsProperties.ShadowFileArchiving archiveProperties = new SwimDmsProperties.ShadowFileArchiving();
         archiveProperties.setCron(CRON);
         archiveProperties.setUsername(USERNAME);
-        archiveProperties.setCoos(coos);
+        archiveProperties.setSubjectAreaCoos(coos);
         return archiveProperties;
     }
 

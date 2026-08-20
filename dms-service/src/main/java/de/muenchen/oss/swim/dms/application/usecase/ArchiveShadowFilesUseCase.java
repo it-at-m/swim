@@ -29,7 +29,7 @@ public class ArchiveShadowFilesUseCase implements ArchiveShadowFilesInPort {
         final LocalDate previousMonthDate = LocalDate.now().minusMonths(1);
         final String procedureName = previousMonthDate.format(SHADOW_PROCEDURE_NAME_PATTERN);
         // for each SubjectArea COO
-        for (final String subjectAreaCoo : archiveProperties.getCoos()) {
+        for (final String subjectAreaCoo : archiveProperties.getSubjectAreaCoos()) {
             log.debug("Processing SubjectArea {}", subjectAreaCoo);
             final DmsTarget dmsTarget = new DmsTarget(subjectAreaCoo, archiveProperties.getUsername(), archiveProperties.getJobOe(),
                     archiveProperties.getJobPosition());
@@ -54,7 +54,7 @@ public class ArchiveShadowFilesUseCase implements ArchiveShadowFilesInPort {
             final Optional<String> procedureCoo = dmsOutPort.getProcedureCooByName(fileDmsTarget, procedureName);
             // archive Procedure if present
             if (procedureCoo.isPresent()) {
-                log.info("Archiving Procedure {}", procedureCoo.get());
+                log.debug("Archiving Procedure {}", procedureCoo.get());
                 final DmsTarget procedureDmsTarget = new DmsTarget(procedureCoo.get(), fileDmsTarget);
                 dmsOutPort.archiveObject(procedureDmsTarget);
             } else {

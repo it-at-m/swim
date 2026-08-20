@@ -20,7 +20,7 @@ import reactor.netty.http.client.HttpClient;
 @Configuration
 class ApiClientConfiguration {
     @Bean
-    protected ApiClient apiClient(final DmsProperties dmsProperties) {
+    protected ApiClient dmsApiClient(final DmsProperties dmsProperties) {
         final HttpClient httpClient = HttpClient.create()
                 .responseTimeout(dmsProperties.getReadTimeout())
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
@@ -36,47 +36,47 @@ class ApiClientConfiguration {
     }
 
     @Bean
-    protected ObjectAndImportToInboxApi objectAndImportToInboxApi(final ApiClient apiClient) {
-        return new ObjectAndImportToInboxApi(apiClient);
+    protected ObjectAndImportToInboxApi objectAndImportToInboxApi(final ApiClient dmsApiClient) {
+        return new ObjectAndImportToInboxApi(dmsApiClient);
     }
 
     @Bean
-    protected IncomingsApi incomingsApi(final ApiClient apiClient) {
-        return new IncomingsApi(apiClient);
+    protected IncomingsApi incomingsApi(final ApiClient dmsApiClient) {
+        return new IncomingsApi(dmsApiClient);
     }
 
     @Bean
-    protected ProceduresApi proceduresApi(final ApiClient apiClient) {
-        return new ProceduresApi(apiClient);
+    protected ProceduresApi proceduresApi(final ApiClient dmsApiClient) {
+        return new ProceduresApi(dmsApiClient);
     }
 
     @Bean
-    protected ProcedureObjectsApi procedureObjectsApi(final ApiClient apiClient) {
-        return new ProcedureObjectsApi(apiClient);
+    protected ProcedureObjectsApi procedureObjectsApi(final ApiClient dmsApiClient) {
+        return new ProcedureObjectsApi(dmsApiClient);
     }
 
     @Bean
-    protected ContentObjectsApi contentObjectsApi(final ApiClient apiClient) {
-        return new ContentObjectsApi(apiClient);
+    protected ContentObjectsApi contentObjectsApi(final ApiClient dmsApiClient) {
+        return new ContentObjectsApi(dmsApiClient);
     }
 
     @Bean
-    protected SearchObjNamesApi searchObjNamesApi(final ApiClient apiClient) {
-        return new SearchObjNamesApi(apiClient);
+    protected SearchObjNamesApi searchObjNamesApi(final ApiClient dmsApiClient) {
+        return new SearchObjNamesApi(dmsApiClient);
     }
 
     @Bean
-    protected IncomingFromInboxApi incomingFromInboxApi(final ApiClient apiClient) {
-        return new IncomingFromInboxApi(apiClient);
+    protected IncomingFromInboxApi incomingFromInboxApi(final ApiClient dmsApiClient) {
+        return new IncomingFromInboxApi(dmsApiClient);
     }
 
     @Bean
-    protected DepositObjectsApi depositObjectsApi(final ApiClient apiClient) {
-        return new DepositObjectsApi(apiClient);
+    protected DepositObjectsApi depositObjectsApi(final ApiClient dmsApiClient) {
+        return new DepositObjectsApi(dmsApiClient);
     }
 
     @Bean
-    protected SubjectAreasApi subjectAreasApi(final ApiClient apiClient) {
-        return new SubjectAreasApi(apiClient);
+    protected SubjectAreasApi subjectAreasApi(final ApiClient dmsApiClient) {
+        return new SubjectAreasApi(dmsApiClient);
     }
 }

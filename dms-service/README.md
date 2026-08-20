@@ -72,6 +72,11 @@ swim:
     user-key: "A_Username"
     job-oe-key: "A_Joboe"
     job-position-key: "A_Jobposition"
+  # shadow file archiving (see section "Leader Election")
+  shadow-file-archiving:
+    cron: "0 0 3 1,2,4 * *" # Cron for triggering the archiving (default: 1.,2. and 4. day a month at 3:00)
+    username: # Username to use for archiving the shadow files
+    subject-area-coos: # List of SubjectArea COOs which contain shadow files
   # use cases
   use-cases:
     - name: # required
@@ -195,3 +200,9 @@ If a metadata file is required but missing or is invalid (syntax, value combinat
   }
 }
 ```
+
+### Leader Election
+
+There are operations which only should be executed on one instance of the dms-service (e.g. shadow file archiving).
+To ensure that there is a functionality for leader election leveraging [Spring Cloud Kubernetes Leader Election](https://docs.spring.io/spring-cloud-kubernetes/reference/leader-election.html).
+To enable the functionality `spring.cloud.kubernetes.leader.enabled=true` needs to be set (if not enabled every instance is a leader).

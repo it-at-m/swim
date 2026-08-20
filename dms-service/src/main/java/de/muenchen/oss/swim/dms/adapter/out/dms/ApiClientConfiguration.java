@@ -2,21 +2,32 @@ package de.muenchen.oss.swim.dms.adapter.out.dms;
 
 import de.muenchen.oss.refarch.integration.dms.ApiClient;
 import de.muenchen.oss.refarch.integration.dms.api.ContentObjectsApi;
+import de.muenchen.oss.refarch.integration.dms.api.DepositObjectsApi;
 import de.muenchen.oss.refarch.integration.dms.api.IncomingFromInboxApi;
 import de.muenchen.oss.refarch.integration.dms.api.IncomingsApi;
 import de.muenchen.oss.refarch.integration.dms.api.ObjectAndImportToInboxApi;
 import de.muenchen.oss.refarch.integration.dms.api.ProcedureObjectsApi;
 import de.muenchen.oss.refarch.integration.dms.api.ProceduresApi;
 import de.muenchen.oss.refarch.integration.dms.api.SearchObjNamesApi;
+import de.muenchen.oss.refarch.integration.dms.api.SubjectAreasApi;
+import io.netty.channel.ChannelOption;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
 
 @Configuration
 class ApiClientConfiguration {
     @Bean
     protected ApiClient apiClient(final DmsProperties dmsProperties) {
-        final WebClient webClient = WebClient.builder().build();
+        final HttpClient httpClient = HttpClient.create()
+                .responseTimeout(dmsProperties.getReadTimeout())
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
+                        Math.toIntExact(dmsProperties.getConnectionTimeout().toMillis()));
+        final WebClient webClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .build();
         final ApiClient apiClient = new ApiClient(webClient);
         apiClient.setBasePath(dmsProperties.getBaseUrl());
         apiClient.setUsername(dmsProperties.getUsername());
@@ -57,5 +68,15 @@ class ApiClientConfiguration {
     @Bean
     protected IncomingFromInboxApi incomingFromInboxApi(final ApiClient apiClient) {
         return new IncomingFromInboxApi(apiClient);
+    }
+
+    @Bean
+    protected DepositObjectsApi depositObjectsApi(final ApiClient apiClient) {
+        return new DepositObjectsApi(apiClient);
+    }
+
+    @Bean
+    protected SubjectAreasApi subjectAreasApi(final ApiClient apiClient) {
+        return new SubjectAreasApi(apiClient);
     }
 }

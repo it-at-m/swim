@@ -1,4 +1,6 @@
 swim:
+  shadow-file-archiving:
+    username: "test"
   use-cases:
     - name: metadata-inbox
       type: inbox_content_object

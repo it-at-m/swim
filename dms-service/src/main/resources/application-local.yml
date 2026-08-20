@@ -28,11 +28,14 @@ logging:
     format:
       console: # set to empty to disable structured logging for testing
   level:
-    "de.muenchen.swim.dms": debug
+    "de.muenchen.oss.swim.dms": debug
 
 swim:
   dms:
-    base-url: "https://dmsresteai-test-dmsresteai.apps.capk.muenchen.de/api"
+    base-url: "https://cap-eakte-resteai-test-bay-eakte-resteai.apps.test.capk.muenchen.de/api"
+  shadow-file-archiving:
+    # cron: "0 * * * * *"
+    username: test.example
   use-cases:
     - name: test-meta
       type: inbox_content_object

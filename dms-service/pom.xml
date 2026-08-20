@@ -90,6 +90,14 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-stream-kafka</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-kubernetes-client-leader</artifactId>
+        </dependency>
 
         <!-- SWIM -->
         <dependency>
@@ -128,6 +136,10 @@
             <groupId>de.muenchen.oss.refarch</groupId>
             <artifactId>refarch-dms-integration-fabasoft-rest-api</artifactId>
             <version>${refarch-dms-integration-fabasoft-rest-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty-http</artifactId>
         </dependency>
 
         <!-- Validation -->
@@ -171,11 +183,6 @@
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>${minio.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.projectreactor.netty</groupId>
-            <artifactId>reactor-netty-http</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -245,6 +252,9 @@
                     <compilerArgs>
                         <compilerArg>
                             -Amapstruct.defaultComponentModel=spring
+                        </compilerArg>
+                        <compilerArg>
+                            -Amapstruct.unmappedTargetPolicy=ERROR
                         </compilerArg>
                     </compilerArgs>
                 </configuration>

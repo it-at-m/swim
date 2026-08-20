@@ -1,5 +1,6 @@
 package de.muenchen.oss.swim.dms.configuration;
 
+import de.muenchen.oss.swim.dms.application.usecase.ArchiveShadowFilesUseCase;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseIncoming;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
@@ -55,6 +56,39 @@ public class SwimDmsProperties {
      */
     @NotBlank
     private String metadataSubjectPrefix;
+    /**
+     * Attributes used for archiving shadow files, see {@link ArchiveShadowFilesUseCase}.
+     */
+    @NotNull
+    @Valid
+    private SwimDmsProperties.ShadowFileArchiving shadowFileArchiving = new ShadowFileArchiving();
+
+    @Data
+    public static class ShadowFileArchiving {
+        /**
+         * The cron definition to use for triggering the scheduled archiving.
+         */
+        @NotBlank
+        private String cron;
+        /**
+         * User to use for archiving shadow files.
+         */
+        @NotBlank
+        private String username;
+        /**
+         * Job oe to use for archiving shadow files.
+         */
+        private String jobOe;
+        /**
+         * Job position to use for archiving shadow files.
+         */
+        private String jobPosition;
+        /**
+         * List of shadow file SubjectAreas to run archiving for via {@link ArchiveShadowFilesUseCase}
+         */
+        @NotNull
+        private List<@NotBlank String> subjectAreaCoos = List.of();
+    }
 
     /**
      * Resolve use case via name.

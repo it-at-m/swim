@@ -1,12 +1,12 @@
 package de.muenchen.oss.swim.dms.configuration;
 
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
+import org.springframework.cloud.kubernetes.commons.leader.election.events.StartLeadingEvent;
+import org.springframework.cloud.kubernetes.commons.leader.election.events.StopLeadingEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.integration.leader.event.OnGrantedEvent;
-import org.springframework.integration.leader.event.OnRevokedEvent;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,22 +14,23 @@ import org.springframework.stereotype.Component;
 public class LeaderState {
     private final AtomicBoolean leader;
 
-    public LeaderState(final Optional<LeaderProperties> leaderProperties) {
-        if (leaderProperties.isEmpty() || !leaderProperties.get().isEnabled()) {
-            this.leader = new AtomicBoolean(true);
-            log.warn("Leader state is disabled, each instance becomes a leader");
-        } else {
+    public LeaderState(@Value("${" + LeaderUtils.LEADER_ELECTION_ENABLED_PROPERTY + "}") final boolean leaderElectionEnabled) {
+        if (leaderElectionEnabled) {
+            log.info("Kubernetes leader election is enabled, waiting for events");
             this.leader = new AtomicBoolean(false);
+        } else {
+            log.warn("Kubernetes leader election is disabled, each instance becomes a leader");
+            this.leader = new AtomicBoolean(true);
         }
     }
 
-    @EventListener(OnGrantedEvent.class)
+    @EventListener(StartLeadingEvent.class)
     public void onGranted() {
         log.info("Became leader");
         this.leader.set(true);
     }
 
-    @EventListener(OnRevokedEvent.class)
+    @EventListener(StopLeadingEvent.class)
     public void onRevoked() {
         log.info("Lost leadership");
         this.leader.set(false);

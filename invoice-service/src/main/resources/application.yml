@@ -22,13 +22,11 @@ spring:
             ack-mode: record
         binder:
           auto-create-topics: false
-          consumerProperties:
-            max:
-              poll:
-                records: 20
-            auto:
-              offset:
-                reset: latest
+          consumer-properties:
+            # must be above records x max runtime per record
+            max.poll.interval.ms: 1500000
+            max.poll.records: 5
+            auto.offset.reset: latest
   kafka:
     consumer:
       properties:

@@ -12,6 +12,9 @@ spring:
       whitelabel:
         enabled: false
   cloud:
+    # needed to not collide with spring kubernetes consumer
+    function:
+      definition: event
     stream:
       default:
         consumer:

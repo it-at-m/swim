@@ -25,5 +25,5 @@ public class DmsProperties {
     private Duration connectionTimeout = Duration.ofSeconds(30);
     @NotNull
     @DurationMin(millis = 1)
-    private Duration readTimeout = Duration.ofSeconds(180);
+    private Duration readTimeout = Duration.ofSeconds(120);
 }

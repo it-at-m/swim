@@ -205,4 +205,15 @@ If a metadata file is required but missing or is invalid (syntax, value combinat
 
 There are operations which only should be executed on one instance of the dms-service (e.g. shadow file archiving).
 To ensure that there is a functionality for leader election leveraging [Spring Cloud Kubernetes Leader Election](https://docs.spring.io/spring-cloud-kubernetes/reference/leader-election.html).
-To enable the functionality `spring.cloud.kubernetes.leader.enabled=true` needs to be set (if not enabled every instance is a leader).
+
+To enable the functionality the following properties need to be configured:
+```yaml
+spring:
+  cloud:
+    kubernetes:
+      leader:
+        election:
+          enabled: true # default
+          lock-namespace:
+          lock-name:
+```

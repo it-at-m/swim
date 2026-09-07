@@ -29,7 +29,8 @@ spring:
             auto.offset.reset: latest
     kubernetes:
       leader:
-        enabled: true
+        election:
+          enabled: true
   kafka:
     consumer:
       properties:

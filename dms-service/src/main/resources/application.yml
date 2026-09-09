@@ -12,6 +12,9 @@ spring:
       whitelabel:
         enabled: false
   cloud:
+    # needed to not collide with spring kubernetes consumer
+    function:
+      definition: event
     stream:
       default:
         consumer:
@@ -22,13 +25,15 @@ spring:
             ack-mode: record
         binder:
           auto-create-topics: false
-          consumerProperties:
-            max:
-              poll:
-                records: 20
-            auto:
-              offset:
-                reset: latest
+          consumer-properties:
+            # must be above records x max runtime per record
+            max.poll.interval.ms: 1500000
+            max.poll.records: 5
+            auto.offset.reset: latest
+    kubernetes:
+      leader:
+        election:
+          enabled: true
   kafka:
     consumer:
       properties:
@@ -114,3 +119,5 @@ swim:
     user-key: "A_Username"
     job-oe-key: "A_Joboe"
     job-position-key: "A_Jobposition"
+  shadow-file-archiving:
+    cron: "0 0 3 1,2,4 * *"

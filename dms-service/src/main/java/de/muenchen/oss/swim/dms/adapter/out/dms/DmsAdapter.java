@@ -1,12 +1,14 @@
 package de.muenchen.oss.swim.dms.adapter.out.dms;
 
 import de.muenchen.oss.refarch.integration.dms.api.ContentObjectsApi;
+import de.muenchen.oss.refarch.integration.dms.api.DepositObjectsApi;
 import de.muenchen.oss.refarch.integration.dms.api.IncomingFromInboxApi;
 import de.muenchen.oss.refarch.integration.dms.api.IncomingsApi;
 import de.muenchen.oss.refarch.integration.dms.api.ObjectAndImportToInboxApi;
 import de.muenchen.oss.refarch.integration.dms.api.ProcedureObjectsApi;
 import de.muenchen.oss.refarch.integration.dms.api.ProceduresApi;
 import de.muenchen.oss.refarch.integration.dms.api.SearchObjNamesApi;
+import de.muenchen.oss.refarch.integration.dms.api.SubjectAreasApi;
 import de.muenchen.oss.refarch.integration.dms.model.CreateContentObjectAnfrageDTO;
 import de.muenchen.oss.refarch.integration.dms.model.CreateContentObjectAntwortDTO;
 import de.muenchen.oss.refarch.integration.dms.model.CreateIncomingAntwortDTO;
@@ -19,6 +21,7 @@ import de.muenchen.oss.refarch.integration.dms.model.DmsObjektResponse;
 import de.muenchen.oss.refarch.integration.dms.model.Objektreferenz;
 import de.muenchen.oss.refarch.integration.dms.model.ReadProcedureObjectsAntwortDTO;
 import de.muenchen.oss.refarch.integration.dms.model.ReadProcedureResponseDTO;
+import de.muenchen.oss.refarch.integration.dms.model.ReadSubjectAreaObjectsAntwortDTO;
 import de.muenchen.oss.refarch.integration.dms.model.SearchObjNameAnfrageDTO;
 import de.muenchen.oss.refarch.integration.dms.model.SearchObjNameAntwortDTO;
 import de.muenchen.oss.refarch.integration.dms.model.SearchProcedureRequestDTO;
@@ -42,14 +45,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 public class DmsAdapter implements DmsOutPort {
-    public static final String DMS_EXCEPTION_MESSAGE = "Dms request failed with code %s and message: %s";
+    private final DmsErrorHandler errorHandler;
     private final ObjectAndImportToInboxApi objectAndImportToInboxApi;
     private final IncomingFromInboxApi incomingFromInboxApi;
     private final IncomingsApi incomingsApi;
@@ -57,6 +59,8 @@ public class DmsAdapter implements DmsOutPort {
     private final ProcedureObjectsApi procedureObjectsApi;
     private final ContentObjectsApi contentObjectsApi;
     private final SearchObjNamesApi searchObjNamesApi;
+    private final DepositObjectsApi depositObjectsApi;
+    private final SubjectAreasApi subjectAreasApi;
 
     private static final String DMS_APPLICATION = "SWIM";
     private static final String DMS_OBJECT_TYPE_INBOX = "FSCVGOV@1.1001:Inbox";
@@ -73,24 +77,20 @@ public class DmsAdapter implements DmsOutPort {
         if (StringUtils.isNotBlank(contentObjectRequest.subject())) {
             request.setFilesubj(List.of(List.of(contentObjectRequest.subject())));
         }
-        try {
-            final Resource file = new NamedInputStreamResource(contentObjectRequest.name(), contentObjectRequest.inputStream());
-            final CreateObjectAndImportToInboxResponseDTO response = objectAndImportToInboxApi.createObjectAndImportToInbox(
-                    request,
-                    DMS_APPLICATION,
-                    dmsTarget.getUsername(),
-                    null,
-                    null,
-                    List.of(file)).block();
-            if (response != null && response.getListcontents() != null && response.getListcontents().size() == 1) {
-                final String coo = response.getListcontents().getFirst().getObjaddress();
-                log.info("Created new ContentObject {} in Inbox {}", coo, dmsTarget);
-                return coo;
-            } else {
-                throw new DmsException("Invalid response while creating ContentObject in Inbox");
-            }
-        } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
+        final Resource file = new NamedInputStreamResource(contentObjectRequest.name(), contentObjectRequest.inputStream());
+        final CreateObjectAndImportToInboxResponseDTO response = errorHandler.handleError(() -> objectAndImportToInboxApi.createObjectAndImportToInbox(
+                request,
+                DMS_APPLICATION,
+                dmsTarget.getUsername(),
+                null,
+                null,
+                List.of(file)).block());
+        if (response != null && response.getListcontents() != null && response.getListcontents().size() == 1) {
+            final String coo = response.getListcontents().getFirst().getObjaddress();
+            log.info("Created new ContentObject {} in Inbox {}", coo, dmsTarget);
+            return coo;
+        } else {
+            throw new DmsException("Invalid response while creating ContentObject in Inbox");
         }
     }
 
@@ -108,21 +108,17 @@ public class DmsAdapter implements DmsOutPort {
         request.shortname(incomingRequest.name());
         request.filesubj(incomingRequest.subject());
         final String coo;
-        try {
-            final DmsObjektResponse response = incomingFromInboxApi.createIncomingFromInbox(
-                    request,
-                    DMS_APPLICATION,
-                    dmsTarget.getUsername(),
-                    dmsTarget.getJoboe(),
-                    dmsTarget.getJobposition()).block();
-            if (response != null) {
-                coo = response.getObjid();
-                log.info("Created new Incoming {} in Inbox {}", coo, dmsTarget);
-            } else {
-                throw new DmsException("Response null while creating Incoming in Inbox");
-            }
-        } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
+        final DmsObjektResponse response = errorHandler.handleError(() -> incomingFromInboxApi.createIncomingFromInbox(
+                request,
+                DMS_APPLICATION,
+                dmsTarget.getUsername(),
+                dmsTarget.getJoboe(),
+                dmsTarget.getJobposition()).block());
+        if (response != null) {
+            coo = response.getObjid();
+            log.info("Created new Incoming {} in Inbox {}", coo, dmsTarget);
+        } else {
+            throw new DmsException("Response null while creating Incoming in Inbox");
         }
         // add additional ContentObjects to Incoming
         if (contentObjectRequests.size() > 1) {
@@ -147,25 +143,21 @@ public class DmsAdapter implements DmsOutPort {
         request.shortname(incomingRequest.name());
         request.filesubj(incomingRequest.subject());
         request.useou(true);
-        try {
-            final List<Resource> attachments = contentObjectRequests.stream()
-                    .map(i -> new NamedInputStreamResource(i.name(), i.inputStream())).collect(Collectors.toList());
-            final CreateIncomingAntwortDTO response = incomingsApi.createIncoming(
-                    request,
-                    DMS_APPLICATION,
-                    dmsTarget.getUsername(),
-                    dmsTarget.getJoboe(),
-                    dmsTarget.getJobposition(),
-                    attachments).block();
-            if (response != null) {
-                final String coo = response.getObjid();
-                log.info("Created new Incoming {} for {}", coo, dmsTarget);
-                return coo;
-            } else {
-                throw new DmsException("Response null while creating Incoming in Procedure");
-            }
-        } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
+        final List<Resource> attachments = contentObjectRequests.stream()
+                .map(i -> new NamedInputStreamResource(i.name(), i.inputStream())).collect(Collectors.toList());
+        final CreateIncomingAntwortDTO response = errorHandler.handleError(() -> incomingsApi.createIncoming(
+                request,
+                DMS_APPLICATION,
+                dmsTarget.getUsername(),
+                dmsTarget.getJoboe(),
+                dmsTarget.getJobposition(),
+                attachments).block());
+        if (response != null) {
+            final String coo = response.getObjid();
+            log.info("Created new Incoming {} for {}", coo, dmsTarget);
+            return coo;
+        } else {
+            throw new DmsException("Response null while creating Incoming in Procedure");
         }
     }
 
@@ -175,72 +167,60 @@ public class DmsAdapter implements DmsOutPort {
         final UpdateIncomingAnfrageDTO request = new UpdateIncomingAnfrageDTO();
         final List<Resource> attachments = contentObjectRequests.stream()
                 .map(i -> new NamedInputStreamResource(i.name(), i.inputStream())).collect(Collectors.toList());
-        try {
-            final UpdateIncomingAntwortDTO response = incomingsApi.updateIncoming(
-                    dmsTarget.getCoo(),
-                    request,
-                    DMS_APPLICATION,
-                    dmsTarget.getUsername(),
-                    dmsTarget.getJoboe(),
-                    dmsTarget.getJobposition(),
-                    attachments).block();
-            if (response != null) {
-                log.info("Updated Incoming {} by adding {} files", dmsTarget, contentObjectRequests.size());
-            } else {
-                throw new DmsException("Response null while updating incoming");
-            }
-        } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
+        final UpdateIncomingAntwortDTO response = errorHandler.handleError(() -> incomingsApi.updateIncoming(
+                dmsTarget.getCoo(),
+                request,
+                DMS_APPLICATION,
+                dmsTarget.getUsername(),
+                dmsTarget.getJoboe(),
+                dmsTarget.getJobposition(),
+                attachments).block());
+        if (response != null) {
+            log.info("Updated Incoming {} by adding {} files", dmsTarget, contentObjectRequests.size());
+        } else {
+            throw new DmsException("Response null while updating incoming");
         }
     }
 
     @Override
     public String getProcedureName(final DmsTarget dmsTarget) {
-        try {
-            final ReadProcedureResponseDTO response = proceduresApi.readProcedure(
-                    dmsTarget.getCoo(),
-                    DMS_APPLICATION,
-                    dmsTarget.getUsername(),
-                    dmsTarget.getJoboe(),
-                    dmsTarget.getJobposition()).block();
-            if (response != null) {
-                final String name = response.getObjname();
-                log.info("Found Procedure {} for {}", name, dmsTarget);
-                return name;
-            } else {
-                throw new DmsException("Response null while looking up procedure name");
-            }
-        } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
+        final ReadProcedureResponseDTO response = errorHandler.handleError(() -> proceduresApi.readProcedure(
+                dmsTarget.getCoo(),
+                DMS_APPLICATION,
+                dmsTarget.getUsername(),
+                dmsTarget.getJoboe(),
+                dmsTarget.getJobposition()).block());
+        if (response != null) {
+            final String name = response.getObjname();
+            log.info("Found Procedure {} for {}", name, dmsTarget);
+            return name;
+        } else {
+            throw new DmsException("Response null while looking up procedure name");
         }
     }
 
     @Override
     public Optional<String> getIncomingCooByNamePrefix(final DmsTarget dmsTarget, final String incomingNamePrefix) {
-        try {
-            final ReadProcedureObjectsAntwortDTO response = procedureObjectsApi.readProcedureObject(
-                    dmsTarget.getCoo(),
-                    DMS_APPLICATION,
-                    dmsTarget.getUsername(),
-                    dmsTarget.getJoboe(),
-                    dmsTarget.getJobposition()).block();
-            if (response != null && response.getGiobjecttype() != null) {
-                final List<Objektreferenz> matchingIncomings = response.getGiobjecttype().stream().filter(
-                        i -> i.getObjname() != null && i.getObjname().startsWith(incomingNamePrefix))
-                        .toList();
-                log.info("Found Incomings {} where name starts with '{}'", matchingIncomings, incomingNamePrefix);
-                if (matchingIncomings.size() > 1) {
-                    log.warn("Using first of multiple matching Incomings with prefix {} for {}", incomingNamePrefix, dmsTarget);
-                }
-                if (matchingIncomings.isEmpty()) {
-                    return Optional.empty();
-                }
-                return Optional.ofNullable(matchingIncomings.getFirst().getObjaddress());
-            } else {
-                throw new DmsException("Response or content null while looking up procedure objects");
+        final ReadProcedureObjectsAntwortDTO response = errorHandler.handleError(() -> procedureObjectsApi.readProcedureObject(
+                dmsTarget.getCoo(),
+                DMS_APPLICATION,
+                dmsTarget.getUsername(),
+                dmsTarget.getJoboe(),
+                dmsTarget.getJobposition()).block());
+        if (response != null && response.getGiobjecttype() != null) {
+            final List<Objektreferenz> matchingIncomings = response.getGiobjecttype().stream().filter(
+                    i -> i.getObjname() != null && i.getObjname().startsWith(incomingNamePrefix))
+                    .toList();
+            log.info("Found Incomings {} where name starts with '{}'", matchingIncomings, incomingNamePrefix);
+            if (matchingIncomings.size() > 1) {
+                log.warn("Using first of multiple matching Incomings with prefix {} for {}", incomingNamePrefix, dmsTarget);
             }
-        } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
+            if (matchingIncomings.isEmpty()) {
+                return Optional.empty();
+            }
+            return Optional.ofNullable(matchingIncomings.getFirst().getObjaddress());
+        } else {
+            throw new DmsException("Response or content null while looking up procedure objects");
         }
     }
 
@@ -249,28 +229,26 @@ public class DmsAdapter implements DmsOutPort {
         final SearchProcedureRequestDTO request = new SearchProcedureRequestDTO();
         request.objmlname(procedureName);
         request.referrednumber(dmsTarget.getCoo());
-        try {
-            final SearchProcedureResponseDTO response = proceduresApi.searchProcedure(
-                    request,
-                    DMS_APPLICATION,
-                    dmsTarget.getUsername(),
-                    dmsTarget.getJoboe(),
-                    dmsTarget.getJobposition()).block();
-            if (response != null && response.getGiobjecttype() != null) {
-                final List<Objektreferenz> matchingProcedures = response.getGiobjecttype();
-                log.info("Found Procedures {} where name matches '{}'", matchingProcedures, procedureName);
-                if (matchingProcedures.size() > 1) {
-                    log.warn("Using first of multiple matching Procedures with name {} for {}", procedureName, dmsTarget);
-                }
-                if (matchingProcedures.isEmpty()) {
-                    return Optional.empty();
-                }
-                return Optional.ofNullable(matchingProcedures.getFirst().getObjaddress());
-            } else {
-                throw new DmsException("Response or content null while searching for Procedures");
+        final SearchProcedureResponseDTO response = errorHandler.handleError(() -> proceduresApi.searchProcedure(
+                request,
+                DMS_APPLICATION,
+                dmsTarget.getUsername(),
+                dmsTarget.getJoboe(),
+                dmsTarget.getJobposition()).block());
+        if (response != null && response.getGiobjecttype() != null) {
+            final List<Objektreferenz> matchingProcedures = response.getGiobjecttype();
+            log.debug("Found Procedures {} where name matches '{}'", matchingProcedures, procedureName);
+            if (matchingProcedures.size() > 1) {
+                log.warn("Using first of multiple matching Procedures with name {} for {}", procedureName, dmsTarget);
             }
-        } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
+            if (matchingProcedures.isEmpty()) {
+                return Optional.empty();
+            }
+            final String coo = matchingProcedures.getFirst().getObjaddress();
+            log.info("Found Procedure {} where name matches '{}'", coo, procedureName);
+            return Optional.ofNullable(matchingProcedures.getFirst().getObjaddress());
+        } else {
+            throw new DmsException("Response or content null while searching for Procedures");
         }
     }
 
@@ -278,25 +256,21 @@ public class DmsAdapter implements DmsOutPort {
     public String createContentObject(final DmsTarget dmsTarget, final DmsContentObjectRequest contentObjectRequest) {
         final CreateContentObjectAnfrageDTO createContentObjectAnfrageDTO = new CreateContentObjectAnfrageDTO();
         createContentObjectAnfrageDTO.referrednumber(dmsTarget.getCoo());
-        try {
-            final Resource file = new NamedInputStreamResource(contentObjectRequest.name(), contentObjectRequest.inputStream());
-            final CreateContentObjectAntwortDTO response = this.contentObjectsApi.createContentObject(
-                    createContentObjectAnfrageDTO,
-                    DMS_APPLICATION,
-                    dmsTarget.getUsername(),
-                    dmsTarget.getJoboe(),
-                    dmsTarget.getJobposition(),
-                    // only one file allowed (api spec is wrong)
-                    List.of(file)).block();
-            if (response != null) {
-                final String coo = response.getObjid();
-                log.info("Created new ContentObject {} for {}", coo, dmsTarget);
-                return coo;
-            } else {
-                throw new DmsException("Response null while putting ContentObject in Procedure");
-            }
-        } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
+        final Resource file = new NamedInputStreamResource(contentObjectRequest.name(), contentObjectRequest.inputStream());
+        final CreateContentObjectAntwortDTO response = errorHandler.handleError(() -> this.contentObjectsApi.createContentObject(
+                createContentObjectAnfrageDTO,
+                DMS_APPLICATION,
+                dmsTarget.getUsername(),
+                dmsTarget.getJoboe(),
+                dmsTarget.getJobposition(),
+                // only one file allowed (api spec is wrong)
+                List.of(file)).block());
+        if (response != null) {
+            final String coo = response.getObjid();
+            log.info("Created new ContentObject {} for {}", coo, dmsTarget);
+            return coo;
+        } else {
+            throw new DmsException("Response null while putting ContentObject in Procedure");
         }
     }
 
@@ -305,22 +279,18 @@ public class DmsAdapter implements DmsOutPort {
         final CreateProcedureDTO request = new CreateProcedureDTO();
         request.shortname(procedureRequest.name());
         request.referrednumber(dmsTarget.getCoo());
-        try {
-            final DmsObjektResponse response = this.proceduresApi.createProcedure(
-                    request,
-                    DMS_APPLICATION,
-                    dmsTarget.getUsername(),
-                    dmsTarget.getJoboe(),
-                    dmsTarget.getJobposition()).block();
-            if (response != null) {
-                final String coo = response.getObjid();
-                log.info("Created new Procedure {} for {}", coo, dmsTarget);
-                return coo;
-            } else {
-                throw new DmsException("Response null while creating Procedure in File");
-            }
-        } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
+        final DmsObjektResponse response = errorHandler.handleError(() -> this.proceduresApi.createProcedure(
+                request,
+                DMS_APPLICATION,
+                dmsTarget.getUsername(),
+                dmsTarget.getJoboe(),
+                dmsTarget.getJobposition()).block());
+        if (response != null) {
+            final String coo = response.getObjid();
+            log.info("Created new Procedure {} for {}", coo, dmsTarget);
+            return coo;
+        } else {
+            throw new DmsException("Response null while creating Procedure in File");
         }
     }
 
@@ -333,22 +303,50 @@ public class DmsAdapter implements DmsOutPort {
             throw new IllegalArgumentException(String.format("Input resource type %s couldn't be mapped to DMS resource type", resourceType.name()));
         }
         request.setObjclass(dmsObjectType);
-        try {
-            final SearchObjNameAntwortDTO response = this.searchObjNamesApi.searchObjName(
-                    request,
-                    DMS_APPLICATION,
-                    requestContext.getUsername(),
-                    requestContext.getJoboe(),
-                    requestContext.getJobposition()).block();
-            if (response != null && response.getGiobjecttype() != null) {
-                final List<String> coos = response.getGiobjecttype().stream().map(Objektreferenz::getObjaddress).toList();
-                log.info("Found following coos for {}: {}", objectName, coos);
-                return coos;
-            } else {
-                throw new DmsException("Response or object list null while searching for objects via name");
-            }
-        } catch (final WebClientResponseException e) {
-            throw new DmsException(String.format(DMS_EXCEPTION_MESSAGE, e.getStatusCode(), e.getResponseBodyAsString()), e);
+        final SearchObjNameAntwortDTO response = errorHandler.handleError(() -> this.searchObjNamesApi.searchObjName(
+                request,
+                DMS_APPLICATION,
+                requestContext.getUsername(),
+                requestContext.getJoboe(),
+                requestContext.getJobposition()).block());
+        if (response != null && response.getGiobjecttype() != null) {
+            final List<String> coos = response.getGiobjecttype().stream().map(Objektreferenz::getObjaddress).toList();
+            log.info("Found following {} COOs for {}: {}", resourceType.name(), objectName, coos);
+            return coos;
+        } else {
+            throw new DmsException("Response or object list null while searching for objects via name");
+        }
+    }
+
+    @Override
+    public void archiveObject(final DmsTarget dmsTarget) {
+        final DmsObjektResponse response = errorHandler.handleError(() -> this.depositObjectsApi.depositObject(
+                dmsTarget.getCoo(),
+                DMS_APPLICATION,
+                dmsTarget.getUsername(),
+                dmsTarget.getJoboe(),
+                dmsTarget.getJobposition()).block());
+        if (response != null) {
+            log.info("Archived object {}", dmsTarget.getCoo());
+        } else {
+            throw new DmsException("Response null while archiving object");
+        }
+    }
+
+    @Override
+    public List<String> getSubjectAreaFiles(final DmsTarget dmsTarget) {
+        final ReadSubjectAreaObjectsAntwortDTO response = errorHandler.handleError(() -> subjectAreasApi.readSubjectAreaObject(
+                dmsTarget.getCoo(),
+                DMS_APPLICATION,
+                dmsTarget.getUsername(),
+                dmsTarget.getJoboe(),
+                dmsTarget.getJobposition()).block());
+        if (response != null && response.getGiobjecttype() != null) {
+            final List<String> coos = response.getGiobjecttype().stream().map(Objektreferenz::getObjaddress).toList();
+            log.debug("Found following File COOs for SubjectArea {}: {}", dmsTarget, coos);
+            return coos;
+        } else {
+            throw new DmsException("Response or object list null while archiving object");
         }
     }
 }

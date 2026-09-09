@@ -25,6 +25,7 @@ import io.minio.SetObjectTagsArgs;
 import io.minio.StatObjectArgs;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.MinioException;
+import io.minio.http.HttpUtils;
 import io.minio.http.Method;
 import io.minio.messages.Item;
 import java.io.BufferedReader;
@@ -76,6 +77,10 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         this.minioClient = MinioClient.builder()
                 .endpoint(s3Properties.getUrl())
                 .credentials(s3Properties.getAccessKey(), s3Properties.getSecretKey())
+                .httpClient(HttpUtils.newDefaultHttpClient(
+                        s3Properties.getConnectionTimeout().toMillis(),
+                        s3Properties.getWriteTimeout().toMillis(),
+                        s3Properties.getReadTimeout().toMillis()))
                 .build();
         this.swimDispatcherProperties = swimDispatcherProperties;
     }
@@ -194,7 +199,7 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
                 .bucket(fileReference.bucket())
                 .object(fileReference.path())
                 .method(Method.GET)
-                .expiry(s3Properties.getPresignedUrlExpiry())
+                .expiry(Math.toIntExact(s3Properties.getPresignedUrlExpiry().toSeconds()))
                 .build();
         try {
             return minioClient.getPresignedObjectUrl(getPresignedObjectUrlArgs);

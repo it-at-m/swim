@@ -12,13 +12,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.minio.BucketExistsArgs;
-import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.http.Method;
-import java.io.ByteArrayInputStream;
+import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
@@ -46,6 +40,19 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(classes = SwimDmsServiceApplication.class)
@@ -91,7 +98,8 @@ class SwimDmsServiceE2ETest {
             .withCommand("server /data");
 
     private static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(0);
-    private static MinioClient minioClient;
+    private static S3Client s3Client;
+    private static S3Presigner s3Presigner;
 
     @Autowired
     private EmbeddedKafkaBroker embeddedKafkaBroker;
@@ -105,16 +113,29 @@ class SwimDmsServiceE2ETest {
     @BeforeAll
     static void beforeAll() {
         WIRE_MOCK_SERVER.start();
-        minioClient = MinioClient.builder()
-                .endpoint("http://" + MINIO.getHost() + ":" + MINIO.getMappedPort(9000))
-                .credentials("minio", "Test1234")
+        final java.net.URI endpoint = java.net.URI.create("http://" + MINIO.getHost() + ":" + MINIO.getMappedPort(9000));
+        final StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
+                AwsBasicCredentials.create("minio", "Test1234"));
+        final S3Configuration s3Configuration = S3Configuration.builder().pathStyleAccessEnabled(true).build();
+        s3Client = S3Client.builder()
+                .endpointOverride(endpoint)
+                .region(Region.US_EAST_1)
+                .credentialsProvider(credentialsProvider)
+                .serviceConfiguration(s3Configuration)
+                .build();
+        s3Presigner = S3Presigner.builder()
+                .endpointOverride(endpoint)
+                .region(Region.US_EAST_1)
+                .credentialsProvider(credentialsProvider)
+                .serviceConfiguration(s3Configuration)
                 .build();
     }
 
     @AfterAll
-    static void afterAll() throws Exception {
+    static void afterAll() {
         WIRE_MOCK_SERVER.stop();
-        minioClient.close();
+        s3Presigner.close();
+        s3Client.close();
     }
 
     @DynamicPropertySource
@@ -215,23 +236,23 @@ class SwimDmsServiceE2ETest {
         return props;
     }
 
-    private void putObject(final String path, final byte[] content, final String contentType) throws Exception {
-        if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(BUCKET).build())) {
-            minioClient.makeBucket(MakeBucketArgs.builder().bucket(BUCKET).build());
+    private void putObject(final String path, final byte[] content, final String contentType) {
+        try {
+            s3Client.headBucket(HeadBucketRequest.builder().bucket(BUCKET).build());
+        } catch (final S3Exception e) {
+            if (e.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET).build());
+            } else {
+                throw e;
+            }
         }
-        minioClient.putObject(PutObjectArgs.builder()
-                .bucket(BUCKET)
-                .object(path)
-                .stream(new ByteArrayInputStream(content), content.length, -1)
-                .contentType(contentType)
-                .build());
+        s3Client.putObject(PutObjectRequest.builder().bucket(BUCKET).key(path).contentType(contentType).build(), RequestBody.fromBytes(content));
     }
 
-    private String presignedUrl(final String path) throws Exception {
-        return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                .method(Method.GET)
-                .bucket(BUCKET)
-                .object(path)
-                .build());
+    private String presignedUrl(final String path) {
+        return s3Presigner.presignGetObject(GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofDays(7))
+                .getObjectRequest(GetObjectRequest.builder().bucket(BUCKET).key(path).build())
+                .build()).url().toString();
     }
 }

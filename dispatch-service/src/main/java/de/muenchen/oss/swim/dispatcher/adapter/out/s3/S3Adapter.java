@@ -39,7 +39,7 @@ import tools.jackson.dataformat.csv.CsvMapper;
 import tools.jackson.dataformat.csv.CsvReadFeature;
 import tools.jackson.dataformat.csv.CsvSchema;
 
-@Service
+@Service("dispatcherS3Adapter")
 @Slf4j
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {

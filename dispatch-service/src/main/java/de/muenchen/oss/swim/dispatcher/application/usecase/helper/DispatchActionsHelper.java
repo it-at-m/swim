@@ -25,7 +25,6 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -45,8 +44,7 @@ public class DispatchActionsHelper {
      * @param tags The tags of the file.
      * @return The resolved action.
      */
-    public @NotNull
-    DispatchAction resolveDispatchAction(final Map<String, String> tags) {
+    public DispatchAction resolveDispatchAction(final Map<String, String> tags) {
         // dispatch if tag doesn't exist
         if (!tags.containsKey(swimDispatcherProperties.getDispatchActionTagKey())) {
             return DISPATCH;

@@ -45,7 +45,7 @@ class ErrorHandlerUseCaseTest {
 
     private static final ErrorDetails TEST_ERROR_DETAILS = new ErrorDetails(
             "swim-test-local",
-            "de.muenchen.swim.CustomException",
+            "de.muenchen.oss.swim.CustomException",
             "Error message; Cause message",
             "Error stacktrace");
 
@@ -57,7 +57,7 @@ class ErrorHandlerUseCaseTest {
         // test
         verify(fileSystemOutPort).tagFile(eq(TEST_PRESIGNED_URL_FILE), eq(Map.of(
                 "SWIM_State", "error",
-                "errorClass", "de.muenchen.swim.CustomException",
+                "errorClass", "de.muenchen.oss.swim.CustomException",
                 "errorMessage", "Cause message")));
         verify(notificationOutPort).sendFileError(eq(useCase.getMailAddresses()), eq(USE_CASE), eq(TEST_PRESIGNED_URL_PATH),
                 eq(TEST_ERROR_DETAILS));

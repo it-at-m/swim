@@ -84,7 +84,7 @@ class SwimDmsServiceE2ETest {
 
     @Container
     @SuppressWarnings("resource")
-    private static final GenericContainer<?> MINIO = new GenericContainer<>(DockerImageName.parse("minio/minio:RELEASE.2025-09-07T16-13-09Z"))
+    private static final GenericContainer<?> MINIO = new GenericContainer<>(DockerImageName.parse("quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z"))
             .withExposedPorts(9000)
             .withEnv("MINIO_ROOT_USER", "minio")
             .withEnv("MINIO_ROOT_PASSWORD", "Test1234")

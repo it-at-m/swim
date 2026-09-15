@@ -28,8 +28,8 @@ class MarkFileFinishedUseCaseE2ETest extends DispatchServiceE2ETestBase {
         awaitObjectState(metadataPath, false);
         awaitObjectState("test/finished/e2e-finished.pdf", true);
         awaitObjectState("test/finished/e2e-finished.json", true);
-        assertThat(tags("test/finished/e2e-finished.pdf").get().get("SWIM_State")).isEqualTo("finished");
-        assertThat(tags("test/finished/e2e-finished.json").get().get("SWIM_State")).isEqualTo("finished");
+        assertThat(tags("test/finished/e2e-finished.pdf").get("SWIM_State")).isEqualTo("finished");
+        assertThat(tags("test/finished/e2e-finished.json").get("SWIM_State")).isEqualTo("finished");
         assertThat(meterRegistry.counter("swim_dispatch_finished_count", "use-case", USE_CASE).count()).isEqualTo(2.0);
     }
 }

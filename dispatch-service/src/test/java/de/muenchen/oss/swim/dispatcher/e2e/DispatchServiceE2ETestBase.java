@@ -68,7 +68,7 @@ import tools.jackson.databind.json.JsonMapper;
         topics = { DispatchServiceE2ETestBase.FINISHED_TOPIC, DispatchServiceE2ETestBase.DLQ_TOPIC, DispatchServiceE2ETestBase.DISPATCH_TOPIC },
         bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers"
 )
-@SuppressWarnings({ "PMD.DoNotUseThreads", "PMD.AvoidUsingHardCodedIP" })
+@SuppressWarnings({ "PMD.DoNotUseThreads", "PMD.AvoidUsingHardCodedIP", "PMD.CouplingBetweenObjects" })
 class DispatchServiceE2ETestBase {
     protected static final String FINISHED_TOPIC = "swim-dispatch-finished-e2e";
     protected static final String DLQ_TOPIC = "swim-dispatch-dlq-e2e";
@@ -286,7 +286,7 @@ class DispatchServiceE2ETestBase {
         throw new AssertionError("Mail was not delivered to " + recipient + " with content " + expectedContent);
     }
 
-    protected PresignedFile presignedFile(final String path) throws Exception {
+    protected PresignedFile presignedFile(final String path) {
         return new PresignedFile(presignedUrl(path), null);
     }
 }

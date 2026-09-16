@@ -39,7 +39,11 @@ swim:
     base-url: "https://cap-eakte-resteai-test-bay-eakte-resteai.apps.test.capk.muenchen.de/api"
   shadow-file-archiving:
     # cron: "0 * * * * *"
-    username: test.example
+    subject-areas:
+#      - username: svc-imeakte
+#        joboe: COO.2150.8800.1.13631
+#        jobposition: OfficialInCharge
+#        coo: COO.2150.8801.2.1084718
   use-cases:
     - name: test-meta
       type: inbox_content_object

@@ -76,7 +76,7 @@ public class SwimDmsProperties {
          * {@link ArchiveShadowFilesUseCase}.
          */
         @NotNull
-        private List<@NotBlank DmsTarget> subjectAreas = List.of();
+        private List<@NotNull @Valid DmsTarget> subjectAreas = List.of();
     }
 
     /**

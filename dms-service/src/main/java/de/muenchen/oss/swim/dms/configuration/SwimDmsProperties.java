@@ -72,7 +72,8 @@ public class SwimDmsProperties {
         @NotBlank
         private String cron;
         /**
-         * List of {@link DmsTarget}s referencing shadow file SubjectAreas to run archiving for via {@link ArchiveShadowFilesUseCase}
+         * List of {@link DmsTarget}s referencing shadow file SubjectAreas to run archiving for via
+         * {@link ArchiveShadowFilesUseCase}.
          */
         @NotNull
         private List<@NotBlank DmsTarget> subjectAreas = List.of();

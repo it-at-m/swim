@@ -82,8 +82,8 @@ public class DmsAdapter implements DmsOutPort {
                 request,
                 DMS_APPLICATION,
                 dmsTarget.getUsername(),
-                null,
-                null,
+                dmsTarget.getJoboe(),
+                dmsTarget.getJobposition(),
                 List.of(file)).block());
         if (response != null && response.getListcontents() != null && response.getListcontents().size() == 1) {
             final String coo = response.getListcontents().getFirst().getObjaddress();

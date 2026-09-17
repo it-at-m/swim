@@ -128,9 +128,10 @@ class SwimDmsServiceE2ETest {
         registry.add("spring.cloud.stream.kafka.bindings.event-in-0.consumer.start-offset", () -> "earliest");
         registry.add("spring.cloud.stream.kafka.binder.configuration.security.protocol", () -> "PLAINTEXT");
 
-        registry.add("swim.dms.base-url", WIRE_MOCK_SERVER::baseUrl);
-        registry.add("swim.dms.username", () -> "dms-user");
-        registry.add("swim.dms.password", () -> "dms-password");
+        registry.add("eakte.base-url", WIRE_MOCK_SERVER::baseUrl);
+        registry.add("eakte.username", () -> "dms-user");
+        registry.add("eakte.password", () -> "dms-password");
+
         registry.add("swim.use-cases[0].name", () -> USE_CASE);
         registry.add("swim.use-cases[0].type", () -> "metadata_file");
         registry.add("swim.use-cases[0].coo-source.type", () -> "metadata_file");

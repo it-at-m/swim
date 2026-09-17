@@ -98,7 +98,11 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         final String escapedPathPrefix = pathPrefix.endsWith("/") ? pathPrefix : pathPrefix + "/";
         // build s3 list request
         try {
-            return this.s3OutPort.getFilesWithPrefix(bucket, escapedPathPrefix, false).commonPrefixes();
+            final ListResult result = this.s3OutPort.getFilesWithPrefix(bucket, escapedPathPrefix, false);
+            if (result.truncated()) {
+                log.warn("List of directories was truncated, after {} dirs and {} files", result.commonPrefixes().size(), result.files().size());
+            }
+            return result.commonPrefixes();
         } catch (final S3Exception e) {
             final String message = String.format("Error while listing s3 directories for bucket %s in path %s", bucket, pathPrefix);
             log.error(message, e);

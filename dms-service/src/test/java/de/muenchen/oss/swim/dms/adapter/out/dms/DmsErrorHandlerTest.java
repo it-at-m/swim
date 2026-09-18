@@ -8,12 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
-import de.muenchen.oss.refarch.integration.dms.model.DmsErrorResponse;
+import de.muenchen.oss.eakte.v1.generated.model.DmsErrorResponse;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mockito;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.client.RestClientResponseException;
 
 class DmsErrorHandlerTest {
 
@@ -32,7 +32,7 @@ class DmsErrorHandlerTest {
                 .status(400)
                 .text("Bad request")
                 .fehlerQuelle(DmsErrorResponse.FehlerQuelleEnum.DMS);
-        final WebClientResponseException exception = Mockito.mock(WebClientResponseException.class);
+        final RestClientResponseException exception = Mockito.mock(RestClientResponseException.class);
         Mockito.when(exception.getStatusCode()).thenReturn(BAD_REQUEST);
         Mockito.when(exception.getResponseBodyAs(DmsErrorResponse.class)).thenReturn(dmsErrorResponse);
 
@@ -51,7 +51,7 @@ class DmsErrorHandlerTest {
 
     @Test
     void handleError_throwsDmsExceptionWithNullError_whenErrorBodyCannotBeMapped() {
-        final WebClientResponseException exception = Mockito.mock(WebClientResponseException.class);
+        final RestClientResponseException exception = Mockito.mock(RestClientResponseException.class);
         Mockito.when(exception.getStatusCode()).thenReturn(INTERNAL_SERVER_ERROR);
         Mockito.when(exception.getResponseBodyAs(DmsErrorResponse.class)).thenThrow(new IllegalStateException("invalid body"));
 

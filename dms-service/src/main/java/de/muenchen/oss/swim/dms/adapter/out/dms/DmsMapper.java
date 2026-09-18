@@ -1,6 +1,6 @@
 package de.muenchen.oss.swim.dms.adapter.out.dms;
 
-import de.muenchen.oss.refarch.integration.dms.model.DmsErrorResponse;
+import de.muenchen.oss.eakte.v1.generated.model.DmsErrorResponse;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

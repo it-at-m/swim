@@ -1,13 +1,13 @@
 package de.muenchen.oss.swim.dms.adapter.out.dms;
 
-import de.muenchen.oss.refarch.integration.dms.model.DmsErrorResponse;
+import de.muenchen.oss.eakte.v1.generated.model.DmsErrorResponse;
 import de.muenchen.oss.swim.dms.domain.exception.DmsException;
 import java.util.concurrent.Callable;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.client.RestClientResponseException;
 
 /**
  * Handles and translates errors from DMS requests.
@@ -29,7 +29,7 @@ class DmsErrorHandler {
     protected <T> T handleError(final Callable<T> callable) {
         try {
             return callable.call();
-        } catch (final WebClientResponseException e) {
+        } catch (final RestClientResponseException e) {
             DmsErrorResponse dmsError = null;
             try {
                 dmsError = e.getResponseBodyAs(DmsErrorResponse.class);

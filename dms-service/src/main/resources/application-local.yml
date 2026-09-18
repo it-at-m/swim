@@ -34,9 +34,10 @@ logging:
   level:
     "de.muenchen.oss.swim.dms": debug
 
+eakte:
+  base-url: "https://cap-eakte-resteai-test-bay-eakte-resteai.apps.test.capk.muenchen.de/api"
+
 swim:
-  dms:
-    base-url: "https://cap-eakte-resteai-test-bay-eakte-resteai.apps.test.capk.muenchen.de/api"
   shadow-file-archiving:
     # cron: "0 * * * * *"
     subject-areas:

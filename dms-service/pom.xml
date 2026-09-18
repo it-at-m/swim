@@ -26,7 +26,7 @@
         <!-- Core Frameworks -->
         <spring-cloud-dependencies.version>2025.1.3</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
         <swim-handler-core.version>2.0.0</swim-handler-core.version>
-        <eakte-client.version>1.2.7-SNAPSHOT</eakte-client.version>
+        <eakte-client.version>1.2.7</eakte-client.version>
 
         <!-- Linting & Formatting -->
         <spotless-maven-plugin.version>3.10.2</spotless-maven-plugin.version>
@@ -360,7 +360,7 @@
                         <excludeRoot>target/generated-test-sources</excludeRoot>
                     </excludeRoots>
                     <rulesets>
-                        <ruleset>refarch-pmd-ruleset.xml</ruleset>
+                        <ruleset>swim-pmd-ruleset.xml</ruleset>
                     </rulesets>
                 </configuration>
                 <executions>

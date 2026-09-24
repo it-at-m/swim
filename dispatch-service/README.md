@@ -32,6 +32,16 @@ In addition to the properties listed below, other Spring libraries must also be 
 These properties and example values can be found in the [`application-local.yml`](./src/main/resources/application-local.yml).
 
 ```yaml
+# s3 connection options
+refarch:
+  s3:
+    url:
+    access-key:
+    secret-key:
+    path-style-access-enabled: 
+    initial-connection-test: true
+    connection-timeout: 30s
+    socket-timeout: 60s
 swim:
   dispatching-cron: # cron interval for triggering dispatching
   protocol-processing-cron: # cron interval for triggering protocol processing
@@ -42,13 +52,7 @@ swim:
     locale: # change the language of the mails (optional, default: en, alternatives: de)
   # s3 connection options
   s3:
-    url:
-    access-key:
-    secret-key:
     presigned-url-expiry: 7d
-    connection-timeout: 30s
-    read-timeout: 60s
-    write-timeout: 60s
   # file chunking
   max-file-chunk-age: 1d # after which file age an error should be thrown if file chunks are missing, see section "Multi Events"
   # dirs

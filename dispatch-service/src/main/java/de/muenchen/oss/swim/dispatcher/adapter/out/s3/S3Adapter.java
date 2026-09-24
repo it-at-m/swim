@@ -2,8 +2,8 @@ package de.muenchen.oss.swim.dispatcher.adapter.out.s3;
 
 import de.muenchen.oss.refarch.integration.s3.application.port.out.S3OutPort;
 import de.muenchen.oss.refarch.integration.s3.domain.exception.S3Exception;
+import de.muenchen.oss.refarch.integration.s3.domain.exception.S3PaginationException;
 import de.muenchen.oss.refarch.integration.s3.domain.model.FileMetadata;
-import de.muenchen.oss.refarch.integration.s3.domain.model.ListResult;
 import de.muenchen.oss.refarch.integration.s3.domain.model.PresignedUrl;
 import de.muenchen.oss.swim.dispatcher.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.dispatcher.application.port.out.ReadProtocolOutPort;
@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -98,12 +99,9 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         final String escapedPathPrefix = pathPrefix.endsWith("/") ? pathPrefix : pathPrefix + "/";
         // build s3 list request
         try {
-            final ListResult result = this.s3OutPort.getFilesWithPrefix(bucket, escapedPathPrefix, false);
-            if (result.truncated()) {
-                log.warn("List of directories was truncated, after {} dirs and {} files", result.commonPrefixes().size(), result.files().size());
-            }
-            return result.commonPrefixes();
-        } catch (final S3Exception e) {
+            return StreamSupport.stream(this.s3OutPort.getFiles(bucket, escapedPathPrefix, false).spliterator(), false)
+                    .flatMap(i -> i.commonPrefixes().stream()).toList();
+        } catch (final S3PaginationException e) {
             final String message = String.format("Error while listing s3 directories for bucket %s in path %s", bucket, pathPrefix);
             log.error(message, e);
             throw new FileSystemAccessException(message, e);
@@ -232,9 +230,9 @@ public class S3Adapter implements FileSystemOutPort, ReadProtocolOutPort {
         // ensure prefix is handled as specific dir
         final String escapedPathPrefix = pathPrefix.endsWith("/") ? pathPrefix : pathPrefix + "/";
         try {
-            final ListResult listResult = this.s3OutPort.getFilesWithPrefix(bucket, escapedPathPrefix, recursive);
-            return listResult.files();
-        } catch (final S3Exception e) {
+            return StreamSupport.stream(this.s3OutPort.getFiles(bucket, escapedPathPrefix, recursive).spliterator(), false)
+                    .flatMap(i -> i.files().stream()).toList();
+        } catch (final S3PaginationException e) {
             final String message = String.format("Error while listing s3 objects for bucket %s in path %s", bucket, pathPrefix);
             log.error(message, e);
             throw new FileSystemAccessException(message, e);

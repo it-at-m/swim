@@ -21,7 +21,7 @@ flowchart LR
 - The Spring profile `local` is preconfigured for using the stack
     - Activate it either manually or by using the provided run configuration
 - After starting the following UIs are available:
-  - [S3/Minio](http://localhost:9001/) (User: `minio`, PW: `Test1234`)
+  - [S3/RustFS](http://localhost:9001/) (User: `admin`, PW: `admin`)
   - [Mailpit](http://localhost:8025/)
   - [Kafka-UI](http://localhost:8089/)
   - [pgAdmin](http://localhost:5050/)

@@ -102,6 +102,6 @@ swim:
 refarch:
   s3:
     url: http://localhost:9000
-    access-key: minio
-    secret-key: Test1234
+    access-key: admin
+    secret-key: admin
     path-style-access-enabled: true

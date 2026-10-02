@@ -77,13 +77,14 @@ class DispatchServiceE2ETestBase {
     protected static final String USE_CASE = "test-meta";
     private static final String DATABASE_NAME = "swim";
     private static final List<String> TEST_BUCKETS = List.of(BUCKET, "test-bucket-2", "test-bucket-3");
+    public static final String S3_USER = "user";
+    public static final String S3_PW = "user-pw";
 
     @SuppressWarnings("resource")
-    private static final GenericContainer<?> MINIO = new GenericContainer<>(DockerImageName.parse("quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z"))
+    private static final GenericContainer<?> S3 = new GenericContainer<>(DockerImageName.parse("rustfs/rustfs:1.0.0"))
             .withExposedPorts(9000)
-            .withEnv("MINIO_ROOT_USER", "minio")
-            .withEnv("MINIO_ROOT_PASSWORD", "Test1234")
-            .withCommand("server /data");
+            .withEnv("RUSTFS_ROOT_USER", S3_USER)
+            .withEnv("RUSTFS_ROOT_PASSWORD", S3_PW);
 
     @SuppressWarnings("resource")
     private static final GenericContainer<?> POSTGRES = new GenericContainer<>(DockerImageName.parse("postgres:16-alpine"))
@@ -97,7 +98,7 @@ class DispatchServiceE2ETestBase {
             .withExposedPorts(1025, 8025);
 
     static {
-        MINIO.start();
+        S3.start();
         POSTGRES.start();
         MAILPIT.start();
     }
@@ -114,9 +115,9 @@ class DispatchServiceE2ETestBase {
 
     @BeforeAll
     static void setUpInfrastructure() {
-        final URI endpoint = URI.create("http://127.0.0.1:" + MINIO.getMappedPort(9000));
+        final URI endpoint = URI.create("http://127.0.0.1:" + S3.getMappedPort(9000));
         final StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
-                AwsBasicCredentials.create("minio", "Test1234"));
+                AwsBasicCredentials.create(S3_USER, S3_PW));
         final S3Configuration s3Configuration = S3Configuration.builder().pathStyleAccessEnabled(true).build();
         s3Client = S3Client.builder()
                 .endpointOverride(endpoint)
@@ -165,9 +166,9 @@ class DispatchServiceE2ETestBase {
         registry.add("spring.datasource.password", () -> DATABASE_NAME);
         registry.add("spring.mail.host", () -> "127.0.0.1");
         registry.add("spring.mail.port", () -> MAILPIT.getMappedPort(1025));
-        registry.add("refarch.s3.url", () -> "http://127.0.0.1:" + MINIO.getMappedPort(9000));
-        registry.add("refarch.s3.access-key", () -> "minio");
-        registry.add("refarch.s3.secret-key", () -> "Test1234");
+        registry.add("refarch.s3.url", () -> "http://127.0.0.1:" + S3.getMappedPort(9000));
+        registry.add("refarch.s3.access-key", () -> S3_USER);
+        registry.add("refarch.s3.secret-key", () -> S3_PW);
         registry.add("refarch.s3.path-style-access-enabled", () -> "true");
         registry.add("swim.dispatching-cron", () -> "-");
         registry.add("swim.protocol-processing-cron", () -> "-");

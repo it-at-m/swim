@@ -69,6 +69,8 @@ class SwimDmsServiceE2ETest {
     /* default */ static final String ERROR_TOPIC = "swim-dms-e2e-dlq";
 
     private static final String BUCKET = "swim-bucket";
+    private static final String S3_USER = "user";
+    private static final String S3_PW = "user-pw";
     private static final String FILE_PATH = "test-path/test-COO.123.123.123-asd.pdf";
     private static final String METADATA_PATH = "test-path/test-COO.123.123.123-asd.json";
     private static final String USE_CASE = "e2e-metadata";
@@ -91,11 +93,10 @@ class SwimDmsServiceE2ETest {
 
     @Container
     @SuppressWarnings("resource")
-    private static final GenericContainer<?> MINIO = new GenericContainer<>(DockerImageName.parse("quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z"))
+    private static final GenericContainer<?> S3 = new GenericContainer<>(DockerImageName.parse("rustfs/rustfs:1.0.0"))
             .withExposedPorts(9000)
-            .withEnv("MINIO_ROOT_USER", "minio")
-            .withEnv("MINIO_ROOT_PASSWORD", "Test1234")
-            .withCommand("server /data");
+            .withEnv("RUSTFS_ROOT_USER", S3_USER)
+            .withEnv("RUSTFS_ROOT_PASSWORD", S3_PW);
 
     private static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(0);
     private static S3Client s3Client;
@@ -113,9 +114,9 @@ class SwimDmsServiceE2ETest {
     @BeforeAll
     static void beforeAll() {
         WIRE_MOCK_SERVER.start();
-        final java.net.URI endpoint = java.net.URI.create("http://" + MINIO.getHost() + ":" + MINIO.getMappedPort(9000));
+        final java.net.URI endpoint = java.net.URI.create("http://" + S3.getHost() + ":" + S3.getMappedPort(9000));
         final StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
-                AwsBasicCredentials.create("minio", "Test1234"));
+                AwsBasicCredentials.create(S3_USER, S3_PW));
         final S3Configuration s3Configuration = S3Configuration.builder().pathStyleAccessEnabled(true).build();
         s3Client = S3Client.builder()
                 .endpointOverride(endpoint)
@@ -200,7 +201,7 @@ class SwimDmsServiceE2ETest {
     void shouldSendFailedEventToDlq() throws Exception {
         final SingleFileEvent event = new SingleFileEvent(
                 "unknown-use-case",
-                new PresignedFile("http://%s:%d/%s/%s".formatted(MINIO.getHost(), MINIO.getMappedPort(9000), BUCKET, FILE_PATH), null));
+                new PresignedFile("http://%s:%d/%s/%s".formatted(S3.getHost(), S3.getMappedPort(9000), BUCKET, FILE_PATH), null));
 
         try (KafkaProducer<String, String> producer = new KafkaProducer<>(producerProps())) {
             producer.send(new ProducerRecord<>(EVENT_TOPIC, objectMapper.writeValueAsString(event))).get();

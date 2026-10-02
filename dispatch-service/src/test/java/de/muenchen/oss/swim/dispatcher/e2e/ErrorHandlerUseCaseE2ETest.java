@@ -23,9 +23,9 @@ class ErrorHandlerUseCaseE2ETest extends DispatchServiceE2ETestBase {
                 "x-exception-stacktrace", error.stacktrace()));
 
         awaitTag(filePath, "SWIM_State", "error");
-        assertThat(tags(filePath).get().get("SWIM_State")).isEqualTo("error");
-        assertThat(tags(filePath).get().get("errorClass")).isEqualTo(error.className());
-        assertThat(tags(filePath).get().get("errorMessage")).isEqualTo(error.message());
+        assertThat(tags(filePath).get("SWIM_State")).isEqualTo("error");
+        assertThat(tags(filePath).get("errorClass")).isEqualTo(error.className());
+        assertThat(tags(filePath).get("errorMessage")).isEqualTo(error.message());
         awaitMail("test-meta@example.com", filePath);
     }
 }

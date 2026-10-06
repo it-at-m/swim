@@ -7,17 +7,7 @@ import de.muenchen.oss.swim.dispatcher.TestConstants;
 import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
 import de.muenchen.oss.swim.dispatcher.domain.model.streaming.FileEvent;
 import de.muenchen.oss.swim.dispatcher.domain.model.streaming.MultiFileEvent;
-import io.minio.BucketExistsArgs;
-import io.minio.GetObjectTagsArgs;
-import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.SetObjectTagsArgs;
-import io.minio.StatObjectArgs;
-import io.minio.http.Method;
-import io.minio.messages.Tags;
-import java.io.ByteArrayInputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -28,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -50,6 +41,24 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectTaggingRequest;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectTaggingRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tagging;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(classes = SwimDispatcherServiceApplication.class)
@@ -59,7 +68,7 @@ import tools.jackson.databind.json.JsonMapper;
         topics = { DispatchServiceE2ETestBase.FINISHED_TOPIC, DispatchServiceE2ETestBase.DLQ_TOPIC, DispatchServiceE2ETestBase.DISPATCH_TOPIC },
         bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers"
 )
-@SuppressWarnings({ "PMD.DoNotUseThreads", "PMD.AvoidUsingHardCodedIP" })
+@SuppressWarnings({ "PMD.DoNotUseThreads", "PMD.AvoidUsingHardCodedIP", "PMD.CouplingBetweenObjects" })
 class DispatchServiceE2ETestBase {
     protected static final String FINISHED_TOPIC = "swim-dispatch-finished-e2e";
     protected static final String DLQ_TOPIC = "swim-dispatch-dlq-e2e";
@@ -68,13 +77,14 @@ class DispatchServiceE2ETestBase {
     protected static final String USE_CASE = "test-meta";
     private static final String DATABASE_NAME = "swim";
     private static final List<String> TEST_BUCKETS = List.of(BUCKET, "test-bucket-2", "test-bucket-3");
+    public static final String S3_USER = "user";
+    public static final String S3_PW = "user-pw";
 
     @SuppressWarnings("resource")
-    private static final GenericContainer<?> MINIO = new GenericContainer<>(DockerImageName.parse("quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z"))
+    private static final GenericContainer<?> S3 = new GenericContainer<>(DockerImageName.parse("rustfs/rustfs:1.0.0"))
             .withExposedPorts(9000)
-            .withEnv("MINIO_ROOT_USER", "minio")
-            .withEnv("MINIO_ROOT_PASSWORD", "Test1234")
-            .withCommand("server /data");
+            .withEnv("RUSTFS_ROOT_USER", S3_USER)
+            .withEnv("RUSTFS_ROOT_PASSWORD", S3_PW);
 
     @SuppressWarnings("resource")
     private static final GenericContainer<?> POSTGRES = new GenericContainer<>(DockerImageName.parse("postgres:16-alpine"))
@@ -88,12 +98,13 @@ class DispatchServiceE2ETestBase {
             .withExposedPorts(1025, 8025);
 
     static {
-        MINIO.start();
+        S3.start();
         POSTGRES.start();
         MAILPIT.start();
     }
 
-    private static MinioClient minioClient;
+    private static S3Client s3Client;
+    private static S3Presigner s3Presigner;
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
     @Autowired
@@ -103,21 +114,40 @@ class DispatchServiceE2ETestBase {
     private JsonMapper objectMapper;
 
     @BeforeAll
-    static void setUpInfrastructure() throws Exception {
-        minioClient = MinioClient.builder()
-                .endpoint("http://127.0.0.1:" + MINIO.getMappedPort(9000))
-                .credentials("minio", "Test1234")
+    static void setUpInfrastructure() {
+        final URI endpoint = URI.create("http://127.0.0.1:" + S3.getMappedPort(9000));
+        final StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
+                AwsBasicCredentials.create(S3_USER, S3_PW));
+        final S3Configuration s3Configuration = S3Configuration.builder().pathStyleAccessEnabled(true).build();
+        s3Client = S3Client.builder()
+                .endpointOverride(endpoint)
+                .region(Region.US_EAST_1)
+                .credentialsProvider(credentialsProvider)
+                .serviceConfiguration(s3Configuration)
+                .build();
+        s3Presigner = S3Presigner.builder()
+                .endpointOverride(endpoint)
+                .region(Region.US_EAST_1)
+                .credentialsProvider(credentialsProvider)
+                .serviceConfiguration(s3Configuration)
                 .build();
         for (final String bucket : TEST_BUCKETS) {
-            if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build())) {
-                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
+            try {
+                s3Client.headBucket(HeadBucketRequest.builder().bucket(bucket).build());
+            } catch (final S3Exception e) {
+                if (e.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                    s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+                } else {
+                    throw e;
+                }
             }
         }
     }
 
     @AfterAll
-    static void tearDownInfrastructure() throws Exception {
-        minioClient.close();
+    static void tearDownInfrastructure() {
+        s3Presigner.close();
+        s3Client.close();
     }
 
     @DynamicPropertySource
@@ -136,9 +166,10 @@ class DispatchServiceE2ETestBase {
         registry.add("spring.datasource.password", () -> DATABASE_NAME);
         registry.add("spring.mail.host", () -> "127.0.0.1");
         registry.add("spring.mail.port", () -> MAILPIT.getMappedPort(1025));
-        registry.add("swim.s3.url", () -> "http://127.0.0.1:" + MINIO.getMappedPort(9000));
-        registry.add("swim.s3.access-key", () -> "minio");
-        registry.add("swim.s3.secret-key", () -> "Test1234");
+        registry.add("refarch.s3.url", () -> "http://127.0.0.1:" + S3.getMappedPort(9000));
+        registry.add("refarch.s3.access-key", () -> S3_USER);
+        registry.add("refarch.s3.secret-key", () -> S3_PW);
+        registry.add("refarch.s3.path-style-access-enabled", () -> "true");
         registry.add("swim.dispatching-cron", () -> "-");
         registry.add("swim.protocol-processing-cron", () -> "-");
     }
@@ -189,37 +220,35 @@ class DispatchServiceE2ETestBase {
         throw new AssertionError("No multi-file dispatch event was received");
     }
 
-    protected String presignedUrl(final String path) throws Exception {
-        return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                .method(Method.GET)
+    protected String presignedUrl(final String path) {
+        return s3Presigner.presignGetObject(GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofDays(7))
+                .getObjectRequest(GetObjectRequest.builder().bucket(BUCKET).key(path).build())
+                .build()).url().toString();
+    }
+
+    protected void putObject(final String path, final byte[] content) {
+        s3Client.putObject(PutObjectRequest.builder().bucket(BUCKET).key(path).build(), RequestBody.fromBytes(content));
+    }
+
+    protected void tagObject(final String path, final Map<String, String> tags) {
+        s3Client.putObjectTagging(PutObjectTaggingRequest.builder()
                 .bucket(BUCKET)
-                .object(path)
+                .key(path)
+                .tagging(Tagging.builder().tagSet(tags.entrySet().stream()
+                        .map(entry -> Tag.builder().key(entry.getKey()).value(entry.getValue()).build())
+                        .toList()).build())
                 .build());
     }
 
-    protected void putObject(final String path, final byte[] content) throws Exception {
-        minioClient.putObject(PutObjectArgs.builder()
-                .bucket(BUCKET)
-                .object(path)
-                .stream(new ByteArrayInputStream(content), content.length, -1)
-                .build());
-    }
-
-    protected void tagObject(final String path, final Map<String, String> tags) throws Exception {
-        minioClient.setObjectTags(SetObjectTagsArgs.builder()
-                .bucket(BUCKET)
-                .object(path)
-                .tags(tags)
-                .build());
-    }
-
-    protected Tags tags(final String path) throws Exception {
-        return minioClient.getObjectTags(GetObjectTagsArgs.builder().bucket(BUCKET).object(path).build());
+    protected Map<String, String> tags(final String path) {
+        return s3Client.getObjectTagging(GetObjectTaggingRequest.builder().bucket(BUCKET).key(path).build())
+                .tagSet().stream().collect(Collectors.toMap(Tag::key, Tag::value));
     }
 
     protected boolean objectExists(final String path) {
         try {
-            minioClient.statObject(StatObjectArgs.builder().bucket(BUCKET).object(path).build());
+            s3Client.headObject(HeadObjectRequest.builder().bucket(BUCKET).key(path).build());
             return true;
         } catch (final Exception e) {
             return false;
@@ -237,12 +266,12 @@ class DispatchServiceE2ETestBase {
     protected void awaitTag(final String path, final String key, final String expected) throws Exception {
         final long deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos();
         while (System.nanoTime() < deadline) {
-            if (expected.equals(tags(path).get().get(key))) {
+            if (expected.equals(tags(path).get(key))) {
                 return;
             }
             Thread.sleep(100);
         }
-        assertThat(tags(path).get().get(key)).isEqualTo(expected);
+        assertThat(tags(path).get(key)).isEqualTo(expected);
     }
 
     protected void awaitMail(final String recipient, final String expectedContent) throws Exception {
@@ -258,7 +287,7 @@ class DispatchServiceE2ETestBase {
         throw new AssertionError("Mail was not delivered to " + recipient + " with content " + expectedContent);
     }
 
-    protected PresignedFile presignedFile(final String path) throws Exception {
+    protected PresignedFile presignedFile(final String path) {
         return new PresignedFile(presignedUrl(path), null);
     }
 }

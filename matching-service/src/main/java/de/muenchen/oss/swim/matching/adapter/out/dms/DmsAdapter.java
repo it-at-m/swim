@@ -1,9 +1,9 @@
 package de.muenchen.oss.swim.matching.adapter.out.dms;
 
+import de.muenchen.oss.refarch.integration.dms.api.ContentObjectsApi;
+import de.muenchen.oss.refarch.integration.dms.model.ReadContentObjectResponseDTO;
 import de.muenchen.oss.swim.matching.application.port.out.DmsOutPort;
 import de.muenchen.oss.swim.matching.domain.exception.DmsException;
-import de.muenchen.refarch.integration.dms.api.ContentObjectsApi;
-import de.muenchen.refarch.integration.dms.model.ReadContentObjectResponseDTO;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +21,7 @@ public class DmsAdapter implements DmsOutPort {
     private final ContentObjectsApi contentObjectsApi;
     private final DmsProperties dmsProperties;
 
-    private final static String DMS_APPLICATION = "SWIM-Matching";
+    private static final String DMS_APPLICATION = "SWIM-Matching";
 
     @Override
     public InputStream getExportContent() {

@@ -4,6 +4,8 @@ import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
 import de.muenchen.oss.swim.dispatcher.domain.model.UseCase;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
@@ -116,6 +118,11 @@ public class SwimDispatcherProperties {
      */
     @NotBlank
     private String dispatchFolder;
+    /**
+     * Max age the newest chunk of a reference should be before an error is thrown.
+     */
+    @NotNull
+    private Duration maxFileChunkAge;
 
     /**
      * Default tags which are excluded when looking up files for dispatching.

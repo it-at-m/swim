@@ -20,7 +20,13 @@ public enum UseCaseType {
     /**
      * Resolve target resource type from metadata file.
      */
-    METADATA_FILE(null, null);
+    METADATA_FILE(null, null),
+    /**
+     * Processes a file as shadow file.
+     * Creates a ContentObject inside an Incoming.
+     * Also creates Procedure and Incoming if not present.
+     */
+    SHADOW_FILE(null, null);
 
     /**
      * The type of the target to create the new resource under.

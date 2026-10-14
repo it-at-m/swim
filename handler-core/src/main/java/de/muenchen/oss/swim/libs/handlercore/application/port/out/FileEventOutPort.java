@@ -7,9 +7,9 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public interface FileEventOutPort {
     /**
-     * Notify dispatcher that file processing was finished successfully.
+     * Notify dispatcher that file(s) processing was finished successfully.
      *
-     * @param event The event of the file to finish.
+     * @param event The event of the file(s) to finish.
      */
     void fileFinished(@Valid FileEvent event);
 }

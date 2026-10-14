@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 class FileTest {
     @Test
     void testFromPresignedUrl() throws PresignedUrlException {
-        final File file = File.fromPresignedUrl("https://s3.example.com/bucket/test/deep/path/file.pdf?param1=example");
+        final FileReference file = FileReference.fromPresignedUrl("https://s3.example.com/bucket/test/deep/path/file.pdf?param1=example");
         assertEquals("bucket", file.bucket());
         assertEquals("test/deep/path/file.pdf", file.path());
         assertEquals("file.pdf", file.getFileName());

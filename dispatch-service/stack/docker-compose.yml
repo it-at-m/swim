@@ -5,7 +5,7 @@ services:
   # ============= DB =============
   #
   postgres:
-    image: postgres:17.4-alpine3.20@sha256:67c27fd3b866e5e3da543b37c70654a13d45d5c4bcb3a2cd9b2813a5c9e167dd
+    image: postgres:17.5-alpine3.20@sha256:ccd14e0306cef4c2943a4bda5a2c6a77201a426eb2576d888e5cdc28ccddca75
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=admin
@@ -49,131 +49,85 @@ services:
   #
   # ============= Kafka =============
   #
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.9.5@sha256:61e960bcbe5796d2987edc61fab297387f63d6f831754576cd107543d2cdc8bb
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - '22181:2181'
-    networks:
-      - internal
-    healthcheck:
-      <<: *healthcheck
-      test: nc -z localhost 2181 || exit -1
-    security_opt:
-      - no-new-privileges:true
-
   kafka:
-    image: confluentinc/cp-kafka:7.9.5@sha256:c4c6b755551da17fff056b9c8b39700f99020083bd2d69a171ece4784f33e640
-    depends_on:
-      zookeeper:
-        condition: service_healthy
+    image: apache/kafka:4.1.2@sha256:5cc2a2fd93fa2687b44015eee04fb2c3edd9e526bd64bf8bec5ff1e268772e0e
     ports:
-      - '9092:9092'
       - '29092:29092'
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: CONTROLLER://:9093,PLAINTEXT://:9092,PLAINTEXT_HOST://:29092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    networks:
-      - internal
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: 1
+      CLUSTER_ID: 4L6g3nShT-eMCtK--X86sw
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
     healthcheck:
       <<: *healthcheck
-      test: nc -z localhost 9092 || exit -1
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list > /dev/null 2>&1 || exit 1" ]
     security_opt: *security_settings
 
   kafka-ui:
-    image: provectuslabs/kafka-ui
+    image: ghcr.io/kafbat/kafka-ui:v1.5.0@sha256:7cda86a33344160309fdb65146332e4da65db81a945614f2fe32e210803f6fd1
     ports:
       - '8089:8080'
     depends_on:
-      - kafka
-      - zookeeper
+      kafka:
+        condition: service_healthy
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
       DYNAMIC_CONFIG_ENABLED: 'true'
-    networks:
-      - internal
-    healthcheck:
-      <<: *healthcheck
-      test: [ "CMD-SHELL", "wget --spider --timeout=1 http://localhost:8080/actuator/health" ]
-    security_opt: *security_settings
-
-  init-kafka:
-    image: confluentinc/cp-kafka:latest
-    depends_on:
-      kafka:
-        condition: service_healthy
-    entrypoint: [ '/bin/bash', '-c' ]
-    networks:
-      - internal
-    command: |
-      "
-      # blocks until kafka is reachable
-      echo -e 'Currently available topics:'
-      kafka-topics --bootstrap-server kafka:9092 --list
-      
-      echo -e 'Creating kafka topics...'
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-finished-local --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-dispatch-dlq-local --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-dms-local --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic swim-invoice-local --replication-factor 1 --partitions 1
-
-      echo -e 'Resulting topics:'
-      kafka-topics --bootstrap-server kafka:9092 --list
-      "
     security_opt: *security_settings
 
   #
   # ============= S3 =============
   #
-  minio:
-    image: quay.io/minio/minio:latest
-    command: server /data --console-address ":9001"
+  rustfs:
+    image: rustfs/rustfs:1.0.0@sha256:8cc9801755448b71a786705ce76692c77e14936cccd87cf2fc31842e58f4d1ff
     environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: Test1234
+      RUSTFS_ACCESS_KEY: admin
+      RUSTFS_SECRET_KEY: admin
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - "9000:9000" # API
+      - "9001:9001" # UI
     volumes:
-      - ./minio:/data
-    networks:
-      - internal
+      - rustfs-data:/data
     healthcheck:
       <<: *healthcheck
-      test: [ "CMD-SHELL", "curl http://localhost:9000/minio/health/live" ]
+      test: [ "CMD", "curl", "-fsS", "http://localhost:9000/health/ready" ]
     security_opt: *security_settings
 
-  init-minio:
-    image: minio/mc
+  init-rustfs:
+    image: rustfs/rc:v0.1.36@sha256:ab024bfebee49a750ce886b4c70963ccd9ddaa03f491704a90710641d7a26699
     depends_on:
-      - minio
+      rustfs:
+        condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-        mc config host add minio http://minio:9000 minio Test1234;
-        mc mb minio/swim-bucket;
-        exit 0;
+        set -e;
+        rc alias set local http://rustfs:9000 admin admin;
+        rc mb local/test-bucket;
       "
-    networks:
-      - internal
     security_opt: *security_settings
 
   #
   # ============= Mail =============
   #
   mailpit:
-    image: axllent/mailpit:v1.29.2@sha256:030f06031ce5c60913ac9363da1ab0d4be6fd2a78147dd0e1ca0fcac665d6b34
+    image: axllent/mailpit:v1.31.2@sha256:74d609a42ec279aa63c6b4622a6fa9b5408d1ad5b1d76a1c4be40a265ce0863d
     ports:
       - '1025:1025' # SMTP Server
       - '8025:8025' # UI
     security_opt: *security_settings
 
-networks:
-  internal:
+volumes:
+  rustfs-data:

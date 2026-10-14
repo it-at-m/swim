@@ -4,8 +4,9 @@ import de.muenchen.oss.swim.libs.handlercore.application.port.in.ProcessFileInPo
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.MultiFileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,17 +29,16 @@ public class StreamingInAdapter {
     public Consumer<Message<FileEvent>> event() {
         return message -> {
             final FileEvent fileEvent = message.getPayload();
-            final File file;
             try {
-                file = File.fromPresignedUrl(fileEvent.presignedUrl());
-            } catch (final PresignedUrlException e) {
-                log.warn("Error while parsing presinged url {} in use case {}", fileEvent.presignedUrl(), fileEvent.useCase(), e);
-                throw new FileProcessingException(e);
-            }
-            try {
-                processFileInPort.processFile(fileEvent, file);
+                if (fileEvent instanceof SingleFileEvent single) {
+                    processFileInPort.processEvent(single);
+                } else if (fileEvent instanceof MultiFileEvent multi) {
+                    processFileInPort.processEvent(multi);
+                } else {
+                    throw new IllegalArgumentException("FileEvent of type '%s' isn't supported".formatted(fileEvent.getClass().getName()));
+                }
             } catch (final PresignedUrlException | UnknownUseCaseException | MetadataException e) {
-                log.warn("Error while processing file {} in use case {}", file.path(), fileEvent.useCase(), e);
+                log.warn("Error while processing event in use case {}: {}", fileEvent.useCase(), fileEvent, e);
                 throw new FileProcessingException(e);
             }
         };

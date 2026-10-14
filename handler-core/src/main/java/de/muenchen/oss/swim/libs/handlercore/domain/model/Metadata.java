@@ -1,7 +1,7 @@
 package de.muenchen.oss.swim.libs.handlercore.domain.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Map;
+import tools.jackson.databind.JsonNode;
 
 public record Metadata(
         JsonNode jsonNode,

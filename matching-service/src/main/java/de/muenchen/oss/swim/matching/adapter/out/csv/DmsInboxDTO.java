@@ -2,11 +2,11 @@ package de.muenchen.oss.swim.matching.adapter.out.csv;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.io.IOException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record DmsInboxDTO(
@@ -28,11 +28,10 @@ public record DmsInboxDTO(
     /**
      * Custom deserializer for {@link InboxType} with default value {@link InboxType#USER}.
      */
-    private static final class InboxTypeDeserializer extends JsonDeserializer<InboxType> {
+    private static final class InboxTypeDeserializer extends ValueDeserializer<InboxType> {
         @Override
-        public InboxType deserialize(final JsonParser p, final DeserializationContext ctxt)
-                throws IOException {
-            final String value = p.getText();
+        public InboxType deserialize(final JsonParser p, final DeserializationContext ctxt) {
+            final String value = p.getString();
             // default USER
             if (value == null || value.isEmpty()) {
                 return InboxType.USER;
@@ -43,7 +42,7 @@ public record DmsInboxDTO(
             } else if (ACL_GROUP.equals(value)) {
                 return InboxType.GROUP;
             }
-            throw new IOException("Unknown value for InboxType: " + value);
+            throw DatabindException.from(p, "Unknown value for InboxType: " + value);
         }
     }
 }

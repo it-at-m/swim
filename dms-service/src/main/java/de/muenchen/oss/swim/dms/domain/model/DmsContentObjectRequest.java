@@ -1,14 +1,18 @@
 package de.muenchen.oss.swim.dms.domain.model;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+import java.io.InputStream;
 
 /**
  * Properties for creating a new ContentObject.
  *
  * @param name The name of the new ContentObject including the file extension.
  * @param subject The subject of the new ContentObject.
+ * @param inputStream The content of the new ContentObject.
  */
-public record DmsContentObjectRequest(@NotBlank String name, String subject) {
+public record DmsContentObjectRequest(@NotBlank String name, String subject, @NotNull InputStream inputStream) {
     /**
      * Get the name without the file extension.
      *

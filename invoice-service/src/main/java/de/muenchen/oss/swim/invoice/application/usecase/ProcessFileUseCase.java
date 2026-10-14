@@ -6,8 +6,10 @@ import de.muenchen.oss.swim.libs.handlercore.application.port.in.ProcessFileInPo
 import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileEventOutPort;
 import de.muenchen.oss.swim.libs.handlercore.application.port.out.FileSystemOutPort;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.PresignedUrlException;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.File;
-import de.muenchen.oss.swim.libs.handlercore.domain.model.FileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.FileReference;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.MultiFileEvent;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.PresignedFile;
+import de.muenchen.oss.swim.libs.handlercore.domain.model.SingleFileEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +26,13 @@ public class ProcessFileUseCase implements ProcessFileInPort {
     private final InvoiceMeter invoiceMeter;
 
     @Override
-    public void processFile(final FileEvent event, final File file)
+    public void processEvent(final SingleFileEvent event)
             throws PresignedUrlException {
+        final PresignedFile presignedFile = event.file();
+        final FileReference file = FileReference.fromPresignedUrl(presignedFile.presignedUrl());
         log.info("Processing file {} for use case {}", file, event.useCase());
         // load file
-        try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(event.presignedUrl())) {
+        try (InputStream fileStream = fileSystemOutPort.getPresignedUrlFile(presignedFile.presignedUrl())) {
             // create invoice
             this.invoiceServiceOutPort.createInvoice(file.getFileName(), fileStream);
         } catch (final IOException e) {
@@ -39,5 +43,10 @@ public class ProcessFileUseCase implements ProcessFileInPort {
         log.info("File {} in use case {} finished", file, event.useCase());
         // update metric
         invoiceMeter.incrementProcessed(event.useCase());
+    }
+
+    @Override
+    public void processEvent(MultiFileEvent event) {
+        throw new IllegalArgumentException("Handling of multi event is not supported");
     }
 }

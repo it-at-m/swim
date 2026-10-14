@@ -21,7 +21,7 @@ flowchart LR
 - The Spring profile `local` is preconfigured for using the stack
     - Activate it either manually or by using the provided run configuration
 - After starting the following UIs are available:
-  - [S3/Minio](http://localhost:9001/) (User: `minio`, PW: `Test1234`)
+  - [S3/RustFS](http://localhost:9001/) (User: `admin`, PW: `admin`)
   - [Mailpit](http://localhost:8025/)
   - [Kafka-UI](http://localhost:8089/)
   - [pgAdmin](http://localhost:5050/)
@@ -32,6 +32,16 @@ In addition to the properties listed below, other Spring libraries must also be 
 These properties and example values can be found in the [`application-local.yml`](./src/main/resources/application-local.yml).
 
 ```yaml
+# s3 connection options
+refarch:
+  s3:
+    url:
+    access-key:
+    secret-key:
+    path-style-access-enabled: 
+    initial-connection-test: true
+    connection-timeout: 30s
+    socket-timeout: 60s
 swim:
   dispatching-cron: # cron interval for triggering dispatching
   protocol-processing-cron: # cron interval for triggering protocol processing
@@ -42,9 +52,9 @@ swim:
     locale: # change the language of the mails (optional, default: en, alternatives: de)
   # s3 connection options
   s3:
-    url:
-    access-key:
-    secret-key:
+    presigned-url-expiry: 7d
+  # file chunking
+  max-file-chunk-age: 1d # after which file age an error should be thrown if file chunks are missing, see section "Multi Events"
   # dirs
   dispatch-folder: inProcess # subfolder to search for files to process under
   finished-folder: finished # subfolder to move finished files to
@@ -104,3 +114,19 @@ To allow a preceding system to change the routing behaviour there is the propert
 - `dispatch` (default if action tag not set): Default routing behaviour
 - `reroute`: Reroute a message to another use case. Target use case is resolved via `swim.dispatch-action-destination-tag-key`
 - `delete`, `ignore`: File is marked as finished without further processing
+
+## Multi Events
+
+Filenames (without extension) matching the pattern `-(\d+)v(\d+)$` (e.g. `...-1v3.pdf`) are grouped into a single event for joint processing.
+This leads to two different types of events, which are determined by the `swim_event_type` header in the Kafka messages:
+- `single`: For processing a single file (for backwards compatibility, events without that header are handled as single events).
+- `multi`: For processing multiple files together (e.g. after splitting a file, where the chunks still belong to the same context).
+
+During dispatching, the group of files in multi-events is validated for completeness.
+This is done by extracting the index (1. matching group) and the junk count (2. matching group) from the above pattern and
+validating that each chunk is present before dispatching the event.
+To prevent errors from occurring when file junks are still uploaded, there is a configurable delay `max-file-chunk-age` (see [Configuration](#configuration)),
+after which missing chunks lead to an error.
+
+For handling these events the [handler-core](../handler-core) has two different interface methods, 
+which allow an application to handle the different types differently or support only one.

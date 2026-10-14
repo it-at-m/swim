@@ -1,5 +1,7 @@
 package de.muenchen.oss.swim.dms.configuration;
 
+import de.muenchen.oss.swim.dms.application.usecase.ArchiveShadowFilesUseCase;
+import de.muenchen.oss.swim.dms.domain.model.DmsTarget;
 import de.muenchen.oss.swim.dms.domain.model.UseCase;
 import de.muenchen.oss.swim.dms.domain.model.UseCaseIncoming;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.UnknownUseCaseException;
@@ -21,45 +23,29 @@ public class SwimDmsProperties {
     @NestedConfigurationProperty
     private List<UseCase> useCases = List.of();
     /**
-     * Var name in metadata file to get target user inbox coo from.
+     * Collection of var names in metadata file to get target user inbox.
      */
-    @NotBlank
-    private String metadataUserInboxCooKey;
+    @Valid
+    @NotNull
+    private MetadataRequestContextProperty metadataUserInbox;
     /**
-     * Var name in metadata file to get target user inbox owner from.
+     * Collection of var names in metadata file to get target group inbox.
      */
-    @NotBlank
-    private String metadataUserInboxUserKey;
+    @Valid
+    @NotNull
+    private MetadataRequestContextProperty metadataGroupInbox;
     /**
-     * Var name in metadata file to get target group inbox coo from.
+     * Collection of var names in metadata file to get target incoming.
      */
-    @NotBlank
-    private String metadataGroupInboxCooKey;
+    @Valid
+    @NotNull
+    private MetadataRequestContextProperty metadataIncoming;
     /**
-     * Var name in metadata file to get target user inbox owner from.
+     * Collection of var names in metadata file to get target shadow file.
      */
-    @NotBlank
-    private String metadataGroupInboxUserKey;
-    /**
-     * Var name in metadata file to get target incoming coo from.
-     */
-    @NotBlank
-    private String metadataIncomingCooKey;
-    /**
-     * Var name in metadata file to get target incoming owner from.
-     */
-    @NotBlank
-    private String metadataIncomingUserKey;
-    /**
-     * Var name in metadata file to get target incoming joboe from.
-     */
-    @NotBlank
-    private String metadataIncomingJoboeKey;
-    /**
-     * Var name in metadata file to get target incoming jobposition from.
-     */
-    @NotBlank
-    private String metadataIncomingJobpositionKey;
+    @Valid
+    @NotNull
+    private MetadataRequestContextProperty metadataShadowFile;
     /**
      * Var name in metadata file to get dms target resource type from.
      */
@@ -72,10 +58,26 @@ public class SwimDmsProperties {
     @NotBlank
     private String metadataSubjectPrefix;
     /**
-     * Prefix for {@link UseCase#isDecodeGermanChars()}.
+     * Attributes used for archiving shadow files, see {@link ArchiveShadowFilesUseCase}.
      */
-    @NotBlank
-    private String decodeGermanCharsPrefix;
+    @NotNull
+    @Valid
+    private SwimDmsProperties.ShadowFileArchiving shadowFileArchiving = new ShadowFileArchiving();
+
+    @Data
+    public static class ShadowFileArchiving {
+        /**
+         * The cron definition to use for triggering the scheduled archiving.
+         */
+        @NotBlank
+        private String cron;
+        /**
+         * List of {@link DmsTarget}s referencing shadow file SubjectAreas to run archiving for via
+         * {@link ArchiveShadowFilesUseCase}.
+         */
+        @NotNull
+        private List<@NotNull @Valid DmsTarget> subjectAreas = List.of();
+    }
 
     /**
      * Resolve use case via name.
@@ -88,5 +90,12 @@ public class SwimDmsProperties {
         return this.getUseCases().stream()
                 .filter(i -> i.getName().equals(useCase)).findFirst()
                 .orElseThrow(() -> new UnknownUseCaseException(String.format("Unknown use case %s", useCase)));
+    }
+
+    public record MetadataRequestContextProperty(
+            @NotBlank String userKey,
+            @NotBlank String jobOeKey,
+            @NotBlank String jobPositionKey,
+            @NotBlank String cooKey) {
     }
 }

@@ -1,6 +1,7 @@
 package de.muenchen.oss.swim.dispatcher.application.port.out;
 
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +19,18 @@ public interface NotificationOutPort {
      * @param useCase The name of the use case the errors where thrown in.
      * @param errors The errors that where thrown.
      */
-    void sendDispatchErrors(@NotEmpty List<String> recipients, @NotBlank String useCase, @NotEmpty Map<String, Throwable> errors);
+    void sendDispatchErrors(@NotEmpty List<String> recipients, @NotBlank String useCase, @NotEmpty Map<FileReference, Throwable> errors);
+
+    /**
+     * Notify about errors while dispatching.
+     *
+     * @param recipients The recipients to send the notification to.
+     * @param useCase The name of the use case the errors where thrown in.
+     * @param errors The errors that where thrown.
+     * @param additionalErrorMessage An additional error message, for special cases.
+     */
+    void sendDispatchErrors(@NotEmpty List<String> recipients, @NotBlank String useCase, Map<FileReference, Throwable> errors,
+            @NotBlank String additionalErrorMessage);
 
     /**
      * Send protocol with validation information.

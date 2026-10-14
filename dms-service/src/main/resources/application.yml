@@ -5,7 +5,16 @@ spring:
     name: @project.artifactId@
     group: @project.groupId@
     version: @project.version@
+  web:
+    error:
+      include-exception: false
+      include-stacktrace: never
+      whitelabel:
+        enabled: false
   cloud:
+    # needed to not collide with spring kubernetes consumer
+    function:
+      definition: event
     stream:
       default:
         consumer:
@@ -16,13 +25,15 @@ spring:
             ack-mode: record
         binder:
           auto-create-topics: false
-          consumerProperties:
-            max:
-              poll:
-                records: 20
-            auto:
-              offset:
-                reset: latest
+          consumer-properties:
+            # must be above records x max runtime per record
+            max.poll.interval.ms: 1500000
+            max.poll.records: 5
+            auto.offset.reset: latest
+    kubernetes:
+      leader:
+        election:
+          enabled: true
   kafka:
     consumer:
       properties:
@@ -31,18 +42,8 @@ spring:
             trusted:
               packages: '*'
 
-server:
-  shutdown: "graceful"
-  port: 8080
-  error:
-    include-exception: false
-    include-stacktrace: never
-    whitelabel:
-      enabled: false
-
 # Config for spring actuator endpoints
 management:
-  server.port: ${server.port}
   endpoints:
     access:
       default: none
@@ -72,7 +73,6 @@ management:
 logging:
   level:
     root: info
-    "org.apache.kafka": warn
   structured:
     format:
       console: logstash
@@ -99,14 +99,27 @@ info:
 swim:
   dms:
     ou-work-queue-access-definition: "Eigene Organisationseinheit und Vorgesetzte (ohne Zentralregistratur)"
-  decode-german-chars-prefix: '#'
   metadata-dms-target-key: "SWIM_DMS_Target"
   metadata-subject-prefix: "FdE_"
-  metadata-user-inbox-coo-key: "PPK_COO"
-  metadata-user-inbox-user-key: "PPK_Username"
-  metadata-group-inbox-coo-key: "GPK_COO"
-  metadata-group-inbox-user-key: "GPK_Username"
-  metadata-incoming-coo-key: "VG_COO"
-  metadata-incoming-user-key: "VG_Username"
-  metadata-incoming-joboe-key: "VG_Joboe"
-  metadata-incoming-jobposition-key: "VG_Jobposition"
+  metadata-user-inbox:
+    coo-key: "PPK_COO"
+    user-key: "PPK_Username"
+    job-oe-key: "PPK_Joboe"
+    job-position-key: "PPK_Jobposition"
+  metadata-group-inbox:
+    coo-key: "GPK_COO"
+    user-key: "GPK_Username"
+    job-oe-key: "GPK_Joboe"
+    job-position-key: "GPK_Jobposition"
+  metadata-incoming:
+    coo-key: "VG_COO"
+    user-key: "VG_Username"
+    job-oe-key: "VG_Joboe"
+    job-position-key: "VG_Jobposition"
+  metadata-shadow-file:
+    coo-key: "A_COO"
+    user-key: "A_Username"
+    job-oe-key: "A_Joboe"
+    job-position-key: "A_Jobposition"
+  shadow-file-archiving:
+    cron: "0 0 3 1,2,4 * *"

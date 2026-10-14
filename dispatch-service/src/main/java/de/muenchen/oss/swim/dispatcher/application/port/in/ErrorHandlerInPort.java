@@ -1,6 +1,7 @@
 package de.muenchen.oss.swim.dispatcher.application.port.in;
 
 import de.muenchen.oss.swim.dispatcher.domain.model.ErrorDetails;
+import de.muenchen.oss.swim.dispatcher.domain.model.PresignedFile;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;
 
@@ -11,9 +12,8 @@ public interface ErrorHandlerInPort {
      * Could either be in external service or while marking file as finished.
      *
      * @param useCaseName Name of the useCase for which the Exception occurred.
-     * @param presignedUrl PresignedUrl of the file for which the Exception occurred.
-     * @param metadataPresignedUrl PresignedUrl of the metadata file for which the Exception occurred.
+     * @param presignedFile Presigned information of the file for which the Exception occurred.
      * @param cause The Exception which occurred.
      */
-    void handleError(String useCaseName, String presignedUrl, String metadataPresignedUrl, @NotNull ErrorDetails cause);
+    void handleError(String useCaseName, PresignedFile presignedFile, @NotNull ErrorDetails cause);
 }

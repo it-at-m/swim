@@ -1,5 +1,5 @@
-name: "pr-labeler"
-
+# Workflow to assign appropriate labels to PRs
+name: pr-labeler
 on:
   - pull_request_target
 
@@ -8,7 +8,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      # issues: write # permission to create labels if not exist
     runs-on: ubuntu-latest
     steps:
-      - name: "Label PR"
-        uses: it-at-m/lhm_actions/action-templates/actions/action-pr-labeler@e012d3bda6f9d5511415e2d885f32826049284a4 # v1.0.23
+      - uses: it-at-m/lhm_actions/action-templates/actions/action-pr-labeler@877aafa9f0732cbc91819b60d237c351ea88f95c # v1.0.34

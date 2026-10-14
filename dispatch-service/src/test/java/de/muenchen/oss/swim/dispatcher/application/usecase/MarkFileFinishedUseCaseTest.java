@@ -5,7 +5,6 @@ import static de.muenchen.oss.swim.dispatcher.TestConstants.USE_CASE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -16,6 +15,7 @@ import de.muenchen.oss.swim.dispatcher.configuration.DispatchMeter;
 import de.muenchen.oss.swim.dispatcher.configuration.SwimDispatcherProperties;
 import de.muenchen.oss.swim.dispatcher.domain.exception.PresignedUrlException;
 import de.muenchen.oss.swim.dispatcher.domain.exception.UseCaseException;
+import de.muenchen.oss.swim.dispatcher.domain.model.FileReference;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,11 +44,12 @@ class MarkFileFinishedUseCaseTest {
     void testMarkFileFinished_Success() throws PresignedUrlException, UseCaseException {
         when(fileSystemOutPort.verifyPresignedUrl(any())).thenReturn(true);
         markFileFinishedUseCase.markFileFinished(USE_CASE, TEST_PRESIGNED_URL);
-        verify(fileSystemOutPort, times(1)).verifyPresignedUrl(TEST_PRESIGNED_URL);
-        verify(fileSystemOutPort, times(1)).moveFile(eq("test-bucket"), eq("test/inProcess/path/example.pdf"), eq("test/finished/path/example.pdf"));
-        verify(fileSystemOutPort, times(1)).tagFile(eq("test-bucket"), eq("test/finished/path/example.pdf"), eq(Map.of(
+        verify(fileSystemOutPort).verifyPresignedUrl(TEST_PRESIGNED_URL);
+        verify(fileSystemOutPort).moveFile(eq(new FileReference("test-bucket", "test/inProcess/path/example.pdf")),
+                eq("test/finished/path/example.pdf"));
+        verify(fileSystemOutPort).tagFile(eq(new FileReference("test-bucket", "test/finished/path/example.pdf")), eq(Map.of(
                 "SWIM_State", "finished")));
-        verify(dispatchMeter, times(1)).incrementFinished(eq(USE_CASE));
+        verify(dispatchMeter).incrementFinished(eq(USE_CASE));
     }
 
     @Test

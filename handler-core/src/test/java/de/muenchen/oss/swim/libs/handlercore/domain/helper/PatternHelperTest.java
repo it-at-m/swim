@@ -3,7 +3,6 @@ package de.muenchen.oss.swim.libs.handlercore.domain.helper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.muenchen.oss.swim.libs.handlercore.domain.exception.MetadataException;
 import de.muenchen.oss.swim.libs.handlercore.domain.model.Metadata;
 import org.junit.jupiter.api.Test;
@@ -12,8 +11,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import tools.jackson.databind.json.JsonMapper;
 
-@SpringBootTest(classes = { PatternHelper.class, MetadataHelper.class, ObjectMapper.class })
+@SpringBootTest(classes = { PatternHelper.class, MetadataHelper.class, JsonMapper.class })
 @EnableConfigurationProperties
 @ExtendWith(MockitoExtension.class)
 class PatternHelperTest {

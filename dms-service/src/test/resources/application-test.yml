@@ -24,7 +24,6 @@ swim:
         username: staticUsername
         joboe: staticJobOe
         jobposition: staticJobPosition
-      decode-german-chars: true
     - name: metadata-metadata
       type: metadata_file
       coo-source:
@@ -93,6 +92,15 @@ swim:
       incoming:
         incoming-name-pattern: "s/^(.+)(?:-COO.[^-]+-).+$/\\${1}/"
         reuse-incoming: true
+      context:
+        username: staticUsername
+        joboe: staticJobOe
+        jobposition: staticJobPosition
+    - name: shadow-file
+      type: shadow_file
+      coo-source:
+        type: static
+        target-coo: staticCoo
       context:
         username: staticUsername
         joboe: staticJobOe

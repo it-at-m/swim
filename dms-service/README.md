@@ -49,6 +49,7 @@ swim:
     base-url:
     username:
     password:
+    ou-work-queue-access-definition: "Eigene Organisationseinheit und Vorgesetzte (ohne Zentralregistratur)" # access definition to use for creating Incomings in an OU work queue
   decode-german-chars-prefix: '#' # prefix for <use case>.decode-german-chars
   # metadata keys (default values)
   metadata-subject-prefix: "FdE_" # prefix to build subject from metadata file, see Metadata

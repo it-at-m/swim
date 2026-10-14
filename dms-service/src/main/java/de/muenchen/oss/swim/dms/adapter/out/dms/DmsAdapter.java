@@ -44,6 +44,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 public class DmsAdapter implements DmsOutPort {
     public static final String DMS_EXCEPTION_MESSAGE = "Dms request failed with message: %s";
+    private final DmsProperties dmsProperties;
     private final ObjectAndImportToInboxApi objectAndImportToInboxApi;
     private final IncomingFromInboxApi incomingFromInboxApi;
     private final IncomingsApi incomingsApi;
@@ -126,6 +127,10 @@ public class DmsAdapter implements DmsOutPort {
         request.referrednumber(dmsTarget.getCoo());
         request.shortname(incomingRequest.name());
         request.filesubj(incomingRequest.subject());
+        // if ou work queue
+        if (StringUtils.isBlank(dmsTarget.getCoo())) {
+            request.setAccdef(dmsProperties.getOuWorkQueueAccessDefinition());
+        }
         request.useou(true);
         try {
             final AbstractResource file = new NamedInputStreamResource(incomingRequest.contentObject().name(), inputStream);

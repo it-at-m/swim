@@ -49,6 +49,8 @@ eakte:
   username:
   password:
 swim:
+  dms:
+    ou-work-queue-access-definition: "Eigene Organisationseinheit und Vorgesetzte (ohne Zentralregistratur)" # access definition to use for creating Incomings in an OU work queue
   # metadata keys (default values)
   metadata-subject-prefix: "FdE_" # prefix to build subject from metadata file, see Metadata
   metadata-dms-target-key: "SWIM_DMS_Target" # key to use for resolving dms target type, see Type metadata_file

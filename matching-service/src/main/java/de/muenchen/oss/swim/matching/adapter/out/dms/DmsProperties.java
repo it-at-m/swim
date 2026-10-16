@@ -9,14 +9,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "swim.dms")
 @Data
 @Validated
-@ToString(exclude = "password")
 public class DmsProperties {
-    @NotBlank
-    private String baseUrl;
-    @NotBlank
-    private String username;
-    @NotBlank
-    private String password;
     @NotBlank
     private String importCoo;
     @NotBlank

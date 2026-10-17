@@ -1,5 +1,5 @@
 # For documentation see https://jboss-container-images.github.io/openjdk/
-FROM registry.access.redhat.com/ubi10/openjdk-21-runtime:1.24-14@sha256:026353602959376cdf81e0a9477c749865bb61a91fb4a13dc4e71f017ec6fafb
+FROM registry.access.redhat.com/ubi10/openjdk-21-runtime:1.24-16@sha256:5e194bae22a94e56aeb47dfe487331557a1cec5e52b9b17df76c1f7892774144
 
 # Copy runnable jar to deployments
 COPY target/dipa-service-*.jar /deployments/application.jar

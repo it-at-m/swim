@@ -214,7 +214,7 @@ public class DmsAdapter implements DmsOutPort {
                 dmsTarget.getJobposition()));
         if (response != null && response.getGiobjecttype() != null) {
             final List<Objektreferenz> matchingIncomings = response.getGiobjecttype().stream().filter(
-                    i -> i.getName() != null && i.getName().startsWith(incomingNamePrefix))
+                    i -> i.getObjname() != null && i.getObjname().startsWith(incomingNamePrefix))
                     .toList();
             log.info("Found Incomings {} where name starts with '{}'", matchingIncomings, incomingNamePrefix);
             if (matchingIncomings.size() > 1) {
@@ -223,7 +223,7 @@ public class DmsAdapter implements DmsOutPort {
             if (matchingIncomings.isEmpty()) {
                 return Optional.empty();
             }
-            return Optional.ofNullable(matchingIncomings.getFirst().getId());
+            return Optional.ofNullable(matchingIncomings.getFirst().getObjaddress());
         } else {
             throw new DmsException("Response or content null while looking up procedure objects");
         }
@@ -249,9 +249,9 @@ public class DmsAdapter implements DmsOutPort {
             if (matchingProcedures.isEmpty()) {
                 return Optional.empty();
             }
-            final String coo = matchingProcedures.getFirst().getId();
+            final String coo = matchingProcedures.getFirst().getObjaddress();
             log.info("Found Procedure {} where name matches '{}'", coo, procedureName);
-            return Optional.ofNullable(matchingProcedures.getFirst().getId());
+            return Optional.ofNullable(matchingProcedures.getFirst().getObjaddress());
         } else {
             throw new DmsException("Response or content null while searching for Procedures");
         }
@@ -315,7 +315,7 @@ public class DmsAdapter implements DmsOutPort {
                 requestContext.getJoboe(),
                 requestContext.getJobposition()));
         if (response != null && response.getGiobjecttype() != null) {
-            final List<String> coos = response.getGiobjecttype().stream().map(Objektreferenz::getId).toList();
+            final List<String> coos = response.getGiobjecttype().stream().map(Objektreferenz::getObjaddress).toList();
             log.info("Found following {} COOs for {}: {}", resourceType.name(), objectName, coos);
             return coos;
         } else {
@@ -347,7 +347,7 @@ public class DmsAdapter implements DmsOutPort {
                 dmsTarget.getJoboe(),
                 dmsTarget.getJobposition()));
         if (response != null && response.getGiobjecttype() != null) {
-            final List<String> coos = response.getGiobjecttype().stream().map(Objektreferenz::getId).toList();
+            final List<String> coos = response.getGiobjecttype().stream().map(Objektreferenz::getObjaddress).toList();
             log.debug("Found following File COOs for SubjectArea {}: {}", dmsTarget, coos);
             return coos;
         } else {

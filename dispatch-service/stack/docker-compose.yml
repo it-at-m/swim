@@ -92,7 +92,7 @@ services:
   # ============= S3 =============
   #
   rustfs:
-    image: rustfs/rustfs:1.0.0@sha256:8cc9801755448b71a786705ce76692c77e14936cccd87cf2fc31842e58f4d1ff
+    image: rustfs/rustfs:1.0.2@sha256:7e948dad4748bda48f8985fda7195f8cf2e4259427011f6120acc2c9acf51587
     environment:
       RUSTFS_ACCESS_KEY: admin
       RUSTFS_SECRET_KEY: admin
@@ -123,7 +123,7 @@ services:
   # ============= Mail =============
   #
   mailpit:
-    image: axllent/mailpit:v1.31.2@sha256:74d609a42ec279aa63c6b4622a6fa9b5408d1ad5b1d76a1c4be40a265ce0863d
+    image: axllent/mailpit:v1.31.6@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
     ports:
       - '1025:1025' # SMTP Server
       - '8025:8025' # UI

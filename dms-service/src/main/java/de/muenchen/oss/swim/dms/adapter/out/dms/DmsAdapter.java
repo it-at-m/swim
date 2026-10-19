@@ -52,6 +52,7 @@ import org.springframework.stereotype.Service;
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 public class DmsAdapter implements DmsOutPort {
     private final DmsErrorHandler errorHandler;
+    private final DmsProperties dmsProperties;
     private final ObjectAndImportToInboxApi objectAndImportToInboxApi;
     private final IncomingFromInboxApi incomingFromInboxApi;
     private final IncomingsApi incomingsApi;
@@ -142,6 +143,10 @@ public class DmsAdapter implements DmsOutPort {
         request.referrednumber(dmsTarget.getCoo());
         request.shortname(incomingRequest.name());
         request.filesubj(incomingRequest.subject());
+        // if ou work queue
+        if (StringUtils.isBlank(dmsTarget.getCoo())) {
+            request.setAccdef(dmsProperties.getOuWorkQueueAccessDefinition());
+        }
         request.useou(true);
         final List<Resource> attachments = contentObjectRequests.stream()
                 .map(i -> new NamedInputStreamResource(i.name(), i.inputStream())).collect(Collectors.toList());

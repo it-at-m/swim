@@ -115,7 +115,7 @@ services:
       /bin/sh -c "
         set -e;
         rc alias set local http://rustfs:9000 admin admin;
-        rc mb local/test-bucket;
+        rc mb local/swim-bucket;
       "
     security_opt: *security_settings
 

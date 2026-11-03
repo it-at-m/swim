@@ -26,5 +26,5 @@ public interface FileDispatchingOutPort {
      * @param useCase The name of the use case the file was found for.
      * @param presignedFiles The presigned information of multiple files.
      */
-    void dispatchFile(@NotBlank String bindingName, @NotBlank String useCase, @NotEmpty @Valid List<PresignedFile> presignedFiles);
+    void dispatchFile(@NotBlank String bindingName, @NotBlank String useCase, @NotEmpty List<@Valid PresignedFile> presignedFiles);
 }

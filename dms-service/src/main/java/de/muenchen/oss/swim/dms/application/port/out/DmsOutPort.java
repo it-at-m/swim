@@ -33,7 +33,7 @@ public interface DmsOutPort {
      * @return The coo of the new Incoming.
      */
     String createInboxIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest,
-            @NotEmpty @Valid List<DmsContentObjectRequest> contentObjectRequests);
+            @NotEmpty List<@Valid DmsContentObjectRequest> contentObjectRequests);
 
     /**
      * Create Incoming with ContentObjects.
@@ -47,7 +47,7 @@ public interface DmsOutPort {
      * @return The coo of the new Incoming.
      */
     String createProcedureIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotNull @Valid DmsIncomingRequest incomingRequest,
-            @NotEmpty @Valid List<DmsContentObjectRequest> contentObjectRequests);
+            @NotEmpty List<@Valid DmsContentObjectRequest> contentObjectRequests);
 
     /**
      * Add ContentObjects to existing Incoming.
@@ -55,7 +55,7 @@ public interface DmsOutPort {
      * @param dmsTarget The Incoming to add the ContentObjects to.
      * @param contentObjectRequests The files to add as ContentObjects.
      */
-    void addContentObjectsToIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotEmpty @Valid List<DmsContentObjectRequest> contentObjectRequests);
+    void addContentObjectsToIncoming(@NotNull @Valid DmsTarget dmsTarget, @NotEmpty List<@Valid DmsContentObjectRequest> contentObjectRequests);
 
     /**
      * Get name of Procedure by coo.

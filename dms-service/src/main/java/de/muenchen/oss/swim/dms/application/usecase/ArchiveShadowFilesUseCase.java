@@ -29,10 +29,10 @@ public class ArchiveShadowFilesUseCase implements ArchiveShadowFilesInPort {
         final LocalDate previousMonthDate = LocalDate.now().minusMonths(1);
         final String procedureName = previousMonthDate.format(SHADOW_PROCEDURE_NAME_PATTERN);
         // for each SubjectArea COO
-        for (final String subjectAreaCoo : archiveProperties.getSubjectAreaCoos()) {
-            log.debug("Processing SubjectArea {}", subjectAreaCoo);
-            final DmsTarget dmsTarget = new DmsTarget(subjectAreaCoo, archiveProperties.getUsername(), archiveProperties.getJobOe(),
-                    archiveProperties.getJobPosition());
+        for (final DmsTarget subjectArea : archiveProperties.getSubjectAreas()) {
+            log.debug("Processing SubjectArea {}", subjectArea.getCoo());
+            final DmsTarget dmsTarget = new DmsTarget(subjectArea.getCoo(), subjectArea.getUsername(), subjectArea.getJoboe(),
+                    subjectArea.getJobposition());
             try {
                 final List<String> fileCoos = dmsOutPort.getSubjectAreaFiles(dmsTarget);
                 // for each File in the SubjectArea
@@ -41,7 +41,7 @@ public class ArchiveShadowFilesUseCase implements ArchiveShadowFilesInPort {
                     archiveProcedure(fileCoo, procedureName, dmsTarget);
                 }
             } catch (final RuntimeException e) {
-                log.error("Error while loading Files for SubjectArea {}", subjectAreaCoo, e);
+                log.error("Error while loading Files for SubjectArea {}", subjectArea.getCoo(), e);
             }
         }
         log.info("Finished archiving shadow files");

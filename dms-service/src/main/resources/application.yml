@@ -97,6 +97,8 @@ info:
     spring-cloud.version: @spring-cloud-dependencies.version@
 
 swim:
+  dms:
+    ou-work-queue-access-definition: "Eigene Organisationseinheit und Vorgesetzte (ohne Zentralregistratur)"
   metadata-dms-target-key: "SWIM_DMS_Target"
   metadata-subject-prefix: "FdE_"
   metadata-user-inbox:

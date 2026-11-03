@@ -5,13 +5,13 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.1.2</version>
         <relativePath />
     </parent>
 
     <groupId>de.muenchen.oss.swim</groupId>
     <artifactId>invoice-service</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <name>invoice-service</name>
     <description>SWIM service for transferring files (invoices) into SAP when notified by dispatch-service via Apache Kafka</description>
     <url>https://github.com/it-at-m/swim</url>
@@ -25,10 +25,10 @@
 
         <!-- Core Frameworks -->
         <swim-handler-core.version>2.0.0</swim-handler-core.version>
-        <spring-cloud-dependencies.version>2025.1.3</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
+        <spring-cloud-dependencies.version>2025.1.4</spring-cloud-dependencies.version> <!-- Must match the chosen Spring Boot version -->
 
         <!-- Linting & Formatting -->
-        <spotless-maven-plugin.version>3.8.0</spotless-maven-plugin.version>
+        <spotless-maven-plugin.version>3.10.4</spotless-maven-plugin.version>
         <itm-java-codeformat.version>1.0.10</itm-java-codeformat.version>
         <pmd-maven-plugin.version>3.28.0</pmd-maven-plugin.version>
         <spotbugs-maven-plugin.version>4.9.8.5</spotbugs-maven-plugin.version>
@@ -45,10 +45,10 @@
         <!-- Utility -->
         <commons-text.version>1.15.0</commons-text.version>
         <mapstruct.version>1.6.3</mapstruct.version>
-        <refarch-tools.version>1.3.0</refarch-tools.version>
+        <refarch-tools.version>1.4.0</refarch-tools.version>
 
         <!-- cxf/WSDL -->
-        <cxf.version>4.2.3</cxf.version>
+        <cxf.version>4.2.4</cxf.version>
         <jaxws-rt.version>4.0.5</jaxws-rt.version>
 
         <!-- Additional required dependencies -->

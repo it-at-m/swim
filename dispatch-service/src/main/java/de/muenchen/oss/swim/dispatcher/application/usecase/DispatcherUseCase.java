@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -84,8 +83,7 @@ public class DispatcherUseCase implements DispatcherInPort {
      * @param folder The full path of the folder.
      * @return Error which occurred during processing (Key: file path, value: error).
      */
-    private @NotNull
-    Map<FileReference, Throwable> processDirectory(final UseCase useCase, final String folder, final boolean recursive) {
+    private Map<FileReference, Throwable> processDirectory(final UseCase useCase, final String folder, final boolean recursive) {
         // find files
         final List<FileWithMetadata> readyFiles = fileSystemOutPort.getMatchingFilesWithTags(
                 useCase.getBucket(),

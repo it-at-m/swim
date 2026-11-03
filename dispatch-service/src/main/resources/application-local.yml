@@ -45,7 +45,7 @@ logging:
     format:
       console: # set to empty to disable structured logging for testing
   level:
-    "de.muenchen.swim.dispatcher": debug
+    "de.muenchen.oss.swim.dispatcher": debug
 
 swim:
   mail:
@@ -94,11 +94,14 @@ swim:
       destination-binding: dipa-out
       mail-addresses:
         - test-dipa@example.com
-  s3:
-    url: http://localhost:9000
-    access-key: minio
-    secret-key: Test1234
   dispatching-cron: "0 */1 * * * *"
   protocol-processing-cron: "0 */1 * * * *"
   fallback-mail: swim@example.com
   max-file-chunk-age: 10m
+
+refarch:
+  s3:
+    url: http://localhost:9000
+    access-key: admin
+    secret-key: admin
+    path-style-access-enabled: true

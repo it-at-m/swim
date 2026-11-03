@@ -14,8 +14,8 @@ ca_bundle = ~/root_cert.pem
 - (Optional) Configure profiles in `~/.aws/credentials` (Ensure security)
 ```ini
 [local]
-aws_access_key_id = minio
-aws_secret_access_key = Test1234
+aws_access_key_id = admin
+aws_secret_access_key = admin
 endpoint_url = http://localhost:9000
 ```
 

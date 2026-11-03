@@ -5,7 +5,7 @@ services:
   # ============= DB =============
   #
   postgres:
-    image: postgres:17.4-alpine3.20@sha256:67c27fd3b866e5e3da543b37c70654a13d45d5c4bcb3a2cd9b2813a5c9e167dd
+    image: postgres:17.5-alpine3.20@sha256:ccd14e0306cef4c2943a4bda5a2c6a77201a426eb2576d888e5cdc28ccddca75
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=admin
@@ -70,8 +70,6 @@ services:
       KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: 1
       CLUSTER_ID: 4L6g3nShT-eMCtK--X86sw
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
-    networks:
-      - internal
     healthcheck:
       <<: *healthcheck
       test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list > /dev/null 2>&1 || exit 1" ]
@@ -88,54 +86,48 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       DYNAMIC_CONFIG_ENABLED: 'true'
-    networks:
-      - internal
     security_opt: *security_settings
 
   #
   # ============= S3 =============
   #
-  minio:
-    image: quay.io/minio/minio:RELEASE.2024-08-17T01-24-54Z@sha256:6f23072e3e222e64fe6f86b31a7f7aca971e5129e55cbccef649b109b8e651a1
-    command: server /data --console-address ":9001"
+  rustfs:
+    image: rustfs/rustfs:1.0.4@sha256:ed9210d6411d77ffceb70d94b964a3cb7d225983368bc25bebe01e995293dcc2
     environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: Test1234
+      RUSTFS_ACCESS_KEY: admin
+      RUSTFS_SECRET_KEY: admin
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - "9000:9000" # API
+      - "9001:9001" # UI
     volumes:
-      - ./minio:/data
-    networks:
-      - internal
+      - rustfs-data:/data
     healthcheck:
       <<: *healthcheck
-      test: [ "CMD-SHELL", "curl http://localhost:9000/minio/health/live" ]
+      test: [ "CMD", "curl", "-fsS", "http://localhost:9000/health/ready" ]
     security_opt: *security_settings
 
-  init-minio:
-    image: minio/mc:RELEASE.2024-08-17T11-33-50Z@sha256:87382ad79da9f464a444aab607b3db9251c7fe7d1bfda0eb86cbacee2ca2b564
+  init-rustfs:
+    image: rustfs/rc:v0.1.36@sha256:ab024bfebee49a750ce886b4c70963ccd9ddaa03f491704a90710641d7a26699
     depends_on:
-      - minio
+      rustfs:
+        condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-        mc config host add minio http://minio:9000 minio Test1234;
-        mc mb minio/swim-bucket;
-        exit 0;
+        set -e;
+        rc alias set local http://rustfs:9000 admin admin;
+        rc mb local/swim-bucket;
       "
-    networks:
-      - internal
     security_opt: *security_settings
 
   #
   # ============= Mail =============
   #
   mailpit:
-    image: axllent/mailpit:v1.30.7@sha256:d5ecbb067db3705fa953d79e1b7f81ef84038df67aba6c52825d8c02a1ea748a
+    image: axllent/mailpit:v1.31.6@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
     ports:
       - '1025:1025' # SMTP Server
       - '8025:8025' # UI
     security_opt: *security_settings
 
-networks:
-  internal:
+volumes:
+  rustfs-data:

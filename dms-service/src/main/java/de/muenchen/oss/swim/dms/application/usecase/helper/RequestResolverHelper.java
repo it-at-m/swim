@@ -105,6 +105,14 @@ public class RequestResolverHelper {
         } else {
             incomingSubject = null;
         }
-        return new DmsIncomingRequest(incomingName, incomingSubject);
+        // resolve documentremarks for Incoming
+        final String documentremarks;
+        if (StringUtils.isNotBlank(useCase.getIncoming().getDocumentremarksPattern())) {
+            documentremarks = this.patternHelper.applyPattern(useCase.getIncoming().getDocumentremarksPattern(),
+                    file.getFileNameWithoutExtension(), metadata);
+        } else {
+            documentremarks = null;
+        }
+        return new DmsIncomingRequest(incomingName, incomingSubject, documentremarks);
     }
 }

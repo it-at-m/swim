@@ -8,5 +8,5 @@ import jakarta.validation.constraints.NotBlank;
  * @param name The name of the new Incoming.
  * @param subject The subject of the new Incoming.
  */
-public record DmsIncomingRequest(@NotBlank String name, String subject) {
+public record DmsIncomingRequest(@NotBlank String name, String subject, String documentremarks) {
 }

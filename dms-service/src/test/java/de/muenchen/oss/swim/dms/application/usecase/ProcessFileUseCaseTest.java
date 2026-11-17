@@ -165,7 +165,7 @@ class ProcessFileUseCaseTest {
         // call
         processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
         // test
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, null);
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, null, null);
         final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, null, DUMMY_STREAM);
         verify(dmsOutPort, times(1)).createInboxIncoming(eq(STATIC_DMS_TARGET), eq(incomingRequest), eq(List.of(contentObjectRequest)));
     }
@@ -197,7 +197,7 @@ class ProcessFileUseCaseTest {
         verify(targetResolverHelper, times(1)).resolveTypeFromMetadataFile(any());
         verify(targetResolverHelper, times(1)).resolveTargetCoo(eq(UseCaseType.PROCEDURE_INCOMING), any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(1)).resolveIncomingDmsTarget(any());
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, null);
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(FILE_NAME_WITHOUT_EXTENSION, null, null);
         final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, null, DUMMY_STREAM);
         verify(dmsOutPort, times(1)).createProcedureIncoming(eq(METADATA_DMS_TARGET_INCOMING), eq(incomingRequest),
                 eq(List.of(contentObjectRequest)));
@@ -247,7 +247,7 @@ class ProcessFileUseCaseTest {
         processFileUseCase.processEvent(new SingleFileEvent(useCaseName, new PresignedFile(presignedUrl, null)));
         final DmsTarget dmsTarget = new DmsTarget("COO.321.321.321", useCase.getContext());
         // test catche all
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(fileNameWithoutExtension, null);
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(fileNameWithoutExtension, null, null);
         final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(fileName, null, DUMMY_STREAM);
         verify(dmsOutPort, times(1)).createProcedureIncoming(eq(dmsTarget), eq(incomingRequest), eq(List.of(contentObjectRequest)));
     }
@@ -315,7 +315,7 @@ class ProcessFileUseCaseTest {
         processFileUseCase.processEvent(buildFileEvent(useCaseName, null));
         // test
         final DmsTarget procedureDmsTarget = new DmsTarget("COO.procedure", STATIC_DMS_TARGET);
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(incomingName, null);
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(incomingName, null, null);
         final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(FILE_NAME, null, DUMMY_STREAM);
         verify(swimDmsProperties, times(2)).findUseCase(eq(useCaseName));
         verify(targetResolverHelper, times(1)).resolveTargetCoo(eq(UseCaseType.SHADOW_FILE), any(), eq(useCase), eq(FILE));
@@ -333,7 +333,7 @@ class ProcessFileUseCaseTest {
         verify(targetResolverHelper, times(1)).resolveTargetCoo(eq(targetType), any(), eq(useCase), eq(FILE));
         verify(dmsMetadataHelper, times(0)).resolveInboxDmsTarget(any());
         verify(dmsOutPort, times(0)).createInboxContentObject(any(), any());
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(incomingName, incomingSubject);
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(incomingName, incomingSubject, null);
         final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest(contentObjectName, null, DUMMY_STREAM);
         verify(dmsOutPort, times(1)).createProcedureIncoming(eq(dmsTarget), eq(incomingRequest), eq(List.of(contentObjectRequest)));
     }

@@ -96,7 +96,7 @@ class DmsHelperTest {
 
         dmsHelper.processInboxIncoming(useCase, DMS_TARGET, files);
 
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest("document-1", null);
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest("document-1", null, null);
         final List<DmsContentObjectRequest> contentObjectRequests = List.of(
                 new DmsContentObjectRequest(DOCUMENT_1_FILENAME, null, DUMMY_STREAM),
                 new DmsContentObjectRequest(DOCUMENT_2_FILENAME, null, DUMMY_STREAM));
@@ -110,7 +110,7 @@ class DmsHelperTest {
 
         dmsHelper.processProcedureIncoming(useCase, DMS_TARGET, List.of(loadedFile));
 
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(DOCUMENT, null);
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(DOCUMENT, null, null);
         final List<DmsContentObjectRequest> contentObjectRequests = List.of(new DmsContentObjectRequest(DOCUMENT_PDF, null, DUMMY_STREAM));
         verify(dmsOutPort).createProcedureIncoming(eq(DMS_TARGET), eq(incomingRequest), eq(contentObjectRequests));
         verify(dmsOutPort, never()).getIncomingCooByNamePrefix(eq(DMS_TARGET), eq(DOCUMENT));
@@ -128,7 +128,7 @@ class DmsHelperTest {
         final DmsTarget incomingDmsTarget = new DmsTarget(COO_INCOMING, DMS_TARGET.getUsername(), DMS_TARGET.getJoboe(), DMS_TARGET.getJobposition());
         final List<DmsContentObjectRequest> contentObjectRequests = List.of(new DmsContentObjectRequest(DOCUMENT_PDF, null, DUMMY_STREAM));
         verify(dmsOutPort).addContentObjectsToIncoming(eq(incomingDmsTarget), eq(contentObjectRequests));
-        verify(dmsOutPort, never()).createProcedureIncoming(eq(DMS_TARGET), eq(new DmsIncomingRequest(DOCUMENT, null)), eq(contentObjectRequests));
+        verify(dmsOutPort, never()).createProcedureIncoming(eq(DMS_TARGET), eq(new DmsIncomingRequest(DOCUMENT, null, null)), eq(contentObjectRequests));
     }
 
     @Test
@@ -140,7 +140,7 @@ class DmsHelperTest {
 
         dmsHelper.processProcedureIncoming(useCase, DMS_TARGET, List.of(loadedFile));
 
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest("MiXeD-case", null);
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest("MiXeD-case", null, null);
         final List<DmsContentObjectRequest> contentObjectRequests = List.of(new DmsContentObjectRequest("MiXeD-case.pdf", null, DUMMY_STREAM));
         verify(dmsOutPort).createProcedureIncoming(eq(DMS_TARGET), eq(incomingRequest), eq(contentObjectRequests));
     }
@@ -170,7 +170,7 @@ class DmsHelperTest {
         dmsHelper.processShadowFile(DMS_TARGET, List.of(loadedFile));
         // test
         final DmsTarget procedureDmsTarget = new DmsTarget(COO_PROCEDURE, DMS_TARGET);
-        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(incomingName, null);
+        final DmsIncomingRequest incomingRequest = new DmsIncomingRequest(incomingName, null, null);
         final List<DmsContentObjectRequest> contentObjectRequests = List.of(new DmsContentObjectRequest(DOCUMENT_PDF, null, DUMMY_STREAM));
         verify(dmsOutPort).getIncomingCooByNamePrefix(eq(procedureDmsTarget), eq(incomingName));
         verify(dmsOutPort).createProcedureIncoming(eq(procedureDmsTarget), eq(incomingRequest), eq(contentObjectRequests));
@@ -192,7 +192,8 @@ class DmsHelperTest {
         final List<DmsContentObjectRequest> contentObjectRequests = List.of(new DmsContentObjectRequest(DOCUMENT_PDF, null, DUMMY_STREAM));
         verify(dmsOutPort, never()).createFileProcedure(eq(DMS_TARGET), eq(new DmsProcedureRequest(procedureName)));
         verify(dmsOutPort).addContentObjectsToIncoming(eq(incomingDmsTarget), eq(contentObjectRequests));
-        verify(dmsOutPort, never()).createProcedureIncoming(eq(procedureDmsTarget), eq(new DmsIncomingRequest(incomingName, null)), eq(contentObjectRequests));
+        verify(dmsOutPort, never()).createProcedureIncoming(eq(procedureDmsTarget), eq(new DmsIncomingRequest(incomingName, null, null)),
+                eq(contentObjectRequests));
     }
 
     @Test

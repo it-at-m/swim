@@ -124,6 +124,20 @@ class RequestResolverHelperTest {
     }
 
     @Test
+    void testResolveIncomingParameters_appliesDocumentremarksPattern() throws MetadataException {
+        final UseCase useCase = new UseCase();
+        final UseCaseIncoming incoming = new UseCaseIncoming();
+        incoming.setDocumentremarksPattern("s/^(.+)-(.+)$/${2}/");
+        useCase.setIncoming(incoming);
+        final FileReference file = new FileReference(BUCKET, "remarks-value.pdf");
+        final DmsContentObjectRequest contentObjectRequest = new DmsContentObjectRequest("fallback.pdf", null, DUMMY_STREAM);
+
+        final DmsIncomingRequest response = requestResolverHelper.resolveIncomingParameters(file, useCase, null, contentObjectRequest);
+
+        assertEquals("value", response.documentremarks());
+    }
+
+    @Test
     void testResolveIncomingParameters_buildsSubjectFromMetadata() throws MetadataException {
         final UseCase useCase = new UseCase();
         final UseCaseIncoming incoming = new UseCaseIncoming();

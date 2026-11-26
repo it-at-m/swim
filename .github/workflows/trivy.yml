@@ -31,10 +31,12 @@ jobs:
         id: filter
         with:
           filters: |
-            docs: docs/**
-            refarch-gateway: refarch-gateway/**
-            refarch-integrations: refarch-integrations/**
-            refarch-tools: refarch-tools/**
+            dipa-service: dipa-service/**
+            dispatch-service: dispatch-service/**
+            dms-service: dms-service/**
+            handler-core: handler-service/**
+            invoice-service: invoice-service/**
+            matching-service: matching-service/**
       - run: |
           echo ${{ toJSON(steps.filter.outputs.changes) }}
 

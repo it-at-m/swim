@@ -32,6 +32,13 @@ public class UseCaseIncoming {
      */
     private boolean metadataSubject = false;
     /**
+     * Regex pattern for setting documentremarks on an Incoming.
+     * If not defined stays empty.
+     * Only applies to {@link UseCaseType#PROCEDURE_INCOMING}
+     */
+    @Pattern(regexp = PatternHelper.RAW_PATTERN)
+    private String documentremarksPattern;
+    /**
      * Verify name of resolved Procedure against pattern, if defined.
      * Only applies to {@link UseCaseType#PROCEDURE_INCOMING}
      */

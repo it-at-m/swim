@@ -143,6 +143,7 @@ public class DmsAdapter implements DmsOutPort {
         request.referrednumber(dmsTarget.getCoo());
         request.shortname(incomingRequest.name());
         request.filesubj(incomingRequest.subject());
+        request.documentremarks(incomingRequest.documentremarks());
         // if ou work queue
         if (StringUtils.isBlank(dmsTarget.getCoo())) {
             request.setAccdef(dmsProperties.getOuWorkQueueAccessDefinition());

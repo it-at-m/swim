@@ -86,6 +86,9 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       DYNAMIC_CONFIG_ENABLED: 'true'
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080"]
     security_opt: *security_settings
 
   #

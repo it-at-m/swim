@@ -258,7 +258,7 @@
                         <path>
                             <groupId>com.github.therapi</groupId>
                             <artifactId>therapi-runtime-javadoc-scribe</artifactId>
-                            <version>0.16.0</version>
+                            <version>${therapi-runtime-javadoc-scribe.version}</version>
                         </path>
                     </annotationProcessorPaths>
                     <compilerArgs>
